@@ -4,12 +4,12 @@ with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
-    name="in_context_learning",
+    name="quaild",
     version="0.1.0",
     description="TODO",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/Ghost---Shadow/in-context-learning",
+    url="https://github.com/Ghost---Shadow/quaild",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=requirements,

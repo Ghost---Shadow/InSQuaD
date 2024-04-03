@@ -24,7 +24,7 @@ def find_latest_checkpoint(experiment_dir):
 if __name__ == "__main__":
     # Base path for checkpoints
     base_path = "./checkpoints/"
-    bucket_name = "caraml-icl-bucket"
+    bucket_name = "quaild-icl-bucket"
     shell_script_file = "./devops/upload_checkpoints.sh"
 
     with open(shell_script_file, "w") as script:
