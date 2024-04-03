@@ -1,0 +1,6 @@
+[submodule "data/hotpotqa_with_qa_gpt35"]
+	path = data/hotpotqa_with_qa_gpt35
+	url = git@hf.co:datasets/scholarly-shadows-syndicate/hotpotqa_with_qa_gpt35
+[submodule "data/2wikimultihopqa_with_q_gpt35"]
+	path = data/2wikimultihopqa_with_q_gpt35
+	url = git@hf.co:datasets/scholarly-shadows-syndicate/2wikimultihopqa_with_q_gpt35

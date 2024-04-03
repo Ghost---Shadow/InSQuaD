@@ -1,0 +1,141 @@
+from dataloaders import DATALOADERS_LUT
+from dense_indexes import DENSE_INDEXES_LUT
+from generative_models import GENERATIVE_MODELS_LUT
+from learning_rate_schedulers import LEARNING_RATE_SCHEDULERS_LUT
+from losses import LOSSES_LUT
+from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
+from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
+from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
+import torch
+from training_strategies import TRAINING_STRATEGIES_LUT
+from config import RootConfig
+from torch.cuda.amp import GradScaler
+import torch.optim as optim
+from tqdm import tqdm
+
+
+class TrainingPipeline:
+    def __init__(self, config: RootConfig):
+        self.config = config
+
+        # Leaf level parts
+        self._load_parts(config)
+        self.step = 0
+
+        # Higher level parts
+        lr_scheduler_type = config.training.learning_rate_decay_strategy
+        self.lr_scheduler = LEARNING_RATE_SCHEDULERS_LUT[lr_scheduler_type](
+            config, self.optimizer, self.wrapped_train_dataset, self.step
+        )
+
+        training_strategy_type = config.training.type
+        self.training_strategy = TRAINING_STRATEGIES_LUT[training_strategy_type](
+            config, self
+        )
+
+    def _load_parts(self, config: RootConfig):
+        # Generative Model
+        generative_model_type = config.architecture.generative_model.type
+        self.generative_model = GENERATIVE_MODELS_LUT[generative_model_type](config)
+
+        # Semantic Search Model
+        semantic_search_model_type = config.architecture.semantic_search_model.type
+        self.semantic_search_model = SEMANTIC_SEARCH_MODELS_LUT[
+            semantic_search_model_type
+        ](config)
+
+        # Subset Selection Strategy
+        subset_selection_strategy_type = (
+            config.architecture.subset_selection_strategy.type
+        )
+        self.subset_selection_strategy = SUBSET_SELECTION_STRATEGIES_LUT[
+            subset_selection_strategy_type
+        ](config)
+
+        # Dense Index
+        dense_index_type = config.architecture.dense_index.type
+        self.dense_index = DENSE_INDEXES_LUT[dense_index_type](config)
+
+        # Prompt Formatting Strategy
+        prompt_formatting_strategy_type = (
+            config.architecture.prompt_formatting_strategy.type
+        )
+        self.prompt_formatting_strategy = PROMPT_FORMATTING_STRATEGIES_LUT[
+            prompt_formatting_strategy_type
+        ](config)
+
+        # DataLoader for training dataset
+        train_dataset_type = config.datasets.train
+        self.wrapped_train_dataset = DATALOADERS_LUT[train_dataset_type](config)
+
+        # DataLoaders for validation datasets
+        validation_dataset_types = config.datasets.validation
+        self.wrapped_validation_datasets = [
+            DATALOADERS_LUT[dataset_type](config)
+            for dataset_type in validation_dataset_types
+        ]
+
+        # Loss Function
+        loss_function_type = config.training.loss.type
+        self.loss_function = LOSSES_LUT[loss_function_type](config)
+
+        # Optimizer
+        self.scaler = GradScaler()
+        self.optimizer = optim.AdamW(
+            self.semantic_search_model.get_all_trainable_parameters(),
+            lr=config.training.learning_rate,
+            weight_decay=config.training.weight_decay,
+        )
+
+        # TODO: Why???
+        for param_group in self.optimizer.param_groups:
+            param_group.setdefault("initial_lr", config.training.learning_rate)
+
+    def train_one_epoch(self):
+        self.training_strategy.before_each_epoch()
+
+        train_loader = self.wrapped_train_dataset.get_loader(split="train")
+
+        for batch in tqdm(train_loader):
+            loss = self.training_strategy.train_step(batch)
+            loss.backward()
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+            # with torch.cuda.amp.autocast():
+            #     loss = self.training_strategy.train_step(batch)
+
+            # self.scaler.scale(loss).backward()
+            # self.scaler.unscale_(self.optimizer)
+            # torch.nn.utils.clip_grad_norm_(
+            #     self.semantic_search_model.get_all_trainable_parameters(), 1.0
+            # )
+            # self.scaler.step(self.optimizer)
+            # self.scaler.update()
+            # self.optimizer.zero_grad()
+
+        return loss
+
+    def run_validation(self):
+        metrics = {}
+
+        # Populate FAISS with latest embeddings
+        self.training_strategy.before_each_epoch()
+
+        for validation_dataset in self.wrapped_validation_datasets:
+            dataset_name = validation_dataset.NAME
+            metrics[dataset_name] = {}
+
+            validation_loader = validation_dataset.get_loader(split="validation")
+
+            all_losses = []
+            for batch in tqdm(validation_loader):
+                # TODO: other metrics
+                with torch.no_grad():
+                    loss = self.training_strategy.train_step(batch)
+                    all_losses.append(loss)
+
+            metrics[dataset_name]["loss"] = torch.stack(all_losses).mean().item()
+
+        metrics = {"validation": metrics}
+
+        return metrics

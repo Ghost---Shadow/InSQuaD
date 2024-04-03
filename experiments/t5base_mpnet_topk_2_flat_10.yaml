@@ -1,0 +1,45 @@
+wandb:
+  project: "icl_2024"
+  name: "t5base_mpnet_topk_2_flat_10"
+  # entity: "carml"
+
+architecture:
+  generative_model:
+    type: 't5'
+    checkpoint: 'google-t5/t5-base'
+    device: "cuda:0"
+  
+  semantic_search_model:
+    type: 'mpnet'
+    checkpoint: 'sentence-transformers/all-mpnet-base-v2'
+    device: "cuda:0"
+
+  subset_selection_strategy:
+    type: 'top_k'
+    k: 2
+
+  dense_index:
+    type: 'faiss'
+    index_class: 'IndexFlatL2'
+    repopulate_every: 'epoch'
+    k_for_rerank: 10
+
+  prompt_formatting_strategy:
+    type: 'q_a_with_new_line'
+
+datasets:
+  train: 'mrpc'
+  validation: ['mrpc']
+
+# https://arxiv.org/pdf/2004.09297.pdf - Page 12
+training:
+  type: 'pick_and_rerank'
+  epochs: 7
+  batch_size: 32
+  learning_rate: 3e-5
+  weight_decay: 0.01
+  learning_rate_decay_strategy: 'linear'
+  warmup_ratio: 0.06
+  seeds: [42]
+  loss:
+    type: 'kl_divergence'
