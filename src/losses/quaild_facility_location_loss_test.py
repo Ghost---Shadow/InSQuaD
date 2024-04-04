@@ -5,6 +5,7 @@ from losses.quaild_facility_location_loss import QuaildFacilityLocationLoss
 from config import Config
 
 
+# python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocationLoss -v
 class TestQuaildFacilityLocationLoss(unittest.TestCase):
     def setUp(self):
         self.embedding_size = 4
@@ -16,18 +17,19 @@ class TestQuaildFacilityLocationLoss(unittest.TestCase):
             [[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 0.0, 0.0]]
         )
 
+    # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocationLoss.test_loss_value_known_inputs -v
     def test_loss_value_known_inputs(self):
         """Test the loss computation with known inputs."""
         lambd = 1.0
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.training.loss.lambd = lambd
+        config.training.loss.type = "facility_location"
         loss_module = QuaildFacilityLocationLoss(config)
         loss = loss_module(self.a, self.b)
-        # Since the test uses specific inputs, we check if the loss is as expected.
-        # The expected loss depends on the specific behavior of the loss function with the given inputs.
-        # Placeholder value, adjust based on actual expected loss
         expected_loss_value = 3.0 + 3.0 * lambd
         self.assertAlmostEqual(loss.item(), expected_loss_value, places=4)
 
+    # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocationLoss.test_lambd_impact -v
     def test_lambd_impact(self):
         """Test the impact of lambda on the loss value."""
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
