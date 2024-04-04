@@ -1,11 +1,13 @@
 wandb:
   project: "quaild"
-  name: "t5base_mpnet_gc_none"
+  name: "quaild_test_experiment"
   # entity: "carml"
 
 architecture:
   generative_model:
     type: 'noop'
+    checkpoint: 'none'
+    device: 'none'
   
   semantic_search_model:
     type: 'mpnet'
@@ -28,7 +30,7 @@ architecture:
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
   type: 'quaild'
-  train: 'hotpotqawithq'
+  dataset: 'hotpotqawithq'
   q_d_tradeoff_lambda: 1
   epochs: 7
   batch_size: 32
@@ -48,5 +50,5 @@ validation:
     device: "cuda:0"
   type: quaild
   q_d_tradeoff_lambda: 1
-  validation: ['mrpc']
+  datasets: ['mrpc']
   annotation_budget: 100

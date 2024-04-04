@@ -5,4 +5,5 @@ from dataloaders.mrpc import MRPC
 DATALOADERS_LUT = {
     MRPC.NAME: MRPC,
     DummyDataset.NAME: DummyDataset,
+    "hotpotqawithq": DummyDataset,  # TODO
 }

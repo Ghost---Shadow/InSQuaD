@@ -34,6 +34,7 @@ class WandBConfig(BaseModel):
 
 class GenerativeModelConfig(BaseModel):
     type: str
+    # TODO: NoOp does not need checkpoint
     checkpoint: str
     device: str
 
@@ -54,7 +55,9 @@ class SemanticSearchModelConfig(BaseModel):
 
 class SubsetSelectionStrategyConfig(BaseModel):
     type: str
-    k: int
+    # TODO: Check if either is present
+    k: int = None
+    gain_cutoff: float = None
 
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(SUBSET_SELECTION_STRATEGIES_LUT)
@@ -88,26 +91,15 @@ class ArchitectureConfig(BaseModel):
     prompt_formatting_strategy: PromptFormattingStrategyConfig
 
 
-class DatasetsConfig(BaseModel):
-    train: str
-    validation: List[str]
-
-    _validate_train = validator("train", allow_reuse=True)(
-        type_validator(DATALOADERS_LUT)
-    )
-
-    _validate_validation = validator("validation", each_item=True, allow_reuse=True)(
-        type_validator(DATALOADERS_LUT)
-    )
-
-
 class TrainingLossConfig(BaseModel):
     type: str
+    lambd: float = 0.0
     _validate_type = validator("type", allow_reuse=True)(type_validator(LOSSES_LUT))
 
 
 class TrainingConfig(BaseModel):
     type: str
+    dataset: str
     epochs: int
     batch_size: int
     learning_rate: float
@@ -119,12 +111,27 @@ class TrainingConfig(BaseModel):
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(TRAINING_STRATEGIES_LUT)
     )
+    _validate_dataset = validator("dataset", allow_reuse=True)(
+        type_validator(DATALOADERS_LUT)
+    )
+
+
+class ValidationConfig(BaseModel):
+    type: str
+    q_d_tradeoff_lambda: float
+    annotation_budget: int
+    datasets: List[str]
+    generative_model: GenerativeModelConfig
+
+    _validate_datasets = validator("datasets", each_item=True, allow_reuse=True)(
+        type_validator(DATALOADERS_LUT)
+    )
 
 
 class RootConfig(BaseModel):
     wandb: WandBConfig
     architecture: ArchitectureConfig
-    datasets: DatasetsConfig
+    validation: ValidationConfig
     training: TrainingConfig
 
 
