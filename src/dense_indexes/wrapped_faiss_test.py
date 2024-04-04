@@ -14,7 +14,6 @@ class TestFaissWrapper(unittest.TestCase):
         set_seed(42)
 
         config = Config.from_file("experiments/dummy_experiment.yaml")
-        config.datasets.train = "dummy"
         config.architecture.dense_index.k_for_rerank = 2
 
         wrapped_dataset = DummyDataset(config)

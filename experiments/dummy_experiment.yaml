@@ -27,13 +27,11 @@ architecture:
   prompt_formatting_strategy:
     type: 'q_a_with_new_line'
 
-datasets:
-  train: 'dummy'
-  validation: ['dummy']
-
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
   type: 'pick_and_rerank'
+  dataset: 'dummy'
+  q_d_tradeoff_lambda: 1
   epochs: 7
   batch_size: 32
   learning_rate: 3e-5
@@ -43,3 +41,13 @@ training:
   seeds: [42]
   loss:
     type: 'mean_squared_error'
+
+validation:
+  generative_model:
+    type: 't5'
+    checkpoint: 'google-t5/t5-base'
+    device: "cuda:0"
+  type: quaild
+  q_d_tradeoff_lambda: 1
+  datasets: ['dummy']
+  annotation_budget: 100
