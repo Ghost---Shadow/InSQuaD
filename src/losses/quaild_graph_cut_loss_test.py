@@ -1,7 +1,7 @@
 import unittest
 import torch
 
-from src.losses.quaild_graph_cut_loss import QuaildGraphCutLoss
+from losses.quaild_graph_cut_loss import QuaildGraphCutLoss
 from config import Config
 
 

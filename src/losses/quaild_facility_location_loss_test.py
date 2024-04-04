@@ -1,0 +1,48 @@
+import unittest
+import torch
+
+from losses.quaild_facility_location_loss import QuaildFacilityLocationLoss
+from config import Config
+
+
+class TestQuaildFacilityLocationLoss(unittest.TestCase):
+    def setUp(self):
+        self.embedding_size = 4
+        self.batch_size = 3
+        self.a = torch.tensor(
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
+        )
+        self.b = torch.tensor(
+            [[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 0.0, 0.0]]
+        )
+
+    def test_loss_value_known_inputs(self):
+        """Test the loss computation with known inputs."""
+        lambd = 1.0
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        loss_module = QuaildFacilityLocationLoss(config)
+        loss = loss_module(self.a, self.b)
+        # Since the test uses specific inputs, we check if the loss is as expected.
+        # The expected loss depends on the specific behavior of the loss function with the given inputs.
+        # Placeholder value, adjust based on actual expected loss
+        expected_loss_value = 3.0 + 3.0 * lambd
+        self.assertAlmostEqual(loss.item(), expected_loss_value, places=4)
+
+    def test_lambd_impact(self):
+        """Test the impact of lambda on the loss value."""
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+
+        lambd_values = [0.5, 1.0, 1.5]
+        previous_loss = None
+        for lambd in lambd_values:
+            config.training.loss.lambd = lambd
+            loss_module = QuaildFacilityLocationLoss(config)
+            loss = loss_module(self.a, self.b)
+            if previous_loss is not None:
+                # Ensure that increasing lambda increases the loss value.
+                self.assertGreater(loss.item(), previous_loss.item())
+            previous_loss = loss
+
+
+if __name__ == "__main__":
+    unittest.main()
