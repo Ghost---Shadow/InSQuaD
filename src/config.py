@@ -7,7 +7,7 @@ from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 from training_strategies import TRAINING_STRATEGIES_LUT
 import yaml
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, model_validator, validator
 from pathlib import Path
 from typing import List
 
@@ -55,13 +55,23 @@ class SemanticSearchModelConfig(BaseModel):
 
 class SubsetSelectionStrategyConfig(BaseModel):
     type: str
-    # TODO: Check if either is present
     k: int = None
     gain_cutoff: float = None
 
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(SUBSET_SELECTION_STRATEGIES_LUT)
     )
+
+    @model_validator(mode="before")
+    def check_k_or_gain_cutoff(cls, values):
+        k, gain_cutoff = values.get("k"), values.get("gain_cutoff")
+        if k is not None and gain_cutoff is not None:
+            raise ValueError(
+                'Only one of "k" or "gain_cutoff" must be provided, not both.'
+            )
+        if k is None and gain_cutoff is None:
+            raise ValueError('One of "k" or "gain_cutoff" must be provided.')
+        return values
 
 
 class DenseIndexConfig(BaseModel):

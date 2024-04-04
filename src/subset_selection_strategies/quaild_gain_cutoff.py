@@ -1,11 +1,16 @@
 import torch
 
 
-class GainCutoffStrategy:
+class QuaildGainCutoffStrategy:
     def __init__(self, config, pipeline):
         self.config = config
         self.pipeline = pipeline
-        self.cutoff_gain = self.config.architecture.subset_selection_strategy.gain
+        self.gain_cutoff = (
+            self.config.architecture.subset_selection_strategy.gain_cutoff
+        )
+        assert (
+            self.gain_cutoff
+        ), f"architecture.subset_selection_strategy.gain_cutoff not initialized {self.gain_cutoff}"
         self.lambdA = self.config.validation.q_d_tradeoff_lambda
 
     def subset_select(
@@ -14,10 +19,10 @@ class GainCutoffStrategy:
         query_embedding = query_embedding.unsqueeze(0)
         picked_mask = torch.zeros(len(shortlist_embeddings), dtype=torch.bool)
 
-        gain = torch.Tensor(float("Inf"))
+        gain = torch.tensor(float("Inf"))
         num_picked = 0
 
-        while gain > self.cutoff_gain and num_picked < len(picked_mask):
+        while gain > self.gain_cutoff and num_picked < len(picked_mask):
             candidate_indices = torch.nonzero(~picked_mask)
             picked_embeddings = shortlist_embeddings[picked_mask]
 
@@ -30,7 +35,7 @@ class GainCutoffStrategy:
                     candidate_embedding, query_embedding
                 )
 
-                diversity = 1
+                diversity = torch.tensor(1.0, device=quality.device)
                 if num_picked > 0:
                     diversity = 1 - self.pipeline.loss_function(
                         picked_embeddings, candidate_embedding
@@ -42,6 +47,7 @@ class GainCutoffStrategy:
             scores = torch.stack(scores)
 
             gain, best_candidate = torch.max(scores, dim=0)
-            picked_mask[best_candidate] = True
+            if gain > self.gain_cutoff:
+                picked_mask[best_candidate] = True
 
         return torch.nonzero(picked_mask)

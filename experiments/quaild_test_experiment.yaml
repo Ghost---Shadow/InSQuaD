@@ -16,7 +16,7 @@ architecture:
 
   subset_selection_strategy:
     type: 'gain_cutoff'
-    gain: 0.3
+    gain_cutoff: 0.3
 
   dense_index:
     type: 'faiss'

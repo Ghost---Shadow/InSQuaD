@@ -35,10 +35,12 @@ class TrainingPipeline:
 
     def _load_parts(self, config: RootConfig):
         # Generative Model
+        print("Loading generative model")
         generative_model_type = config.architecture.generative_model.type
         self.generative_model = GENERATIVE_MODELS_LUT[generative_model_type](config)
 
         # Semantic Search Model
+        print("Loading Semantic Search Model")
         semantic_search_model_type = config.architecture.semantic_search_model.type
         self.semantic_search_model = SEMANTIC_SEARCH_MODELS_LUT[
             semantic_search_model_type
@@ -50,9 +52,10 @@ class TrainingPipeline:
         )
         self.subset_selection_strategy = SUBSET_SELECTION_STRATEGIES_LUT[
             subset_selection_strategy_type
-        ](config)
+        ](config, self)
 
         # Dense Index
+        print("Loading Dense Index")
         dense_index_type = config.architecture.dense_index.type
         self.dense_index = DENSE_INDEXES_LUT[dense_index_type](config)
 
@@ -65,11 +68,13 @@ class TrainingPipeline:
         ](config)
 
         # DataLoader for training dataset
-        train_dataset_type = config.datasets.train
+        print("Preparing train loader")
+        train_dataset_type = config.training.dataset
         self.wrapped_train_dataset = DATALOADERS_LUT[train_dataset_type](config)
 
         # DataLoaders for validation datasets
-        validation_dataset_types = config.datasets.validation
+        print("Preparing validation loaders")
+        validation_dataset_types = config.validation.datasets
         self.wrapped_validation_datasets = [
             DATALOADERS_LUT[dataset_type](config)
             for dataset_type in validation_dataset_types
@@ -80,6 +85,7 @@ class TrainingPipeline:
         self.loss_function = LOSSES_LUT[loss_function_type](config)
 
         # Optimizer
+        print("Preparing optimizer")
         self.scaler = GradScaler()
         self.optimizer = optim.AdamW(
             self.semantic_search_model.get_all_trainable_parameters(),
