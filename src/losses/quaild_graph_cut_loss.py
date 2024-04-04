@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-class QuaildGraphCut(nn.Module):
+class QuaildGraphCutLoss(nn.Module):
     def __init__(self, config):
-        super(QuaildGraphCut, self).__init__()
+        super(QuaildGraphCutLoss, self).__init__()
         self.lambd = config.training.loss.lambd
 
     def forward(self, a, b):

@@ -1,7 +1,7 @@
 import unittest
 import torch
 
-from losses.quaild_graph_cut import QuaildGraphCut
+from src.losses.quaild_graph_cut_loss import QuaildGraphCutLoss
 from config import Config
 
 
@@ -10,7 +10,7 @@ class TestQuaildGraphCut(unittest.TestCase):
         # Setup code runs before each test method
         self.config = Config.from_file("experiments/quaild_test_experiment.yaml")
 
-        self.model = QuaildGraphCut(self.config)
+        self.model = QuaildGraphCutLoss(self.config)
         self.a = torch.rand((5, 3))  # Example tensor a
         self.b = torch.rand((5, 3))  # Example tensor b
 
@@ -31,7 +31,7 @@ class TestQuaildGraphCut(unittest.TestCase):
         # Change lambda value and re-test
         self.config.training.loss.lambd = 1.0  # Change lambda to a different value
         # Reinitialize the model with the new lambda
-        self.model = QuaildGraphCut(self.config)
+        self.model = QuaildGraphCutLoss(self.config)
         new_loss = self.model(self.a, self.b)
         # Check if loss values are different
         self.assertNotEqual(initial_loss.item(), new_loss.item())
