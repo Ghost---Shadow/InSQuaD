@@ -48,3 +48,4 @@ validation:
   type: quaild
   q_d_tradeoff_lambda: 1
   validation: ['mrpc']
+  annotation_budget: 100
