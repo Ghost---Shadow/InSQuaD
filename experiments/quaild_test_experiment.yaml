@@ -39,6 +39,7 @@ training:
   seeds: [42]
   loss:
     type: 'graph_cut'
+    lambd: 0.5
 
 validation:
   generative_model:
