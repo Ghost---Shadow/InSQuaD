@@ -1,6 +1,6 @@
-from shortlist_strategies.quaild import QuaildShortlistStrategy
+from shortlist_strategies.quaild_gain_counter import QuaildGainCounterStrategy
 
 
 SHORTLIST_STRATEGIES_LUT = {
-    "quaild": QuaildShortlistStrategy,
+    "quaild_gain_counter": QuaildGainCounterStrategy,
 }
