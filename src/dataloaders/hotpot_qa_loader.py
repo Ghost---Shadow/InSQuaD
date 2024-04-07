@@ -10,7 +10,7 @@ class HotpotQaDataset(BaseDataset):
         self.dataset = load_dataset("hotpot_qa", "distractor")
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, KEY_SENTENCES="sentences"):
         batch_questions = []
         batch_flat_sentences = []
         batch_relevant_sentence_indexes = []
@@ -25,7 +25,7 @@ class HotpotQaDataset(BaseDataset):
 
             index_lut = {}
             for title, sentences in zip(
-                item["context"]["title"], item["context"]["sentences"]
+                item["context"]["title"], item["context"][KEY_SENTENCES]
             ):
                 sent_counter = 0
 
