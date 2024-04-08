@@ -41,6 +41,11 @@ class WrappedT5:
             )
             loss = outputs.loss
 
+        actual = self.tokenizer.decode(torch.argmax(outputs.logits))
+
         sequence_probability = torch.exp(-loss).item()
 
-        return sequence_probability
+        return {
+            "sequence_probability": sequence_probability,
+            "actual": actual,
+        }
