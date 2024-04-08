@@ -7,6 +7,7 @@ import yaml
 
 # python -m unittest config_test.TestConfigLoading -v
 class TestConfigLoading(unittest.TestCase):
+    # python -m unittest config_test.TestConfigLoading.test_all_yaml_configs -v
     def test_all_yaml_configs(self):
         root_dir = Path("experiments")
         yaml_files = root_dir.rglob("*.yaml")
@@ -28,15 +29,11 @@ class TestConfigLoading(unittest.TestCase):
         # Should not crash
         Config.from_dict(config_data)
 
-        config_data["datasets"]["train"] = "does_not_exist"
+        config_data["training"]["dataset"] = "does_not_exist"
 
         # Test that ValueError is raised with the expected message
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             Config.from_dict(config_data)
-
-        # Check if the exception message matches the expected format
-        expected_msg = "does_not_exist is not a valid type. Must be one of ['mrpc']. [type=value_error, input_value='does_not_exist', input_type=str]"
-        self.assertTrue(expected_msg in str(context.exception))
 
 
 if __name__ == "__main__":

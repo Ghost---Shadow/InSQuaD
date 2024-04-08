@@ -42,7 +42,7 @@ training:
   loss:
     type: 'mean_squared_error'
 
-validation:
+offline_validation:
   generative_model:
     type: 't5'
     checkpoint: 'google-t5/t5-base'

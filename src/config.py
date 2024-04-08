@@ -126,9 +126,9 @@ class TrainingConfig(BaseModel):
     )
 
 
-class ValidationConfig(BaseModel):
+class OfflineValidationConfig(BaseModel):
     type: str
-    q_d_tradeoff_lambda: float
+    q_d_tradeoff_lambda: float = None
     annotation_budget: int
     datasets: List[str]
     generative_model: GenerativeModelConfig
@@ -137,11 +137,20 @@ class ValidationConfig(BaseModel):
         type_validator(DATALOADERS_LUT)
     )
 
+    @model_validator(mode="before")
+    def check_q_d_tradeoff_lambda(cls, values):
+        type, q_d_tradeoff_lambda = values.get("type"), values.get(
+            "q_d_tradeoff_lambda"
+        )
+        if type == "quaild" and q_d_tradeoff_lambda is None:
+            raise ValueError("q_d_tradeoff_lambda is required for type quaild")
+        return values
+
 
 class RootConfig(BaseModel):
     wandb: WandBConfig
     architecture: ArchitectureConfig
-    validation: ValidationConfig
+    offline_validation: OfflineValidationConfig
     training: TrainingConfig
 
 

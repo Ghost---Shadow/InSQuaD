@@ -1,12 +1,12 @@
 wandb:
-  project: "icl_2024"
+  project: "quaild"
   name: "t5base_mpnet_topk_2_flat_10"
   # entity: "carml"
 
 architecture:
   generative_model:
     type: 't5'
-    checkpoint: 'google-t5/t5-base'
+    checkpoint: 'google/flan-t5-base'
     device: "cuda:0"
   
   semantic_search_model:
@@ -27,13 +27,10 @@ architecture:
   prompt_formatting_strategy:
     type: 'q_a_with_new_line'
 
-datasets:
-  train: 'mrpc'
-  validation: ['mrpc']
-
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
   type: 'pick_and_rerank'
+  dataset: 'mrpc'
   epochs: 7
   batch_size: 32
   learning_rate: 3e-5
@@ -43,3 +40,12 @@ training:
   seeds: [42]
   loss:
     type: 'kl_divergence'
+
+offline_validation:
+  generative_model:
+    type: 't5'
+    checkpoint: 'google/flan-t5-base'
+    device: "cuda:0"
+  type: pick_and_rerank
+  datasets: ['mrpc']
+  annotation_budget: 100

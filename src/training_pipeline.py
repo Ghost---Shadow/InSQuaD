@@ -12,6 +12,7 @@ from config import RootConfig
 from torch.cuda.amp import GradScaler
 import torch.optim as optim
 from tqdm import tqdm
+import wandb
 
 
 class TrainingPipeline:
@@ -74,11 +75,13 @@ class TrainingPipeline:
 
         # DataLoaders for validation datasets
         print("Preparing validation loaders")
-        validation_dataset_types = config.validation.datasets
-        self.wrapped_validation_datasets = [
-            DATALOADERS_LUT[dataset_type](config)
-            for dataset_type in validation_dataset_types
-        ]
+        # TODO: Proper online validation support
+        self.wrapped_validation_datasets = [self.wrapped_train_dataset]
+        # validation_dataset_types = config.validation.datasets
+        # self.wrapped_validation_datasets = [
+        #     DATALOADERS_LUT[dataset_type](config)
+        #     for dataset_type in validation_dataset_types
+        # ]
 
         # Loss Function
         loss_function_type = config.training.loss.type
@@ -101,12 +104,19 @@ class TrainingPipeline:
         self.training_strategy.before_each_epoch()
 
         train_loader = self.wrapped_train_dataset.get_loader(split="train")
+        dataset_name = self.wrapped_train_dataset.NAME
 
         for batch in tqdm(train_loader):
             loss = self.training_strategy.train_step(batch)
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
+
+            # TODO: F1
+            metrics = {dataset_name: {"loss": loss.item()}}
+            wandb.log(metrics, step=self.step)
+            self.step += 1
+
             # with torch.cuda.amp.autocast():
             #     loss = self.training_strategy.train_step(batch)
 
@@ -121,7 +131,21 @@ class TrainingPipeline:
 
         return loss
 
-    def run_validation(self):
+    def save_checkpoint(self):
+        raise NotImplementedError()
+
+    def try_load_checkpoint(self):
+        raise NotImplementedError()
+
+    @property
+    def current_epoch(self):
+        raise NotImplementedError()
+
+    @property
+    def checkpoint_dir(self):
+        raise NotImplementedError()
+
+    def run_online_validation(self):
         metrics = {}
 
         # Populate FAISS with latest embeddings
@@ -135,7 +159,7 @@ class TrainingPipeline:
 
             all_losses = []
             for batch in tqdm(validation_loader):
-                # TODO: other metrics
+                # TODO: F1 scores
                 with torch.no_grad():
                     loss = self.training_strategy.train_step(batch)
                     all_losses.append(loss)
@@ -144,4 +168,4 @@ class TrainingPipeline:
 
         metrics = {"validation": metrics}
 
-        return metrics
+        wandb.log(metrics, step=self.step)

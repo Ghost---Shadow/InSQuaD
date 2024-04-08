@@ -11,7 +11,7 @@ class QuaildGainCutoffStrategy:
         assert (
             self.gain_cutoff
         ), f"architecture.subset_selection_strategy.gain_cutoff not initialized {self.gain_cutoff}"
-        self.lambdA = self.config.validation.q_d_tradeoff_lambda
+        self.lambdA = self.config.offline_validation.q_d_tradeoff_lambda
 
     def subset_select(
         self, query_embedding: torch.Tensor, shortlist_embeddings: torch.Tensor
