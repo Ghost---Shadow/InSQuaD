@@ -6,27 +6,21 @@ class QuaildGraphCutLoss(nn.Module):
     def __init__(self, config):
         super(QuaildGraphCutLoss, self).__init__()
         self.lambd = config.training.loss.lambd
-        self.lower_limit = torch.tensor(1e-7)
+        self.epsilon = 0.0  # Adjust if necessary
 
     def forward(self, a, b):
-        # Ensuring a and b are 2D and have compatible dimensions for batch matrix multiplication
-        # Assuming a and b are of shape [batch_size, features], where each row is a vector.
+        # Ensure a and b are 2D [batch_size, features]
+        b_t = b.transpose(0, 1)  # Now [features, batch_size]
 
-        # Compute the dot product between all pairs.
-        # For dot products, we can use matrix multiplication.
-        # First, let's ensure a is [batch_size, features] and b is [features, batch_size] for matrix multiplication with a.
-        # Transpose b to make its shape compatible for matrix multiplication with a.
-        b_t = b.transpose(0, 1)
-
-        # Matrix multiplication
-        # This will give us a [batch_size, batch_size] tensor where each element is a dot product of vectors from a and b.
+        # Matrix multiplication [batch_size, batch_size]
         similarity = torch.matmul(a, b_t)
 
-        # Since the question implies summing all combinations, we sum all elements in the resulting matrix.
-        # loss = 2 * self.lambd * similarity.sum()
-        loss = 2 * self.lambd * similarity.mean()
+        # Adjust the computation here if you intend to have a different form of aggregation
+        # Normalize by number of elements in b
+        loss = 2 * self.lambd * similarity.sum(dim=-1)
 
-        # Should not go below zero because I am using log in downstream
-        loss = torch.max(loss, self.lower_limit)
+        # Adjust the lower bound for each item in the batch, if necessary
+        theoretical_lower_bound = 2 * self.lambd * -1
+        loss = loss - theoretical_lower_bound + self.epsilon
 
-        return loss
+        return loss.mean()

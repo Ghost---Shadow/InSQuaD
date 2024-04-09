@@ -29,6 +29,14 @@ class TestQuaildGraphCut(unittest.TestCase):
         loss = self.model(self.a, self.b)
         self.assertGreater(loss.item(), 0)  # Check if loss is greater than 0
 
+    # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_theoretical_lower_bound -v
+    def test_theoretical_lower_bound(self):
+        a = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+        b = torch.tensor([[-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+        loss = self.model(a, b)
+        self.assertAlmostEqual(loss.item(), 0.0)
+        print(loss)
+
     # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_lambd_effect -v
     def test_lambd_effect(self):
         """Test if changing lambd affects the loss."""
@@ -45,7 +53,10 @@ class TestQuaildGraphCut(unittest.TestCase):
     def test_overfit(self):
         set_seed(42)
 
-        embedding_size = 256
+        # embedding_size = 256
+        # batch_size = 10
+
+        embedding_size = 3
         batch_size = 10
 
         # Create random tensors for a and b
@@ -79,11 +90,11 @@ class TestQuaildGraphCut(unittest.TestCase):
                 b /= torch.norm(b)
 
             cosine = torch.mean(torch.matmul(a, b.transpose(0, 1)))
-            # print(
-            #     f"Epoch {epoch+1}, Loss: {loss.item()}, Cosine: {cosine.item()}",
-            #     # a.tolist(),
-            #     # b.tolist(),
-            # )
+            print(
+                f"Epoch {epoch+1}, Loss: {loss.item()}, Cosine: {cosine.item()}",
+                # a.tolist(),
+                # b.tolist(),
+            )
 
         assert cosine.item() <= 0.0, cosine.item()
 
