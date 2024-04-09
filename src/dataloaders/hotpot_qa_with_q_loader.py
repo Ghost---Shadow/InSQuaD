@@ -24,7 +24,7 @@ class HotpotQaWithQDataset(BaseDataset):
             left_mask[key] = True
             right_mask[value] = True
 
-            mask_list.append((left_mask, right_mask))
+            mask_list.append((torch.tensor(left_mask), torch.tensor(right_mask)))
 
         return mask_list
 
@@ -60,7 +60,7 @@ class HotpotQaWithQDataset(BaseDataset):
             # Merge selection vector
             downstream_correct_mask = upstream_correct_mask
             correct_mask = [*upstream_correct_mask, *downstream_correct_mask]
-            batch_correct_mask.append(correct_mask)
+            batch_correct_mask.append(torch.tensor(correct_mask))
 
             # Paraphrase look up table
             offset = len(flat_questions)

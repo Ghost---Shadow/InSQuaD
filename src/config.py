@@ -103,8 +103,15 @@ class ArchitectureConfig(BaseModel):
 
 class TrainingLossConfig(BaseModel):
     type: str
-    lambd: float = 0.0
+    lambd: float = None
     _validate_type = validator("type", allow_reuse=True)(type_validator(LOSSES_LUT))
+
+    @model_validator(mode="before")
+    def check_lambd(cls, values):
+        type, lambd = values.get("type"), values.get("lambd")
+        if type == "quaild" and lambd is None:
+            raise ValueError("lambd is required for type quaild")
+        return values
 
 
 class TrainingConfig(BaseModel):

@@ -4,6 +4,7 @@ import torch
 from train_utils import set_seed
 from training_pipeline import TrainingPipeline
 from training_strategies.quaild import QuaildStrategy
+from torch.cuda.amp import autocast, GradScaler
 
 
 # python -m unittest training_strategies.quaild_test.TestQuaildStrategy -v
@@ -42,14 +43,16 @@ class TestQuaildStrategy(unittest.TestCase):
         train_loader = pipeline.wrapped_train_dataset.get_loader("train")
         batch = next(iter(train_loader))
 
+        scaler = GradScaler()
+
         # Should not crash
-        with torch.cuda.amp.autocast():
+        with autocast():
             loss = training_strategy.train_step(batch)
 
         print(loss)
 
         # Also should not crash
-        self.scaler.scale(loss).backward()
+        scaler.scale(loss).backward()
         # self.scaler.unscale_(self.optimizer)
         # torch.nn.utils.clip_grad_norm_(
         #     self.semantic_search_model.get_all_trainable_parameters(), 1.0
@@ -64,6 +67,7 @@ class TestQuaildStrategy(unittest.TestCase):
         set_seed(42)
 
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.training.loss.type = "mean_squared_error"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -80,3 +84,39 @@ class TestQuaildStrategy(unittest.TestCase):
             print(loss)
             loss.backward()
             optimizer.step()
+
+    # python -m unittest training_strategies.quaild_test.TestQuaildStrategy.test_amp_overfit -v
+    def test_amp_overfit(self):
+        # Set seed for deterministic testing
+        set_seed(42)
+
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.training.loss.type = "mean_squared_error"
+        pipeline = TrainingPipeline(config)
+        training_strategy = QuaildStrategy(config, pipeline)
+        training_strategy.before_each_epoch()
+
+        train_loader = pipeline.wrapped_train_dataset.get_loader("train")
+        batch = next(iter(train_loader))
+
+        optimizer = pipeline.optimizer
+        # Initialize AMP scaler for managing scaled gradients
+        scaler = torch.cuda.amp.GradScaler()
+
+        # Should not crash
+        for _ in range(100):
+            optimizer.zero_grad()
+
+            # Automatic Mixed Precision
+            with torch.cuda.amp.autocast():
+                loss = training_strategy.train_step(batch)
+                print(loss)
+
+            # Scales loss. Calls backward() on scaled loss to create scaled gradients.
+            scaler.scale(loss).backward()
+
+            # Unscales gradients and calls or skips optimizer.step()
+            scaler.step(optimizer)
+
+            # Updates the scale for next iteration
+            scaler.update()

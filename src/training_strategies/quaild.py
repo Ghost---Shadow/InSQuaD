@@ -1,3 +1,4 @@
+# from config import RootConfig
 import torch
 
 
@@ -60,7 +61,7 @@ class QuaildStrategy:
         loss_q = (torch.log(gq_minus) - torch.log(gq_plus)).sum(dim=0)
         loss_d = (torch.log(gd_minus) - torch.log(gd_plus)).sum(dim=0)
 
-        lambdA = self.config.training.q_d_tradeoff_lambda
+        lambdA = self.config.training.loss.lambd
 
         loss = loss_q + lambdA * loss_d
 
