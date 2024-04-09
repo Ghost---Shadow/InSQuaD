@@ -6,6 +6,7 @@ class QuaildGraphCutLoss(nn.Module):
     def __init__(self, config):
         super(QuaildGraphCutLoss, self).__init__()
         self.lambd = config.training.loss.lambd
+        self.lower_limit = torch.tensor(1e-7)
 
     def forward(self, a, b):
         # Ensuring a and b are 2D and have compatible dimensions for batch matrix multiplication
@@ -22,5 +23,10 @@ class QuaildGraphCutLoss(nn.Module):
         similarity = torch.matmul(a, b_t)
 
         # Since the question implies summing all combinations, we sum all elements in the resulting matrix.
-        loss = 2 * self.lambd * similarity.sum()
+        # loss = 2 * self.lambd * similarity.sum()
+        loss = 2 * self.lambd * similarity.mean()
+
+        # Should not go below zero because I am using log in downstream
+        loss = torch.max(loss, self.lower_limit)
+
         return loss

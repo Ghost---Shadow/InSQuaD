@@ -45,8 +45,8 @@ class TestQuaildGraphCut(unittest.TestCase):
     def test_overfit(self):
         set_seed(42)
 
-        embedding_size = 3
-        batch_size = 1
+        embedding_size = 256
+        batch_size = 10
 
         # Create random tensors for a and b
         original_a = torch.randn(batch_size, embedding_size, requires_grad=False)
@@ -68,6 +68,8 @@ class TestQuaildGraphCut(unittest.TestCase):
         for epoch in range(100):
             optimizer.zero_grad()
             loss = loss_fn(a, b)
+            loss = loss.mean()
+
             loss.backward()
             optimizer.step()
 
@@ -76,14 +78,14 @@ class TestQuaildGraphCut(unittest.TestCase):
                 a /= torch.norm(a)
                 b /= torch.norm(b)
 
-            cosine = torch.sum(torch.matmul(a, b.transpose(0, 1)))
+            cosine = torch.mean(torch.matmul(a, b.transpose(0, 1)))
             # print(
             #     f"Epoch {epoch+1}, Loss: {loss.item()}, Cosine: {cosine.item()}",
-            #     a.tolist(),
-            #     b.tolist(),
+            #     # a.tolist(),
+            #     # b.tolist(),
             # )
 
-        assert cosine.item() < -0.9, cosine.item()
+        assert cosine.item() <= 0.0, cosine.item()
 
 
 if __name__ == "__main__":
