@@ -62,14 +62,12 @@ class TestQuaildGraphCut(unittest.TestCase):
         a = torch.tensor(normalized_a, requires_grad=True)
         b = torch.tensor(normalized_b, requires_grad=True)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
-        loss_fn = QuaildGraphCutLoss(config)
         optimizer = AdamW([a, b], lr=0.1)
 
         # Training loop
         for epoch in range(100):
             optimizer.zero_grad()
-            loss = loss_fn(a, b)
+            loss = self.loss_fn(a, b)
 
             mse_loss = torch.nn.functional.mse_loss(a, b, reduction="mean")
 
