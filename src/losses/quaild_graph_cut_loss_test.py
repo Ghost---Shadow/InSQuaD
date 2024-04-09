@@ -1,8 +1,9 @@
 import unittest
 import torch
-
+from torch.optim import AdamW
 from losses.quaild_graph_cut_loss import QuaildGraphCutLoss
 from config import Config
+from train_utils import set_seed
 
 
 # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut -v
@@ -39,6 +40,50 @@ class TestQuaildGraphCut(unittest.TestCase):
         new_loss = self.model(self.a, self.b)
         # Check if loss values are different
         self.assertNotEqual(initial_loss.item(), new_loss.item())
+
+    # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_overfit -v
+    def test_overfit(self):
+        set_seed(42)
+
+        embedding_size = 3
+        batch_size = 1
+
+        # Create random tensors for a and b
+        original_a = torch.randn(batch_size, embedding_size, requires_grad=False)
+        original_b = torch.randn(batch_size, embedding_size, requires_grad=False)
+
+        # Normalize a and b
+        normalized_a = original_a / torch.norm(original_a)
+        normalized_b = original_b / torch.norm(original_b)
+
+        # Make a and b require gradients by reassigning them as new tensors
+        a = torch.tensor(normalized_a, requires_grad=True)
+        b = torch.tensor(normalized_b, requires_grad=True)
+
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        loss_fn = QuaildGraphCutLoss(config)
+        optimizer = AdamW([a, b], lr=0.01)
+
+        # Training loop
+        for epoch in range(100):
+            optimizer.zero_grad()
+            loss = loss_fn(a, b)
+            loss.backward()
+            optimizer.step()
+
+            # Re-normalize a and b after the update step
+            with torch.no_grad():
+                a /= torch.norm(a)
+                b /= torch.norm(b)
+
+            cosine = torch.sum(torch.matmul(a, b.transpose(0, 1)))
+            # print(
+            #     f"Epoch {epoch+1}, Loss: {loss.item()}, Cosine: {cosine.item()}",
+            #     a.tolist(),
+            #     b.tolist(),
+            # )
+
+        assert cosine.item() < -0.9, cosine.item()
 
 
 if __name__ == "__main__":
