@@ -26,12 +26,12 @@ class QuaildFacilityLocationLoss(nn.Module):
         Returns:
         - loss (Tensor): The computed Facility Location loss.
         """
-        if a.shape == 2:
+        if len(a.shape) == 2:
             a = a.unsqueeze(0)
-        if b.shape == 2:
+        if len(b.shape) == 2:
             b = b.unsqueeze(0)
-        assert len(a.shape) == 3
-        assert len(b.shape) == 3
+        assert len(a.shape) == 3, len(a.shape)
+        assert len(b.shape) == 3, len(b.shape)
 
         # Compute similarity matrix S using dot product
         # S_ij = a_i . b_j^T
