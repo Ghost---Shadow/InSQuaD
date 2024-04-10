@@ -83,9 +83,11 @@ class TestQuaildStrategy(unittest.TestCase):
         for _ in range(100):
             optimizer.zero_grad()
             loss = training_strategy.train_step(batch)
-            print(loss)
             loss.backward()
             optimizer.step()
+
+            metrics = pipeline.compute_extra_metrics(batch)
+            print({"loss": loss.item(), **metrics})
 
     # python -m unittest training_strategies.quaild_test.TestQuaildStrategy.test_amp_overfit -v
     def test_amp_overfit(self):
@@ -114,7 +116,8 @@ class TestQuaildStrategy(unittest.TestCase):
             # Automatic Mixed Precision
             with torch.cuda.amp.autocast():
                 loss = training_strategy.train_step(batch)
-                print(loss)
+                metrics = pipeline.compute_extra_metrics(batch)
+                print({"loss": loss.item(), **metrics})
 
             # Scales loss. Calls backward() on scaled loss to create scaled gradients.
             scaler.scale(loss).backward()

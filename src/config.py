@@ -1,5 +1,6 @@
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
+from extra_metrics import EXTRA_METRICS_LUT
 from generative_models import GENERATIVE_MODELS_LUT
 from losses import LOSSES_LUT
 from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
@@ -125,12 +126,17 @@ class TrainingConfig(BaseModel):
     warmup_ratio: float
     seeds: List[int]
     loss: TrainingLossConfig
+    extra_metrics: List[str]
+
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(TRAINING_STRATEGIES_LUT)
     )
     _validate_dataset = validator("dataset", allow_reuse=True)(
         type_validator(DATALOADERS_LUT)
     )
+    _validate_extra_metrics = validator(
+        "extra_metrics", each_item=True, allow_reuse=True
+    )(type_validator(EXTRA_METRICS_LUT))
 
 
 class OfflineValidationConfig(BaseModel):

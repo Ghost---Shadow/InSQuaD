@@ -21,6 +21,7 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
 
         return len(set(flipped_predicted_indices).intersection(set(no_paraphrase_idxs)))
 
+    @torch.no_grad
     def generate_metric(self, batch):
         batch_precision = []
         batch_recall = []

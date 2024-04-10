@@ -35,6 +35,36 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
 
         assert result.tolist() == expected_output, result.tolist()
 
+    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_real_data -v
+    def test_real_data(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        pipeline = TrainingPipeline(config)
+        strategy = QuaildGainCutoffStrategy(config, pipeline)
+        train_loader = pipeline.wrapped_train_dataset.get_loader("train")
+        batch = next(iter(train_loader))
+
+        all_text = [batch["question"][0], *batch["documents"][0]]
+        all_embeddings = pipeline.semantic_search_model.embed(all_text)
+        question_embedding = all_embeddings[0]
+        document_embeddings = all_embeddings[1:]
+
+        # Apply the indexes
+        result = strategy.subset_select(question_embedding, document_embeddings)
+
+        expected_output = [13, 52, 113]
+
+        # print("-" * 80)
+        # print(batch["question"][0])
+        # print("-" * 80)
+        # for idx in expected_output:
+        #     print(batch["documents"][0][idx])
+        # print("-" * 80)
+        # for idx in batch["relevant_indexes"][0]:
+        #     print(batch["documents"][0][idx])
+        # print("-" * 80)
+
+        assert result.tolist() == expected_output, result.tolist()
+
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_other_loss_types -v
     def test_other_loss_types(self):
         config = Config.from_file("experiments/quaild_test_experiment.yaml")

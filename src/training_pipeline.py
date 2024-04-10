@@ -1,5 +1,6 @@
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
+from extra_metrics import EXTRA_METRICS_LUT
 from generative_models import GENERATIVE_MODELS_LUT
 from learning_rate_schedulers import LEARNING_RATE_SCHEDULERS_LUT
 from losses import LOSSES_LUT
@@ -7,6 +8,7 @@ from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 import torch
+from train_utils import average_dicts
 from training_strategies import TRAINING_STRATEGIES_LUT
 from config import RootConfig
 from torch.cuda.amp import GradScaler
@@ -96,9 +98,24 @@ class TrainingPipeline:
             weight_decay=config.training.weight_decay,
         )
 
+        print("Preparing extra metrics")
+        self.extra_metrics = []
+        for extra_metric_type in self.config.training.extra_metrics:
+            self.extra_metrics.append(EXTRA_METRICS_LUT[extra_metric_type](self))
+
         # TODO: Why???
         for param_group in self.optimizer.param_groups:
             param_group.setdefault("initial_lr", config.training.learning_rate)
+
+    @torch.no_grad
+    def compute_extra_metrics(self, batch):
+        all_metrics = {}
+
+        for extra_metric_generator in self.extra_metrics:
+            metrics = extra_metric_generator.generate_metric(batch)
+            all_metrics = {**all_metrics, **metrics}
+
+        return all_metrics
 
     def train_one_epoch(self):
         self.training_strategy.before_each_epoch()
@@ -112,8 +129,8 @@ class TrainingPipeline:
             self.optimizer.step()
             self.optimizer.zero_grad()
 
-            # TODO: F1
-            metrics = {dataset_name: {"loss": loss.item()}}
+            extra_metrics = self.compute_extra_metrics(batch)
+            metrics = {dataset_name: {"loss": loss.item(), **extra_metrics}}
             wandb.log(metrics, step=self.step)
             self.step += 1
 
@@ -158,13 +175,22 @@ class TrainingPipeline:
             validation_loader = validation_dataset.get_loader(split="validation")
 
             all_losses = []
+            all_extra_metrics = []
             for batch in tqdm(validation_loader):
                 # TODO: F1 scores
                 with torch.no_grad():
                     loss = self.training_strategy.train_step(batch)
                     all_losses.append(loss)
 
-            metrics[dataset_name]["loss"] = torch.stack(all_losses).mean().item()
+                extra_metrics = self.compute_extra_metrics(batch)
+                all_extra_metrics.append(extra_metrics)
+
+            avg_extra_metrics = average_dicts(all_extra_metrics)
+
+            metrics[dataset_name] = {
+                "loss": torch.stack(all_losses).mean().item(),
+                **avg_extra_metrics,
+            }
 
         metrics = {"validation": metrics}
 
