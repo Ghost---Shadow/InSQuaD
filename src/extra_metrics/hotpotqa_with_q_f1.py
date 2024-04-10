@@ -40,6 +40,7 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             predicted_indices = self.pipeline.subset_selection_strategy.subset_select(
                 question_embedding, document_embeddings
             )
+            predicted_indices = predicted_indices.tolist()
 
             num_correct = ExtraMetricHotpotQaWithQF1._count_actually_correct(
                 predicted_indices, no_paraphrase_idxs, paraphrase_lut
@@ -54,8 +55,11 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             batch_recall.append(recall)
             batch_f1_score.append(f1_score)
 
+        def tensorify_mean(arr):
+            return torch.tensor(arr, dtype=torch.float32).mean().item()
+
         return {
-            "precision": torch.stack(batch_precision).mean().item(),
-            "recall": torch.stack(batch_recall).mean().item(),
-            "f1_score": torch.stack(batch_f1_score).mean().item(),
+            "precision": tensorify_mean(batch_precision),
+            "recall": tensorify_mean(batch_recall),
+            "f1_score": tensorify_mean(batch_f1_score),
         }

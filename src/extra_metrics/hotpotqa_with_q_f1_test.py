@@ -1,5 +1,7 @@
 import unittest
+from config import Config
 from extra_metrics.hotpotqa_with_q_f1 import ExtraMetricHotpotQaWithQF1
+from training_pipeline import TrainingPipeline
 
 
 # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1 -v
@@ -66,6 +68,23 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
             ),
             3,
         )
+
+    # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_generate_metric -v
+    def test_generate_metric(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        pipeline = TrainingPipeline(config)
+
+        train_loader = pipeline.wrapped_train_dataset.get_loader("train")
+        batch = next(iter(train_loader))
+
+        extra_metric = ExtraMetricHotpotQaWithQF1(pipeline)
+        metrics = extra_metric.generate_metric(batch)
+
+        assert metrics == {
+            "precision": 0.6666666865348816,
+            "recall": 0.25,
+            "f1_score": 0.3636363744735718,
+        }, metrics
 
 
 if __name__ == "__main__":
