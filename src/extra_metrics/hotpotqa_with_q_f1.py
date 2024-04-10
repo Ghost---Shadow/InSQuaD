@@ -4,15 +4,22 @@ import torch
 
 
 class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
-    NAME='hotpot_qa_with_q_f1'
-    
+    NAME = "hotpot_qa_with_q_f1"
+
     @staticmethod
     def _count_actually_correct(predicted_indices, no_paraphrase_idxs, paraphrase_lut):
         """
         If the model and selection picks both the correct answer
-        and its paraphrase then it is incorrect
+        and its paraphrase then only count one as correct
         """
-        return 0
+        flipped_predicted_indices = []
+        for idx in predicted_indices:
+            if idx not in no_paraphrase_idxs:
+                flipped_predicted_indices.append(paraphrase_lut[idx])
+            else:
+                flipped_predicted_indices.append(idx)
+
+        return len(set(flipped_predicted_indices).intersection(set(no_paraphrase_idxs)))
 
     def generate_metric(self, batch):
         batch_precision = []
