@@ -81,9 +81,9 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
         metrics = extra_metric.generate_metric(batch)
 
         assert metrics == {
-            "precision": 0.6666666865348816,
+            "precision": 0.6666666666666666,
             "recall": 0.25,
-            "f1_score": 0.3636363744735718,
+            "f1_score": 0.36363636363636365,
         }, metrics
 
 

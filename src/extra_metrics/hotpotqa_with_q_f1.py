@@ -55,11 +55,11 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             batch_recall.append(recall)
             batch_f1_score.append(f1_score)
 
-        def tensorify_mean(arr):
-            return torch.tensor(arr, dtype=torch.float32).mean().item()
+        def mean(arr):
+            return sum(arr) / len(arr)
 
         return {
-            "precision": tensorify_mean(batch_precision),
-            "recall": tensorify_mean(batch_recall),
-            "f1_score": tensorify_mean(batch_f1_score),
+            "precision": mean(batch_precision),
+            "recall": mean(batch_recall),
+            "f1_score": mean(batch_f1_score),
         }
