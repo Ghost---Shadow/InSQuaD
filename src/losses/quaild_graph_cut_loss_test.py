@@ -34,6 +34,15 @@ class TestQuaildGraphCut(unittest.TestCase):
         loss = self.loss_fn(a, b)
         self.assertAlmostEqual(loss.item(), 2.0)
 
+    # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_dimension_mismatch -v
+    def test_dimension_mismatch(self):
+        a = torch.tensor(
+            [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+        )
+        b = torch.tensor([[[1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0]]])
+        loss = self.loss_fn(a, b)
+        self.assertAlmostEqual(loss.item(), 0.0)
+
     # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_overfit -v
     def test_overfit(self):
         set_seed(42)
