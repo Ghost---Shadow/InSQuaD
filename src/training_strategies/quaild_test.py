@@ -67,7 +67,9 @@ class TestQuaildStrategy(unittest.TestCase):
         set_seed(42)
 
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
-        config.training.loss.type = "mean_squared_error"
+        # config.training.loss.type = "mean_squared_error"
+        # config.training.loss.lambd = 1.0
+        # config.training.loss.type = "facility_location"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -91,7 +93,9 @@ class TestQuaildStrategy(unittest.TestCase):
         set_seed(42)
 
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
-        config.training.loss.type = "mean_squared_error"
+        # config.training.loss.type = "mean_squared_error"
+        # config.training.loss.lambd = 1.0
+        # config.training.loss.type = "facility_location"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()

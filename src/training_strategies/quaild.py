@@ -65,4 +65,7 @@ class QuaildStrategy:
 
         loss = loss_q + lambdA * loss_d
 
+        # Lower bound it to 0 (Needed for AMP stability)
+        loss = torch.exp(loss)
+
         return loss
