@@ -15,7 +15,8 @@ class QuaildGraphCutLoss(nn.Module):
             b = b.unsqueeze(0)
         assert len(a.shape) == 3, len(a.shape)
         assert len(b.shape) == 3, len(b.shape)
-        batch_size, num_docs, features = a.shape
+        batch_size, num_docs_a, features = a.shape
+        _, num_docs_b, _ = b.shape
 
         # Ensure a and b are 2D [batch_size, num_docs, features]
         b_t = b.transpose(1, 2)  # Now [batch_size, features, num_docs]
@@ -24,7 +25,7 @@ class QuaildGraphCutLoss(nn.Module):
         similarity = torch.matmul(a, b_t)
 
         # Normalize and rescale
-        similarity = similarity.reshape([batch_size, num_docs * num_docs])
+        similarity = similarity.reshape([batch_size, num_docs_a * num_docs_b])
         aggregated_similarity = 2 * self.lambd * similarity.mean(dim=-1)
 
         loss = -aggregated_similarity
