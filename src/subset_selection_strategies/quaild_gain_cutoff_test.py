@@ -12,7 +12,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"
         config.architecture.dense_index.type = "in_memory"
-        config.validation.datasets = []
+        config.offline_validation.datasets = []  # Save time
         pipeline = TrainingPipeline(config)
 
         # Create an instance of the strategy
@@ -31,16 +31,44 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         # Apply the indexes
         result = strategy.subset_select(query_embedding, shortlist_embeddings)
 
-        expected_output = torch.tensor([0])
+        expected_output = [0]
 
-        # Assert that the result matches the expected output
-        self.assertEqual(result, expected_output)
+        assert result.tolist() == expected_output, result.tolist()
+
+    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_other_loss_types -v
+    def test_other_loss_types(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.architecture.semantic_search_model.type = "noop"  # Save time
+        config.architecture.dense_index.type = "in_memory"  # Save time
+        config.offline_validation.datasets = []  # Save time
+        config.training.loss.type = "mean_squared_error"
+        pipeline = TrainingPipeline(config)
+
+        # Create an instance of the strategy
+        strategy = QuaildGainCutoffStrategy(config, pipeline)
+
+        query_embedding = torch.tensor([1, 0, 0], dtype=torch.float32)
+        shortlist_embeddings = torch.tensor(
+            [
+                [1, 0, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+            ],
+            dtype=torch.float32,
+        )
+
+        # Apply the indexes
+        result = strategy.subset_select(query_embedding, shortlist_embeddings)
+
+        expected_output = [0]
+
+        assert result.tolist() == expected_output, result.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_all_below_gain_cutoff -v
     def test_all_below_gain_cutoff(self):
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
         config.architecture.subset_selection_strategy.gain_cutoff = 1000
-        config.validation.datasets = []
+        config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
 
         strategy = QuaildGainCutoffStrategy(config, pipeline)
@@ -57,15 +85,14 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
 
         result = strategy.subset_select(query_embedding, shortlist_embeddings)
 
-        self.assertTrue(
-            result.numel() == 0 or all(result.numpy() == []),
-            "Expected no selection due to gain cutoff.",
-        )
+        expected_output = []
+
+        assert result.tolist() == expected_output, result.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_empty_shortlist -v
     def test_empty_shortlist(self):
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
-        config.validation.datasets = []
+        config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
 
         strategy = QuaildGainCutoffStrategy(config, pipeline)

@@ -1,8 +1,8 @@
-import torch.nn as nn
+from losses.base_loss import BaseLoss
 import torch.nn.functional as F
 
 
-class KLDivLoss(nn.Module):
+class KLDivLoss(BaseLoss):
     def __init__(self, config=None):
         super(KLDivLoss, self).__init__()
         self.config = config

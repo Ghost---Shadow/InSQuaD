@@ -1,9 +1,10 @@
+from losses.base_loss import BaseLoss
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-class TripletLoss(nn.Module):
+class TripletLoss(BaseLoss):
     def __init__(self, config):
         super(TripletLoss, self).__init__()
         self.config = config

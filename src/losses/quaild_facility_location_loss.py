@@ -1,8 +1,8 @@
+from losses.base_loss import BaseLoss
 import torch
-import torch.nn as nn
 
 
-class QuaildFacilityLocationLoss(nn.Module):
+class QuaildFacilityLocationLoss(BaseLoss):
     def __init__(self, config):
         """
         Initialize the FacilityLocationLoss module.
@@ -14,18 +14,7 @@ class QuaildFacilityLocationLoss(nn.Module):
         self.lambd = config.training.loss.lambd
         self.epsilon = 0.0  # Adjust if needed
 
-    def forward(self, a, b):
-        """
-        Compute the Facility Location loss between two sets of embeddings.
-
-        Parameters:
-        - a (Tensor): The embeddings tensor of shape (batch_size, num_docs, embedding_size).
-        - b (Tensor): The embeddings tensor of shape (batch_size, num_docs, embedding_size),
-                      representing a different set or the same set as 'a'.
-
-        Returns:
-        - loss (Tensor): The computed Facility Location loss.
-        """
+    def similarity(self, a, b):
         if len(a.shape) == 2:
             a = a.unsqueeze(0)
         if len(b.shape) == 2:
@@ -47,8 +36,21 @@ class QuaildFacilityLocationLoss(nn.Module):
         mean_max_similarities = max_similarities_a_to_b.mean(
             dim=-1
         ) + self.lambd * max_similarities_b_to_a.mean(dim=-1)
+        return mean_max_similarities
 
-        loss = -mean_max_similarities
+    def forward(self, a, b):
+        """
+        Compute the Facility Location loss between two sets of embeddings.
+
+        Parameters:
+        - a (Tensor): The embeddings tensor of shape (batch_size, num_docs, embedding_size).
+        - b (Tensor): The embeddings tensor of shape (batch_size, num_docs, embedding_size),
+                      representing a different set or the same set as 'a'.
+
+        Returns:
+        - loss (Tensor): The computed Facility Location loss.
+        """
+        loss = -self.similarity(a, b)
 
         # Adjust the lower bound for each item in the batch
         theoretical_lower_bound = -1 + self.lambd * -1

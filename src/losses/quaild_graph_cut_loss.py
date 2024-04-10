@@ -1,14 +1,14 @@
+from losses.base_loss import BaseLoss
 import torch
-import torch.nn as nn
 
 
-class QuaildGraphCutLoss(nn.Module):
+class QuaildGraphCutLoss(BaseLoss):
     def __init__(self, config):
         super(QuaildGraphCutLoss, self).__init__()
         self.lambd = config.training.loss.lambd
         self.epsilon = 0.0  # Adjust if necessary
 
-    def forward(self, a, b):
+    def similarity(self, a, b):
         if len(a.shape) == 2:
             a = a.unsqueeze(0)
         if len(b.shape) == 2:
@@ -28,7 +28,10 @@ class QuaildGraphCutLoss(nn.Module):
         similarity = similarity.reshape([batch_size, num_docs_a * num_docs_b])
         aggregated_similarity = 2 * self.lambd * similarity.mean(dim=-1)
 
-        loss = -aggregated_similarity
+        return aggregated_similarity
+
+    def forward(self, a, b):
+        loss = -self.similarity(a, b)
 
         # Adjust the lower bound for each item in the batch
         theoretical_lower_bound = 2 * self.lambd * -1
