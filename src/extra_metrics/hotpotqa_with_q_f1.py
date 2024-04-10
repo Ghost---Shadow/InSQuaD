@@ -1,0 +1,54 @@
+from extra_metrics.base import ExtraMetricsBase
+from extra_metrics.utils import compute_pr_metrics
+import torch
+
+
+class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
+    NAME='hotpot_qa_with_q_f1'
+    
+    @staticmethod
+    def _count_actually_correct(predicted_indices, no_paraphrase_idxs, paraphrase_lut):
+        """
+        If the model and selection picks both the correct answer
+        and its paraphrase then it is incorrect
+        """
+        return 0
+
+    def generate_metric(self, batch):
+        batch_precision = []
+        batch_recall = []
+        batch_f1_score = []
+
+        for question, documents, no_paraphrase_idxs, paraphrase_lut in zip(
+            batch["question"],
+            batch["documents"],
+            batch["relevant_indexes"],
+            batch["paraphrase_lut"],
+        ):
+            all_text = [question, *documents]
+            all_embeddings = self.pipeline.semantic_search_model.embed(all_text)
+            question_embedding = all_embeddings[0]
+            document_embeddings = all_embeddings[1:]
+
+            predicted_indices = self.pipeline.subset_selection_strategy.subset_select(
+                question_embedding, document_embeddings
+            )
+
+            num_correct = ExtraMetricHotpotQaWithQF1._count_actually_correct(
+                predicted_indices, no_paraphrase_idxs, paraphrase_lut
+            )
+            num_shortlisted = len(predicted_indices)
+            max_correct = len(no_paraphrase_idxs)
+
+            precision, recall, f1_score = compute_pr_metrics(
+                num_correct, num_shortlisted, max_correct
+            )
+            batch_precision.append(precision)
+            batch_recall.append(recall)
+            batch_f1_score.append(f1_score)
+
+        return {
+            "precision": torch.stack(batch_precision).mean().item(),
+            "recall": torch.stack(batch_recall).mean().item(),
+            "f1_score": torch.stack(batch_f1_score).mean().item(),
+        }

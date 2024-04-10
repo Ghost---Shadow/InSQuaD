@@ -81,7 +81,7 @@ class HotpotQaWithQDataset(BaseDataset):
             "documents": batch_flat_questions,
             "relevant_indexes": batch_relevant_question_indexes,
             "correct_mask": batch_correct_mask,
-            # "paraphrase_lut": batch_paraphrase_lut,
+            "paraphrase_lut": batch_paraphrase_lut,
             "paraphrase_masks": batch_paraphrase_masks,
         }
 

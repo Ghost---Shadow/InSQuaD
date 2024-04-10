@@ -44,6 +44,16 @@ def row_test_inner(
         assert original == documents[left_mask], documents[left_mask]
         assert paraphrased == documents[right_mask], documents[right_mask]
 
+    paraphrase_lut = batch["paraphrase_lut"][0]
+    documents = np.array(batch["documents"][0])
+
+    for left_key, original, paraphrased in zip(
+        paraphrase_lut, no_paraphrase_expected, paraphrased_questions
+    ):
+        right_key = paraphrase_lut[left_key]
+        assert original == documents[left_key], documents[left_mask]
+        assert paraphrased == documents[right_key], documents[right_mask]
+
 
 # python -m unittest dataloaders.hotpot_qa_with_q_loader_test.TestHotpotQaWithQaLoader -v
 class TestHotpotQaWithQaLoader(unittest.TestCase):
