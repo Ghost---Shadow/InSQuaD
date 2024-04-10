@@ -1,6 +1,7 @@
 import unittest
 from config import Config
 from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
+import torch
 from tqdm import tqdm
 from train_utils import set_seed
 import numpy as np
@@ -35,24 +36,26 @@ def row_test_inner(
         == np.array(batch["correct_mask"][0]).sum()
     )
 
+    paraphrase_lut = batch["paraphrase_lut"][0]
+    documents = batch["documents"][0]
+
+    assert set(paraphrase_lut.keys()) == set(range(len(documents)))
+
+    for original, paraphrased in zip(no_paraphrase_expected, paraphrased_questions):
+        left_key = documents.index(original)
+        right_key = paraphrase_lut[left_key]
+        assert original == documents[left_key], documents[left_key]
+        assert paraphrased == documents[right_key], documents[right_key]
+
     paraphrase_masks = batch["paraphrase_masks"][0]
     documents = np.array(batch["documents"][0])
 
-    for (left_mask, right_mask), original, paraphrased in zip(
-        paraphrase_masks, no_paraphrase_expected, paraphrased_questions
-    ):
-        assert original == documents[left_mask], documents[left_mask]
-        assert paraphrased == documents[right_mask], documents[right_mask]
+    assert len(paraphrase_masks) == len(documents) // 2
 
-    paraphrase_lut = batch["paraphrase_lut"][0]
-    documents = np.array(batch["documents"][0])
-
-    for left_key, original, paraphrased in zip(
-        paraphrase_lut, no_paraphrase_expected, paraphrased_questions
-    ):
-        right_key = paraphrase_lut[left_key]
-        assert original == documents[left_key], documents[left_mask]
-        assert paraphrased == documents[right_key], documents[right_mask]
+    for left_mask, right_mask in paraphrase_masks:
+        left_key = torch.nonzero(left_mask).squeeze().item()
+        right_key = torch.nonzero(right_mask).squeeze().item()
+        assert paraphrase_lut[left_key] == right_key
 
 
 # python -m unittest dataloaders.hotpot_qa_with_q_loader_test.TestHotpotQaWithQaLoader -v

@@ -17,14 +17,17 @@ class HotpotQaWithQDataset(BaseDataset):
     def paraphrase_lut_to_mask(lookup_table, max_length):
         mask_list = []
 
-        for key, value in sorted(lookup_table.items()):
+        all_items = list(sorted(lookup_table.items()))
+        items = all_items[: len(all_items) // 2]  # Symmetry
+
+        for key, value in items:
             left_mask = torch.zeros(max_length, dtype=torch.bool)
             right_mask = torch.zeros(max_length, dtype=torch.bool)
 
             left_mask[key] = True
             right_mask[value] = True
 
-            mask_list.append((torch.tensor(left_mask), torch.tensor(right_mask)))
+            mask_list.append((left_mask, right_mask))
 
         return mask_list
 
@@ -65,9 +68,8 @@ class HotpotQaWithQDataset(BaseDataset):
             # Paraphrase look up table
             offset = len(flat_questions)
             paraphrase_lut = {}
-            for idx in relevant_question_indexes:
+            for idx in range(offset):
                 paraphrase_idx = offset + idx
-
                 paraphrase_lut[paraphrase_idx] = idx
                 paraphrase_lut[idx] = paraphrase_idx
             batch_paraphrase_lut.append(paraphrase_lut)
