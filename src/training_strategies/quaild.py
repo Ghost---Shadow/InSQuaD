@@ -13,11 +13,11 @@ class QuaildStrategy:
     def before_each_epoch(self): ...
 
     def train_step(self, batch):
-        total_loss = 0
+        all_losses = []
         for idx in range(len(batch["question"])):
             try:
                 # Gradient accumulation
-                total_loss += self.train_step_inner(batch, idx)
+                all_losses.append(self.train_step_inner(batch, idx))
 
                 # Hopefully Fix OOM
                 torch.cuda.empty_cache()
@@ -29,7 +29,7 @@ class QuaildStrategy:
                 with open(f"./artifacts/oom_{current_time}.json", "w") as f:
                     json.dump(batch["question"], f, indent=2)
 
-        return total_loss
+        return torch.stack(all_losses).mean()
 
     def train_step_inner(self, batch, idx):
         question = batch["question"][idx]
