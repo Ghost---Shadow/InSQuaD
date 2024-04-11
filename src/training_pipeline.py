@@ -151,6 +151,7 @@ class TrainingPipeline:
 
             # Unscales gradients and calls or skips optimizer.step()
             self.scaler.step(self.optimizer)
+            self.lr_scheduler.step()
 
             # Updates the scale for next iteration
             self.scaler.update()
