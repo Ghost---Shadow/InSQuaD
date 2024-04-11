@@ -3,23 +3,26 @@ from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 from training_pipeline import TrainingPipeline
 import wandb
+import dotenv
 
 
 def main(config: RootConfig, seed: int):
+    dotenv.load_dotenv()
+
     pipeline = TrainingPipeline(config)
+    pipeline.current_seed = seed
     pipeline.checkpoint_manager.try_load_checkpoint()
     start_epoch = pipeline.current_epoch + 1
-    pipeline.current_seed = seed
 
     wandb.init(
-        project=config["wandb"]["project"],
-        name=config["wandb"]["name"] + f"_{seed}",
+        project=config.wandb.project,
+        name=config.wandb.name + f"_{seed}",
         config={
-            **config,
-            "checkpoint_dir": pipeline.checkpoint_dir,
+            **config.model_dump(mode="json"),
+            "checkpoint_dir": pipeline.checkpoint_manager.checkpoint_dir,
             "seed": seed,
         },
-        entity=config["wandb"].get("entity", None),
+        entity=config.wandb.entity,
     )
 
     EXPERIMENT_NAME = config.wandb.name

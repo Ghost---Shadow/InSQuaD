@@ -37,6 +37,7 @@ class CheckpointManager:
         return os.path.join(self.checkpoint_dir, latest_checkpoint)
 
     def try_load_checkpoint(self, epoch=None):
+        assert self.pipeline.current_seed is not None
         try:
             self.load_checkpoint(epoch)
         except FileNotFoundError:
