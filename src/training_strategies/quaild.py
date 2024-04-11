@@ -45,27 +45,31 @@ class QuaildStrategy:
             actual_embeddings = document_embeddings[left_mask]
             paraphrase_embeddings = document_embeddings[right_mask]
             not_paraphrase_embeddings = document_embeddings[~right_mask]
-            gd_plus = self.pipeline.loss_function(
+            inner_gd_plus = self.pipeline.loss_function(
                 actual_embeddings, paraphrase_embeddings
             )
-            gd_minus = self.pipeline.loss_function(
+            inner_gd_minus = self.pipeline.loss_function(
                 actual_embeddings, not_paraphrase_embeddings
             )
-            all_gd_plus.append(gd_plus)
-            all_gd_minus.append(gd_minus)
+
+            if torch.isfinite(torch.log(inner_gd_plus)) and torch.isfinite(
+                torch.log(inner_gd_minus)
+            ):
+                all_gd_plus.append(inner_gd_plus)
+                all_gd_minus.append(inner_gd_minus)
 
         # gd_plus.shape = [num_docs]
         gd_plus = torch.stack(all_gd_plus)
         gd_minus = torch.stack(all_gd_minus)
 
-        loss_q = (torch.log(gq_minus) - torch.log(gq_plus)).sum(dim=0)
-        loss_d = (torch.log(gd_minus) - torch.log(gd_plus)).sum(dim=0)
+        loss_q = (torch.log(gq_minus) - torch.log(gq_plus)).mean()
+        loss_d = (torch.log(gd_minus) - torch.log(gd_plus)).mean()
 
         lambdA = self.config.training.loss.lambd
 
         loss = loss_q + lambdA * loss_d
 
-        # Lower bound it to 0 (Needed for AMP stability)
+        # Lower bound it to 0
         loss = torch.exp(loss)
 
         return loss

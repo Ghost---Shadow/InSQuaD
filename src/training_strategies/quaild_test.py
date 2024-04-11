@@ -70,6 +70,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
+        config.architecture.subset_selection_strategy.gain_cutoff = 0.1  # For overfit
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -80,13 +81,15 @@ class TestQuaildStrategy(unittest.TestCase):
         optimizer = pipeline.optimizer
 
         # Should not crash
-        for _ in range(100):
+        for step in range(100):
             optimizer.zero_grad()
             loss = training_strategy.train_step(batch)
             loss.backward()
             optimizer.step()
 
-            metrics = pipeline.compute_extra_metrics(batch)
+            metrics = {}
+            if step % 10 == 0:
+                metrics = pipeline.compute_extra_metrics(batch)
             print({"loss": loss.item(), **metrics})
 
     # python -m unittest training_strategies.quaild_test.TestQuaildStrategy.test_amp_overfit -v
@@ -98,6 +101,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
+        config.architecture.subset_selection_strategy.gain_cutoff = 0.1  # For overfit
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -110,13 +114,15 @@ class TestQuaildStrategy(unittest.TestCase):
         scaler = torch.cuda.amp.GradScaler()
 
         # Should not crash
-        for _ in range(100):
+        for step in range(100):
             optimizer.zero_grad()
 
             # Automatic Mixed Precision
             with torch.cuda.amp.autocast():
                 loss = training_strategy.train_step(batch)
-                metrics = pipeline.compute_extra_metrics(batch)
+                metrics = {}
+                if step % 10 == 0:
+                    metrics = pipeline.compute_extra_metrics(batch)
                 print({"loss": loss.item(), **metrics})
 
             # Scales loss. Calls backward() on scaled loss to create scaled gradients.
