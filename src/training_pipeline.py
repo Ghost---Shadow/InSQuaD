@@ -4,6 +4,7 @@ from extra_metrics import EXTRA_METRICS_LUT
 from generative_models import GENERATIVE_MODELS_LUT
 from learning_rate_schedulers import LEARNING_RATE_SCHEDULERS_LUT
 from losses import LOSSES_LUT
+from notifications.logger import wandb_safe_log
 from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
@@ -14,7 +15,6 @@ from config import RootConfig
 from torch.cuda.amp import GradScaler
 import torch.optim as optim
 from tqdm import tqdm
-import wandb
 
 
 class TrainingPipeline:
@@ -123,30 +123,33 @@ class TrainingPipeline:
         train_loader = self.wrapped_train_dataset.get_loader(split="train")
         dataset_name = self.wrapped_train_dataset.NAME
 
-        for batch in tqdm(train_loader):
-            loss = self.training_strategy.train_step(batch)
-            loss.backward()
-            self.optimizer.step()
+        pbar = tqdm(train_loader)
+
+        for batch in pbar:
             self.optimizer.zero_grad()
 
-            extra_metrics = self.compute_extra_metrics(batch)
-            metrics = {dataset_name: {"loss": loss.item(), **extra_metrics}}
-            wandb.log(metrics, step=self.step)
+            # Automatic Mixed Precision
+            with torch.cuda.amp.autocast():
+                loss = self.training_strategy.train_step(batch)
+                extra_metrics = {}
+                if self.step % 100 == 0:
+                    extra_metrics = self.compute_extra_metrics(batch)
+                metrics = {
+                    "train": {dataset_name: {"loss": loss.item(), **extra_metrics}}
+                }
+                pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
+                wandb_safe_log(metrics, step=self.step)
+
+            # Scales loss. Calls backward() on scaled loss to create scaled gradients.
+            self.scaler.scale(loss).backward()
+
+            # Unscales gradients and calls or skips optimizer.step()
+            self.scaler.step(self.optimizer)
+
+            # Updates the scale for next iteration
+            self.scaler.update()
+
             self.step += 1
-
-            # with torch.cuda.amp.autocast():
-            #     loss = self.training_strategy.train_step(batch)
-
-            # self.scaler.scale(loss).backward()
-            # self.scaler.unscale_(self.optimizer)
-            # torch.nn.utils.clip_grad_norm_(
-            #     self.semantic_search_model.get_all_trainable_parameters(), 1.0
-            # )
-            # self.scaler.step(self.optimizer)
-            # self.scaler.update()
-            # self.optimizer.zero_grad()
-
-        return loss
 
     def save_checkpoint(self):
         raise NotImplementedError()
@@ -177,7 +180,6 @@ class TrainingPipeline:
             all_losses = []
             all_extra_metrics = []
             for batch in tqdm(validation_loader):
-                # TODO: F1 scores
                 with torch.no_grad():
                     loss = self.training_strategy.train_step(batch)
                     all_losses.append(loss)
@@ -194,4 +196,4 @@ class TrainingPipeline:
 
         metrics = {"validation": metrics}
 
-        wandb.log(metrics, step=self.step)
+        wandb_safe_log(metrics, step=self.step)
