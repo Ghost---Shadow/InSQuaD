@@ -1,4 +1,7 @@
 # from config import RootConfig
+import json
+from pathlib import Path
+import time
 import torch
 
 
@@ -12,8 +15,19 @@ class QuaildStrategy:
     def train_step(self, batch):
         total_loss = 0
         for idx in range(len(batch["question"])):
-            # Gradient accumulation
-            total_loss += self.train_step_inner(batch, idx)
+            try:
+                # Gradient accumulation
+                total_loss += self.train_step_inner(batch, idx)
+
+                # Hopefully Fix OOM
+                torch.cuda.empty_cache()
+            except RuntimeError as e:
+                print("CUDA Out of Memory Error caught:", e)
+                torch.cuda.empty_cache()
+                Path("./artifacts").mkdir(exist_ok=True)
+                current_time = int(time.time())
+                with open(f"./artifacts/oom_{current_time}.json", "w") as f:
+                    json.dump(batch["question"], f, indent=2)
 
         return total_loss
 
