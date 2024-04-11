@@ -7,8 +7,9 @@ import wandb
 
 def main(config: RootConfig, seed: int):
     pipeline = TrainingPipeline(config)
-    pipeline.try_load_checkpoint()
+    pipeline.checkpoint_manager.try_load_checkpoint()
     start_epoch = pipeline.current_epoch + 1
+    pipeline.current_seed = seed
 
     wandb.init(
         project=config["wandb"]["project"],
@@ -25,7 +26,7 @@ def main(config: RootConfig, seed: int):
 
     try:
         send_discord_notification(f"Experiment {EXPERIMENT_NAME} started")
-        if pipeline.step == 0:
+        if pipeline.current_step == 0:
             print(f"Running a warmup validation")
             pipeline.run_online_validation()
 
@@ -34,7 +35,7 @@ def main(config: RootConfig, seed: int):
             pipeline.train_one_epoch()
 
             print(f"Saving checkpoint epoch {epoch}, seed {seed}")
-            pipeline.save_checkpoint()
+            pipeline.checkpoint_manager.save_checkpoint()
 
             print(f"Starting online validation epoch {epoch}, seed {seed}")
             pipeline.run_online_validation()

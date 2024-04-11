@@ -1,3 +1,4 @@
+from checkpoint_manager import CheckpointManager
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
 from extra_metrics import EXTRA_METRICS_LUT
@@ -23,12 +24,14 @@ class TrainingPipeline:
 
         # Leaf level parts
         self._load_parts(config)
-        self.step = 0
+        self.current_step = 0
+        self.current_epoch = 0
+        self.current_seed = None
 
         # Higher level parts
         lr_scheduler_type = config.training.learning_rate_decay_strategy
         self.lr_scheduler = LEARNING_RATE_SCHEDULERS_LUT[lr_scheduler_type](
-            config, self.optimizer, self.wrapped_train_dataset, self.step
+            config, self.optimizer, self.wrapped_train_dataset, self.current_step
         )
 
         training_strategy_type = config.training.type
@@ -103,6 +106,9 @@ class TrainingPipeline:
         for extra_metric_type in self.config.training.extra_metrics:
             self.extra_metrics.append(EXTRA_METRICS_LUT[extra_metric_type](self))
 
+        # Checkpoint manager
+        self.checkpoint_manager = CheckpointManager(self)
+
         # TODO: Why???
         for param_group in self.optimizer.param_groups:
             param_group.setdefault("initial_lr", config.training.learning_rate)
@@ -132,13 +138,13 @@ class TrainingPipeline:
             with torch.cuda.amp.autocast():
                 loss = self.training_strategy.train_step(batch)
                 extra_metrics = {}
-                if self.step % 100 == 0:
+                if self.current_step % 100 == 0:
                     extra_metrics = self.compute_extra_metrics(batch)
                 metrics = {
                     "train": {dataset_name: {"loss": loss.item(), **extra_metrics}}
                 }
                 pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
-                wandb_safe_log(metrics, step=self.step)
+                wandb_safe_log(metrics, step=self.current_step)
 
             # Scales loss. Calls backward() on scaled loss to create scaled gradients.
             self.scaler.scale(loss).backward()
@@ -149,21 +155,9 @@ class TrainingPipeline:
             # Updates the scale for next iteration
             self.scaler.update()
 
-            self.step += 1
+            self.current_step += 1
 
-    def save_checkpoint(self):
-        raise NotImplementedError()
-
-    def try_load_checkpoint(self):
-        raise NotImplementedError()
-
-    @property
-    def current_epoch(self):
-        raise NotImplementedError()
-
-    @property
-    def checkpoint_dir(self):
-        raise NotImplementedError()
+        self.current_epoch += 1
 
     def run_online_validation(self):
         metrics = {}
@@ -196,4 +190,4 @@ class TrainingPipeline:
 
         metrics = {"validation": metrics}
 
-        wandb_safe_log(metrics, step=self.step)
+        wandb_safe_log(metrics, step=self.current_step)

@@ -1,4 +1,7 @@
+import hashlib
+import json
 import random
+import shutil
 import numpy as np
 import torch
 
@@ -9,6 +12,15 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
+
+
+def generate_md5_hash(config):
+    if type(config) != dict:
+        config = config.model_dump()
+    hasher = hashlib.md5()
+    buf = json.dumps(config, sort_keys=True).encode()
+    hasher.update(buf)
+    return hasher.hexdigest()[:5]
 
 
 def average_dicts(dict_list):
@@ -37,3 +49,10 @@ def average_dicts(dict_list):
     avg_dict = {key: value / len(dict_list) for key, value in sum_dict.items()}
 
     return avg_dict
+
+
+def rmrf_if_possible(path):
+    try:
+        shutil.rmtree(path)
+    except FileNotFoundError:
+        ...
