@@ -1,5 +1,7 @@
 gcloud compute config-ssh
 
+chmod 400 ~/.ssh/id_rsa
+
 source devops/install_conda_ubuntu.sh # If needed
 source devops/mount_checkpoint_disk_nvme.sh # Verify before running
 source devops/einfach_cuda.sh
