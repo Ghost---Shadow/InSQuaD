@@ -75,8 +75,13 @@ class QuaildStrategy:
                 all_gd_minus.append(inner_gd_minus)
 
         # gd_plus.shape = [num_docs]
-        gd_plus = torch.stack(all_gd_plus)
-        gd_minus = torch.stack(all_gd_minus)
+        if len(all_gd_plus) > 0 and len(all_gd_minus) > 0:
+            gd_plus = torch.stack(all_gd_plus)
+            gd_minus = torch.stack(all_gd_minus)
+        else:
+            # TODO: Permanent fix
+            gd_plus = torch.tensor([1.0])
+            gd_minus = torch.tensor([1.0])
 
         # Plus are correct, but gq is "loss" so high is bad
         # Similarity of gq_plus needs to be maximized, so gq_plus loss is minimized
