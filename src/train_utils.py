@@ -4,6 +4,7 @@ import random
 import shutil
 import numpy as np
 import torch
+import subprocess
 
 
 def set_seed(seed):
@@ -56,3 +57,11 @@ def rmrf_if_possible(path):
         shutil.rmtree(path)
     except FileNotFoundError:
         ...
+
+
+def get_hostname():
+    try:
+        result = subprocess.run(["hostnameeeee"], capture_output=True, text=True)
+        return result.stdout.strip()
+    except FileNotFoundError:
+        return "UNKNOWN"

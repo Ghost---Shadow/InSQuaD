@@ -2,6 +2,7 @@ import argparse
 from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 import torch
+from train_utils import get_hostname
 from training_pipeline import TrainingPipeline
 import wandb
 import dotenv
@@ -22,6 +23,7 @@ def main(config: RootConfig, seed: int):
             **config.model_dump(mode="json"),
             "checkpoint_dir": pipeline.checkpoint_manager.checkpoint_dir,
             "seed": seed,
+            "hostname": get_hostname(),
         },
         entity=config.wandb.entity,
     )
@@ -30,9 +32,9 @@ def main(config: RootConfig, seed: int):
 
     try:
         send_discord_notification(f"Experiment {EXPERIMENT_NAME} started")
-        if pipeline.current_step == 0:
-            print(f"Running a warmup validation")
-            pipeline.run_online_validation()
+        # if pipeline.current_step == 0:
+        #     print(f"Running a warmup validation")
+        #     pipeline.run_online_validation()
 
         for epoch in range(start_epoch, config.training.epochs):
             print(f"Start training for epoch {epoch}, seed {seed}")
