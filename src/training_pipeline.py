@@ -143,7 +143,12 @@ class TrainingPipeline:
                 metrics = {
                     "train": {dataset_name: {"loss": loss.item(), **extra_metrics}}
                 }
-                pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
+                try:
+                    pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
+                except Exception:
+                    # Loss can be NaN
+                    # TODO: Permanent fix
+                    ...
                 wandb_safe_log(metrics, step=self.current_step)
 
             # Scales loss. Calls backward() on scaled loss to create scaled gradients.
