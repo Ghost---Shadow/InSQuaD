@@ -1,6 +1,6 @@
 lsblk
 sudo mkdir /mnt/checkpoints
-# sudo mkfs.ext4 /dev/nvme0n2
+sudo mkfs.ext4 /dev/nvme0n2 # Needs to be done only once
 sudo mount /dev/nvme0n2 /mnt/checkpoints
 # rm ./checkpoints
 
@@ -24,3 +24,5 @@ if ! grep -Fxq "$LINE" /etc/fstab; then
 else
     echo "$LINE already exists in /etc/fstab"
 fi
+
+lsblk
