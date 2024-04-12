@@ -142,7 +142,13 @@ class TrainingPipeline:
                     if self.current_step % 100 == 0:
                         extra_metrics = self.compute_extra_metrics(batch)
                     metrics = {
-                        "train": {dataset_name: {"loss": loss.item(), **extra_metrics}}
+                        "train": {
+                            dataset_name: {
+                                "loss": loss.item(),
+                                "learning_rate": self.lr_scheduler.get_lr()[0],
+                                **extra_metrics,
+                            }
+                        }
                     }
                     try:
                         pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
