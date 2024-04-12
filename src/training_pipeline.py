@@ -10,7 +10,7 @@ from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 import torch
-from train_utils import average_dicts
+from train_utils import average_dicts, set_seed
 from training_strategies import TRAINING_STRATEGIES_LUT
 from config import RootConfig
 from torch.cuda.amp import GradScaler
@@ -38,6 +38,10 @@ class TrainingPipeline:
         self.training_strategy = TRAINING_STRATEGIES_LUT[training_strategy_type](
             config, self
         )
+
+    def set_seed(self, seed):
+        set_seed(seed)
+        self.current_seed = seed
 
     def _load_parts(self, config: RootConfig):
         # Generative Model

@@ -11,7 +11,7 @@ def main(config: RootConfig, seed: int):
     dotenv.load_dotenv()
 
     pipeline = TrainingPipeline(config)
-    pipeline.current_seed = seed
+    pipeline.set_seed(seed)
     pipeline.checkpoint_manager.try_load_checkpoint()
     start_epoch = pipeline.current_epoch + 1
 
