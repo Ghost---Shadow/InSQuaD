@@ -1,6 +1,7 @@
 import argparse
 from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
+import torch
 from training_pipeline import TrainingPipeline
 import wandb
 import dotenv
@@ -42,6 +43,9 @@ def main(config: RootConfig, seed: int):
 
             print(f"Starting online validation epoch {epoch}, seed {seed}")
             pipeline.run_online_validation()
+
+            # Hopefully Fix OOM
+            torch.cuda.empty_cache()
         send_discord_notification(f"Experiment {EXPERIMENT_NAME} finished!")
     except Exception as e:
         send_discord_notification(f"Experiment {EXPERIMENT_NAME} crashed!")
