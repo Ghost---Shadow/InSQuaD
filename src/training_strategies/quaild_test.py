@@ -70,7 +70,6 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
-        config.architecture.subset_selection_strategy.gain_cutoff = 0.1  # For overfit
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -101,7 +100,6 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
-        config.architecture.subset_selection_strategy.gain_cutoff = 0.1  # For overfit
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()

@@ -76,8 +76,10 @@ class QuaildStrategy:
         gd_plus = torch.stack(all_gd_plus)
         gd_minus = torch.stack(all_gd_minus)
 
-        loss_q = (torch.log(gq_minus) - torch.log(gq_plus)).mean()
-        loss_d = (torch.log(gd_minus) - torch.log(gd_plus)).mean()
+        # Plus are correct, but gq is "loss" so high is bad
+        # Similarity of gq_plus needs to be maximized, so gq_plus loss is minimized
+        loss_q = (torch.log(gq_plus) - torch.log(gq_minus)).mean()
+        loss_d = (torch.log(gd_plus) - torch.log(gd_minus)).mean()
 
         lambdA = self.config.training.loss.lambd
 
