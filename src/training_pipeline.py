@@ -163,7 +163,8 @@ class TrainingPipeline:
                 self.scaler.update()
             except Exception as e:
                 # TODO: WHYYYYY
-                print(e)
+                print("[train_one_epoch]", e)
+                torch.cuda.empty_cache()
 
             self.current_step += 1
 

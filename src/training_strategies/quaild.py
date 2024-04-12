@@ -22,14 +22,14 @@ class QuaildStrategy:
                 # Hopefully Fix OOM
                 torch.cuda.empty_cache()
             except RuntimeError as e:
-                print("CUDA Out of Memory Error caught:", e)
+                print("[train_step] CUDA Out of Memory Error caught:", e)
                 torch.cuda.empty_cache()
-                Path("./artifacts").mkdir(exist_ok=True)
-                current_time = int(time.time())
-                with open(f"./artifacts/oom_{current_time}.json", "w") as f:
-                    json.dump(batch["question"], f, indent=2)
+                # Path("./artifacts").mkdir(exist_ok=True)
+                # current_time = int(time.time())
+                # with open(f"./artifacts/oom_{current_time}.json", "w") as f:
+                #     json.dump(batch["question"], f, indent=2)
             except Exception as e:
-                print(e)
+                print("[train_step]", e)
 
         return torch.stack(all_losses).mean()
 
