@@ -11,3 +11,4 @@ source devops/install.sh
 
 tmux new -s session
 tmux attach -t session
+conda activate quaild
