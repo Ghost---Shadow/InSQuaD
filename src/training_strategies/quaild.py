@@ -28,6 +28,8 @@ class QuaildStrategy:
                 current_time = int(time.time())
                 with open(f"./artifacts/oom_{current_time}.json", "w") as f:
                     json.dump(batch["question"], f, indent=2)
+            except Exception as e:
+                print(e)
 
         return torch.stack(all_losses).mean()
 

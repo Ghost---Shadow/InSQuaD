@@ -132,34 +132,38 @@ class TrainingPipeline:
         pbar = tqdm(train_loader)
 
         for batch in pbar:
-            self.optimizer.zero_grad()
+            try:
+                self.optimizer.zero_grad()
 
-            # Automatic Mixed Precision
-            with torch.cuda.amp.autocast():
-                loss = self.training_strategy.train_step(batch)
-                extra_metrics = {}
-                if self.current_step % 100 == 0:
-                    extra_metrics = self.compute_extra_metrics(batch)
-                metrics = {
-                    "train": {dataset_name: {"loss": loss.item(), **extra_metrics}}
-                }
-                try:
-                    pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
-                except Exception:
-                    # Loss can be NaN
-                    # TODO: Permanent fix
-                    ...
-                wandb_safe_log(metrics, step=self.current_step)
+                # Automatic Mixed Precision
+                with torch.cuda.amp.autocast():
+                    loss = self.training_strategy.train_step(batch)
+                    extra_metrics = {}
+                    if self.current_step % 100 == 0:
+                        extra_metrics = self.compute_extra_metrics(batch)
+                    metrics = {
+                        "train": {dataset_name: {"loss": loss.item(), **extra_metrics}}
+                    }
+                    try:
+                        pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
+                    except Exception:
+                        # Loss can be NaN
+                        # TODO: Permanent fix
+                        ...
+                    wandb_safe_log(metrics, step=self.current_step)
 
-            # Scales loss. Calls backward() on scaled loss to create scaled gradients.
-            self.scaler.scale(loss).backward()
+                # Scales loss. Calls backward() on scaled loss to create scaled gradients.
+                self.scaler.scale(loss).backward()
 
-            # Unscales gradients and calls or skips optimizer.step()
-            self.scaler.step(self.optimizer)
-            self.lr_scheduler.step()
+                # Unscales gradients and calls or skips optimizer.step()
+                self.scaler.step(self.optimizer)
+                self.lr_scheduler.step()
 
-            # Updates the scale for next iteration
-            self.scaler.update()
+                # Updates the scale for next iteration
+                self.scaler.update()
+            except Exception as e:
+                # TODO: WHYYYYY
+                print(e)
 
             self.current_step += 1
 
