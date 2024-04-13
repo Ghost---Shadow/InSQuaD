@@ -7,7 +7,7 @@ load_dotenv()
 
 
 class OpenAIChatModel:
-    def __init__(self, config):
+    def __init__(self, config, generative_model_config):
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.config = config
         self.seed = 42

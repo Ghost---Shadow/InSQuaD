@@ -1,5 +1,6 @@
 import hashlib
 import json
+from pathlib import Path
 import random
 import shutil
 import numpy as np
@@ -65,3 +66,13 @@ def get_hostname():
         return result.stdout.strip()
     except FileNotFoundError:
         return "UNKNOWN"
+
+
+def generate_artifacts_dir(config, current_seed):
+    assert current_seed is not None, "Seed not yet set"
+    seed = current_seed
+    config_hash = generate_md5_hash(config)
+    config_name = config.wandb.name
+    artifacts_dir = f"./artifacts/{config_name}_{config_hash}/seed_{seed}/"
+    Path(artifacts_dir).mkdir(exist_ok=True, parents=True)
+    return artifacts_dir

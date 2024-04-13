@@ -10,7 +10,7 @@ from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 import torch
-from train_utils import average_dicts, set_seed
+from train_utils import average_dicts, generate_artifacts_dir, set_seed
 from training_strategies import TRAINING_STRATEGIES_LUT
 from config import RootConfig
 from torch.cuda.amp import GradScaler
@@ -47,7 +47,10 @@ class TrainingPipeline:
         # Generative Model
         print("Loading generative model")
         generative_model_type = config.architecture.generative_model.type
-        self.generative_model = GENERATIVE_MODELS_LUT[generative_model_type](config)
+        generative_model_config = config.architecture.generative_model
+        self.generative_model = GENERATIVE_MODELS_LUT[generative_model_type](
+            config, generative_model_config
+        )
 
         # Semantic Search Model
         print("Loading Semantic Search Model")
@@ -67,7 +70,7 @@ class TrainingPipeline:
         # Dense Index
         print("Loading Dense Index")
         dense_index_type = config.architecture.dense_index.type
-        self.dense_index = DENSE_INDEXES_LUT[dense_index_type](config)
+        self.dense_index = DENSE_INDEXES_LUT[dense_index_type](config, self)
 
         # Prompt Formatting Strategy
         prompt_formatting_strategy_type = (
@@ -116,6 +119,10 @@ class TrainingPipeline:
         # TODO: Why???
         for param_group in self.optimizer.param_groups:
             param_group.setdefault("initial_lr", config.training.learning_rate)
+
+    @property
+    def artifacts_dir(self):
+        return generate_artifacts_dir(self.config, self.current_seed)
 
     @torch.no_grad
     def compute_extra_metrics(self, batch):

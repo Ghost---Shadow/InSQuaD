@@ -3,8 +3,8 @@ import unittest
 from config import Config
 from dataloaders.dummy import DummyDataset
 from dense_indexes.wrapped_faiss import WrappedFaiss
-from semantic_search_models.wrapped_mpnet import WrappedMpnetModel
 from train_utils import set_seed
+from training_pipeline import TrainingPipeline
 
 
 # python -m unittest dense_indexes.wrapped_faiss_test.TestFaissWrapper -v
@@ -13,12 +13,13 @@ class TestFaissWrapper(unittest.TestCase):
     def test_repopulate_index(self):
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
         config.architecture.dense_index.k_for_rerank = 2
+        pipeline = TrainingPipeline(config)
 
         wrapped_dataset = DummyDataset(config)
-        wrapped_mpnet_model = WrappedMpnetModel(config)
-        wrapped_faiss = WrappedFaiss(config)
+        wrapped_mpnet_model = pipeline.semantic_search_model
+        wrapped_faiss = WrappedFaiss(config, pipeline)
 
         wrapped_faiss.repopulate_index(wrapped_dataset, wrapped_mpnet_model)
 
@@ -40,7 +41,8 @@ class TestFaissWrapper(unittest.TestCase):
                     "What is Charlie's favourite fruit?",
                 ],
                 "labels": ["banana", "coconut"],
-                "distances": [0.5622506737709045, 0.5896707773208618],
+                "distances": [0.5622506141662598, 0.5896710157394409],
+                "global_indices": [1, 2],
             },
             {
                 "prompts": [
@@ -48,7 +50,8 @@ class TestFaissWrapper(unittest.TestCase):
                     "What is Alice's favourite fruit?",
                 ],
                 "labels": ["coconut", "apple"],
-                "distances": [0.5423349738121033, 0.5622507333755493],
+                "distances": [0.5423351526260376, 0.5622506141662598],
+                "global_indices": [2, 0],
             },
             {
                 "prompts": [
@@ -56,7 +59,8 @@ class TestFaissWrapper(unittest.TestCase):
                     "What is Alice's favourite fruit?",
                 ],
                 "labels": ["banana", "apple"],
-                "distances": [0.542335033416748, 0.5896708369255066],
+                "distances": [0.542335033416748, 0.5896708965301514],
+                "global_indices": [1, 0],
             },
         ]
 

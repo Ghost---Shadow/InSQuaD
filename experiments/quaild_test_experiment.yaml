@@ -54,5 +54,5 @@ offline_validation:
   datasets: ['mrpc']
   seeds: [42]
   num_shots: 2
-  annotation_budget: 10
+  annotation_budget: 20
   subsample_for_eval_size: 256

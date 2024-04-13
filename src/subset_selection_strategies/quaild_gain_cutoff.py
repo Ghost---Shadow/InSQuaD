@@ -46,4 +46,10 @@ class QuaildGainCutoffStrategy:
             if gain > self.gain_cutoff:
                 picked_mask[best_candidate] = True
 
-        return torch.nonzero(picked_mask).squeeze(dim=-1)
+        picked_indices = torch.nonzero(picked_mask)
+        if len(picked_indices.shape) == 2:
+            picked_indices = picked_indices.squeeze(dim=-1)
+
+        assert len(picked_indices.shape) == 1, picked_indices
+
+        return picked_indices

@@ -1,26 +1,33 @@
 import json
+from pathlib import Path
 from config import RootConfig
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
 from generative_models import GENERATIVE_MODELS_LUT
+from losses import LOSSES_LUT
 from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from shortlist_strategies import SHORTLIST_STRATEGIES_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 from tqdm import tqdm
+from train_utils import generate_artifacts_dir, set_seed
 
 
 class OfflineEvaluationPipeline:
     def __init__(self, config: RootConfig):
         self.config = config
         self._load_parts(config)
-        self.num_shots = 1  # TODO: unhardcode
+        self.num_shots = config.offline_validation.num_shots
+        self.current_seed = None
 
     def _load_parts(self, config: RootConfig):
         # Generative Model
         print("Loading generative model")
         generative_model_type = config.offline_validation.generative_model.type
-        self.generative_model = GENERATIVE_MODELS_LUT[generative_model_type](config)
+        generative_model_config = config.offline_validation.generative_model
+        self.generative_model = GENERATIVE_MODELS_LUT[generative_model_type](
+            config, generative_model_config
+        )
 
         # Semantic Search Model
         print("Loading Semantic Search Model")
@@ -41,7 +48,7 @@ class OfflineEvaluationPipeline:
         # Dense Index
         print("Loading Dense Index")
         dense_index_type = config.architecture.dense_index.type
-        self.dense_index = DENSE_INDEXES_LUT[dense_index_type](config)
+        self.dense_index = DENSE_INDEXES_LUT[dense_index_type](config, self)
 
         # Prompt Formatting Strategy
         prompt_formatting_strategy_type = (
@@ -57,27 +64,33 @@ class OfflineEvaluationPipeline:
             config, self
         )
 
+        # Loss Function (for metrics and shortlisting)
+        loss_function_type = config.training.loss.type
+        self.loss_function = LOSSES_LUT[loss_function_type](config)
+
         print("Preparing validation loaders")
         dataset_names = config.offline_validation.datasets
-        self.validation_dataset_lut = {}
+        self.offline_dataset_lut = {}
         for dataset_name in dataset_names:
-            self.validation_dataset_lut[dataset_name] = DATALOADERS_LUT[dataset_name](
+            self.offline_dataset_lut[dataset_name] = DATALOADERS_LUT[dataset_name](
                 config
             )
 
     def shortlist(self, dataset_name):
-        picked_rows = self.shortlist_strategy.shortlist(dataset_name)
+        indexes, confidences = self.shortlist_strategy.shortlist(dataset_name)
 
-        dataset = self.validation_dataset_lut[dataset_name]
+        dataset = self.offline_dataset_lut[dataset_name]
         shortlisted_rows = []
-        for idx in picked_rows:
-            shortlisted_rows.append(dataset[idx])
+        for idx, confidence in zip(indexes, confidences):
+            row = dataset[idx]
+            row["confidence"] = confidence
+            shortlisted_rows.append(row)
 
-        with open(self.shortlisted_data_path) as f:
-            json.dump(shortlisted_rows, f)
+        with open(self.shortlisted_data_path, "w") as f:
+            json.dump(shortlisted_rows, f, indent=2)
 
     def generate_one_shots(self, dataset_name):
-        wrapped_dataset = self.validation_dataset_lut[dataset_name]
+        wrapped_dataset = self.offline_dataset_lut[dataset_name]
         with open(self.shortlisted_data_path) as f:
             shortlist = json.load(f)
 
@@ -110,9 +123,18 @@ class OfflineEvaluationPipeline:
                     )
                     f_out.write(f"{true_answer},{actual},{sequence_probability}\n")
 
+    def set_seed(self, seed):
+        set_seed(seed)
+        self.current_seed = seed
+
+    @property
+    def artifacts_dir(self):
+        return generate_artifacts_dir(self.config, self.current_seed)
+
     @property
     def shortlisted_data_path(self):
-        raise NotImplementedError()
+        path = Path(self.artifacts_dir) / "shortlist.json"
+        return path
 
     @property
     def few_shot_data_jsonl_path(self):

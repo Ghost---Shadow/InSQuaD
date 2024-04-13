@@ -3,10 +3,11 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 
 class WrappedT5:
-    def __init__(self, config):
+    def __init__(self, config, generative_model_config):
         self.config = config
-        checkpoint = config.architecture.generative_model.checkpoint
-        device = config.architecture.generative_model.device
+        self.generative_model_config = generative_model_config
+        checkpoint = generative_model_config.checkpoint
+        device = generative_model_config.device
         self.device = torch.device(device)
 
         # Load the model and tokenizer
