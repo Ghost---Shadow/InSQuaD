@@ -1,6 +1,7 @@
 import unittest
 from config import Config
 from dataloaders.mrpc import MRPC
+from tqdm import tqdm
 from train_utils import set_seed
 
 
@@ -10,7 +11,7 @@ class TestMRPCLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         mrpc_dataset = MRPC(config)
@@ -29,7 +30,7 @@ class TestMRPCLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
         mrpc_dataset = MRPC(config)
 
         indexes = [0, 1]
@@ -45,6 +46,18 @@ class TestMRPCLoader(unittest.TestCase):
         ]
         self.assertEqual(batch["prompts"], expected_prompts)
         self.assertEqual(batch["labels"], expected_labels)
+
+    # python -m unittest dataloaders.mrpc_test.TestMRPCLoader.test_get_item -v
+    def test_get_item(self):
+        # Set seed for deterministic testing
+        set_seed(42)
+
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        mrpc_dataset = MRPC(config)
+
+        for row in tqdm(mrpc_dataset):
+            assert "prompts" in row
+            assert "labels" in row
 
 
 if __name__ == "__main__":

@@ -28,3 +28,11 @@ class BaseDataset(Dataset):
         for index in indexes:
             batch.append(self.dataset[SPLIT][index])
         return self.collate_fn(batch)
+
+    def __getitem__(self, index):
+        batch = self.random_access([index])
+        row = {}
+        for key in batch:
+            row[key] = batch[key][0]
+
+        return row

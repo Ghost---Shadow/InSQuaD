@@ -8,7 +8,9 @@ class MRPC(BaseDataset):
 
     def __init__(self, config):
         super().__init__(config)
+        print("loading mrpc")
         self.dataset = load_dataset("glue", "mrpc")
+        print("loaded mrpc")
 
     @staticmethod
     def collate_fn(batch):
