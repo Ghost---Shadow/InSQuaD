@@ -1,5 +1,4 @@
 from dataloaders.base import BaseDataset
-from datasets import load_dataset
 
 
 class MRPC(BaseDataset):
@@ -8,9 +7,7 @@ class MRPC(BaseDataset):
 
     def __init__(self, config):
         super().__init__(config)
-        print("loading mrpc")
-        self.dataset = load_dataset("glue", "mrpc")
-        print("loaded mrpc")
+        self.cached_load_dataset(MRPC.NAME, ("glue", "mrpc"))
 
     @staticmethod
     def collate_fn(batch):

@@ -1,4 +1,6 @@
+from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
+from datasets import load_dataset, load_from_disk
 
 
 class BaseDataset(Dataset):
@@ -6,6 +8,18 @@ class BaseDataset(Dataset):
         self.config = config
         self.batch_size = config.training.batch_size
         self.dataset = None
+
+    def cached_load_dataset(self, name, source):
+        """
+        https://github.com/huggingface/datasets/issues/824
+        """
+        cache_path = f"./artifacts/data_cache/{name}"
+        Path(cache_path).mkdir(exist_ok=True, parents=True)
+        try:
+            self.dataset = load_from_disk(cache_path)
+        except FileNotFoundError:
+            self.dataset = load_dataset(*source)
+            self.dataset.save_to_disk(cache_path)
 
     @staticmethod
     def collate_fn(batch):
