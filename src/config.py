@@ -141,10 +141,13 @@ class TrainingConfig(BaseModel):
 
 class OfflineValidationConfig(BaseModel):
     type: str
-    q_d_tradeoff_lambda: float = None
-    annotation_budget: int
-    datasets: List[str]
     generative_model: GenerativeModelConfig
+    q_d_tradeoff_lambda: float = None
+    datasets: List[str]
+    seeds: List[int]
+    num_shots: int
+    annotation_budget: int
+    subsample_for_eval_size: int = None
 
     _validate_datasets = validator("datasets", each_item=True, allow_reuse=True)(
         type_validator(DATALOADERS_LUT)
