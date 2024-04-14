@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from config import RootConfig
 from dataloaders import DATALOADERS_LUT
@@ -76,7 +77,11 @@ class OfflineEvaluationPipeline:
                 config
             )
 
-    def shortlist(self, dataset_name):
+    def shortlist(self, dataset_name, skip_if_done=True):
+        if os.path.exists(self.shortlisted_data_path) and skip_if_done:
+            print("Shortlist already computed, skipping")
+            return
+
         indexes, confidences = self.shortlist_strategy.shortlist(dataset_name)
 
         dataset = self.offline_dataset_lut[dataset_name]
@@ -89,21 +94,42 @@ class OfflineEvaluationPipeline:
         with open(self.shortlisted_data_path, "w") as f:
             json.dump(shortlisted_rows, f, indent=2)
 
-    def generate_one_shots(self, dataset_name):
-        wrapped_dataset = self.offline_dataset_lut[dataset_name]
-        with open(self.shortlisted_data_path) as f:
-            shortlist = json.load(f)
+    def generate_few_shots(self, dataset_name, skip_if_done=True):
+        if os.path.exists(self.few_shot_data_jsonl_path) and skip_if_done:
+            print("few shots already computed, skipping")
+            return
 
-        with open(self.few_shot_data_jsonl_path, "w") as f:
-            for row, few_shot in self.shortlist_strategy.assemble_few_shot(
-                wrapped_dataset, shortlist
-            ):
-                prompt = self.prompt_formatting_strategy(
-                    self.generative_model.tokenizer, [row], [few_shot]
-                )
-                label = row["label"]
-                line = json.dumps({"prompt": prompt, "label": label})
-                f.write(line + "\n")
+        try:
+            with open(self.few_shot_data_jsonl_path, "w") as f:
+                for row, few_shot in self.shortlist_strategy.assemble_few_shot(
+                    dataset_name
+                ):
+                    prompt = self.prompt_formatting_strategy.generate_prompt(
+                        self.generative_model.tokenizer, row, few_shot
+                    )
+                    label = row["labels"]
+                    line = json.dumps({"prompts": prompt, "labels": label})
+                    f.write(line + "\n")
+        except Exception as e:
+            os.unlink(self.few_shot_data_jsonl_path)
+            raise e
+
+        self.generate_few_shot_data_sanity()
+
+    def generate_few_shot_data_sanity(self):
+        s = ""
+        hr = "\n" + ("-" * 80) + "\n"
+        with open(self.few_shot_data_jsonl_path, "r") as f:
+            i = 0
+            for row in f:
+                row = json.loads(row)
+                s += row["prompts"] + row["labels"] + hr
+                i += 1
+                if i == 5:
+                    break
+
+        with open(self.few_shot_data_sanity_path, "w") as f:
+            f.write(s)
 
     def run_inference(self):
         counter = 0
@@ -138,7 +164,13 @@ class OfflineEvaluationPipeline:
 
     @property
     def few_shot_data_jsonl_path(self):
-        raise NotImplementedError()
+        path = Path(self.artifacts_dir) / "few_shot_validation.jsonl"
+        return path
+
+    @property
+    def few_shot_data_sanity_path(self):
+        path = Path(self.artifacts_dir) / "few_shot_validation_sanity.txt"
+        return path
 
     @property
     def inference_result_csv_path(self):

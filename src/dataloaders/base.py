@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
 from datasets import load_dataset, load_from_disk
@@ -23,7 +24,14 @@ class BaseDataset(Dataset):
 
     @staticmethod
     def collate_fn(batch):
-        raise NotImplementedError()
+        keys = list(batch[0].keys())
+        collated_batch = defaultdict(list)
+
+        for key in keys:
+            for row in batch:
+                collated_batch[key].append(row[key])
+
+        return dict(collated_batch)
 
     def get_loader(self, split):
         shuffle = False
@@ -36,6 +44,21 @@ class BaseDataset(Dataset):
             collate_fn=self.collate_fn,
         )
 
+    def get_row_iterator(self, split):
+        # TODO: Cleanup
+        for raw_row in self.dataset[split]:
+            batch = self.collate_fn([raw_row])
+            row = self.unbatch(batch)
+            yield row
+
+    def unbatch(self, batch):
+        # TODO: Cleanup
+        row = {}
+        for key in batch:
+            assert len(batch[key]) == 1
+            row[key] = batch[key][0]
+        return row
+
     def random_access(self, indexes):
         SPLIT = "train"
         batch = []
@@ -45,8 +68,4 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, index):
         batch = self.random_access([index])
-        row = {}
-        for key in batch:
-            row[key] = batch[key][0]
-
-        return row
+        return self.unbatch(batch)

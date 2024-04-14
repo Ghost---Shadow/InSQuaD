@@ -15,7 +15,19 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.set_seed(42)
 
         # Should not crash
+        pipeline.shortlist("mrpc", skip_if_done=False)
+
+    # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_generate_few_shots -v
+    def test_generate_few_shots(self):
+        config_path = "experiments/quaild_test_experiment.yaml"
+
+        config = Config.from_file(config_path)
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+
+        # Should not crash
         pipeline.shortlist("mrpc")
+        pipeline.generate_few_shots("mrpc", skip_if_done=False)
 
 
 if __name__ == "__main__":

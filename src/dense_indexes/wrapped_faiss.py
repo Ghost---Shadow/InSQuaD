@@ -14,22 +14,20 @@ class WrappedFaiss:
         self.wrapped_dataset = None
         self.index = None
 
-    @property
-    def index_path(self):
-        # Needs string
-        return str(Path(self.pipeline.artifacts_dir) / "default.index")
+    def does_cache_exist(self, cache_name):
+        return (self.cache_base_path / cache_name).exists()
 
     @property
-    def does_cache_exist(self):
-        return Path(self.index_path).exists()
+    def cache_base_path(self):
+        return Path(self.pipeline.artifacts_dir)
 
-    def save_index(self):
-        faiss.write_index(self.index, self.index_path)
+    def save_index(self, cache_name):
+        faiss.write_index(self.index, str(self.cache_base_path / cache_name))
 
-    def load_index(self, wrapped_dataset):
+    def load_index(self, wrapped_dataset, cache_name):
         # TODO: Single responsibility
         self.wrapped_dataset = wrapped_dataset
-        self.index = faiss.read_index(self.index_path)
+        self.index = faiss.read_index(str(self.cache_base_path / cache_name))
 
     def repopulate_index(self, wrapped_dataset: BaseDataset, embedding_model):
         # TODO: Single responsibility
@@ -51,6 +49,7 @@ class WrappedFaiss:
             raise ValueError(f"Unsupported index class: {self.index_class}")
 
         # Prepare dataset embeddings
+        # TODO: Unhardcode
         for row in tqdm(
             self.wrapped_dataset.dataset["train"], desc="populating index", leave=False
         ):
