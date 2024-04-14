@@ -2,7 +2,7 @@ from dataloaders.base import BaseDataset
 
 
 class MRPC(BaseDataset):
-    LABELS = {0: "not equivalent", 1: "equivalent"}
+    LABELS = {0: "no", 1: "yes"}
     NAME = "mrpc"
 
     def __init__(self, config):

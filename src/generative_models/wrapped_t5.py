@@ -36,13 +36,14 @@ class WrappedT5:
 
         # Conduct the forward pass and calculate the loss automatically
         with torch.no_grad():
-            outputs = self.model(
+            outputs = self.model.forward(
                 input_ids=input_ids,
                 labels=true_answer_ids,
             )
             loss = outputs.loss
 
-        actual = self.tokenizer.decode(torch.argmax(outputs.logits))
+        output_tokens = torch.argmax(outputs.logits.squeeze(), dim=-1)
+        actual = self.tokenizer.decode(output_tokens, skip_special_tokens=True)
 
         sequence_probability = torch.exp(-loss).item()
 

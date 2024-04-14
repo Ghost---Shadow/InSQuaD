@@ -11,7 +11,7 @@ from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from shortlist_strategies import SHORTLIST_STRATEGIES_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 from tqdm import tqdm
-from train_utils import generate_artifacts_dir, set_seed
+from train_utils import count_rows_jsonl, generate_artifacts_dir, set_seed
 
 
 class OfflineEvaluationPipeline:
@@ -20,6 +20,7 @@ class OfflineEvaluationPipeline:
         self._load_parts(config)
         self.num_shots = config.offline_validation.num_shots
         self.current_seed = None
+        self.current_dataset_name = None
 
     def _load_parts(self, config: RootConfig):
         # Generative Model
@@ -77,7 +78,8 @@ class OfflineEvaluationPipeline:
                 config
             )
 
-    def shortlist(self, dataset_name, skip_if_done=True):
+    def shortlist(self, skip_if_done=True):
+        dataset_name = self.current_dataset_name
         if os.path.exists(self.shortlisted_data_path) and skip_if_done:
             print("Shortlist already computed, skipping")
             return
@@ -94,7 +96,7 @@ class OfflineEvaluationPipeline:
         with open(self.shortlisted_data_path, "w") as f:
             json.dump(shortlisted_rows, f, indent=2)
 
-    def generate_few_shots(self, dataset_name, skip_if_done=True):
+    def generate_few_shots(self, skip_if_done=True):
         if os.path.exists(self.few_shot_data_jsonl_path) and skip_if_done:
             print("few shots already computed, skipping")
             return
@@ -102,7 +104,7 @@ class OfflineEvaluationPipeline:
         try:
             with open(self.few_shot_data_jsonl_path, "w") as f:
                 for row, few_shot in self.shortlist_strategy.assemble_few_shot(
-                    dataset_name
+                    self.current_dataset_name
                 ):
                     prompt = self.prompt_formatting_strategy.generate_prompt(
                         self.generative_model.tokenizer, row, few_shot
@@ -131,23 +133,73 @@ class OfflineEvaluationPipeline:
         with open(self.few_shot_data_sanity_path, "w") as f:
             f.write(s)
 
-    def run_inference(self):
-        counter = 0
+    def run_inference(self, skip_if_done=True):
+        if os.path.exists(self.final_result_json_path) and skip_if_done:
+            print("Inference already done")
+            return
+
+        total = count_rows_jsonl(self.few_shot_data_jsonl_path)
         with open(self.few_shot_data_jsonl_path, "r") as f_in:
-            while f_in:
-                counter += 1
-        with open(self.few_shot_data_jsonl_path, "r") as f_in:
-            with open(self.inference_result_csv_path, "w") as f_out:
-                f_out.write("expected,actual,ppl\n")
-                for row in tqdm(f_in, total=counter, desc="Running inference"):
+            with open(self.inference_result_jsonl_path, "w") as f_out:
+                for row in tqdm(f_in, total=total, desc="Running inference"):
                     row = json.loads(row)
-                    prompt, true_answer = row["prompt"], row["label"]
-                    result = self.generative_model(prompt, true_answer)
-                    sequence_probability, actual = (
-                        result["sequence_probability"],
-                        result["actual"],
-                    )
-                    f_out.write(f"{true_answer},{actual},{sequence_probability}\n")
+                    prompt, true_answer = row["prompts"], row["labels"]
+                    result = self.generative_model.evaluate(prompt, true_answer)
+                    f_out.write(json.dumps({**row, **result}))
+                    f_out.write("\n")
+
+        self.analyze_inference_outputs()
+
+    def analyze_inference_outputs(self):
+        total_count = 0
+        correct_count = 0
+        correct_prob_sum = 0
+        incorrect_prob_sum = 0
+        correct_prob_count = 0
+        incorrect_prob_count = 0
+
+        # Read the JSONL file line by line
+        with open(self.inference_result_jsonl_path, "r") as file:
+            for line in file:
+                data = json.loads(line)  # Parse the JSON data from each line
+
+                if data["labels"] == data["actual"]:
+                    correct_count += 1
+                    correct_prob_sum += data["sequence_probability"]
+                    correct_prob_count += 1
+                else:
+                    incorrect_prob_sum += data["sequence_probability"]
+                    incorrect_prob_count += 1
+
+                total_count += 1
+
+        # Calculate the percentages and averages
+        if total_count > 0:
+            correct_percentage = (correct_count / total_count) * 100
+        else:
+            correct_percentage = 0
+
+        if correct_prob_count > 0:
+            average_correct_prob = correct_prob_sum / correct_prob_count
+        else:
+            average_correct_prob = 0
+
+        if incorrect_prob_count > 0:
+            average_incorrect_prob = incorrect_prob_sum / incorrect_prob_count
+        else:
+            average_incorrect_prob = 0
+
+        # Write the results to an output file
+        with open(self.final_result_json_path, "w") as f:
+            json.dump(
+                {
+                    "correct_percentage": correct_percentage,
+                    "average_correct_prob": average_correct_prob,
+                    "average_incorrect_prob": average_incorrect_prob,
+                },
+                f,
+                indent=2,
+            )
 
     def set_seed(self, seed):
         set_seed(seed)
@@ -155,7 +207,9 @@ class OfflineEvaluationPipeline:
 
     @property
     def artifacts_dir(self):
-        return generate_artifacts_dir(self.config, self.current_seed)
+        return generate_artifacts_dir(
+            self.config, self.current_seed, self.current_dataset_name
+        )
 
     @property
     def shortlisted_data_path(self):
@@ -173,5 +227,11 @@ class OfflineEvaluationPipeline:
         return path
 
     @property
-    def inference_result_csv_path(self):
-        raise NotImplementedError()
+    def inference_result_jsonl_path(self):
+        path = Path(self.artifacts_dir) / "inference_result.jsonl"
+        return path
+
+    @property
+    def final_result_json_path(self):
+        path = Path(self.artifacts_dir) / "final_result.json"
+        return path

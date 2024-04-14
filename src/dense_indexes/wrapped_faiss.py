@@ -31,8 +31,7 @@ class WrappedFaiss:
 
     def repopulate_index(self, wrapped_dataset: BaseDataset, embedding_model):
         # TODO: Single responsibility
-        if self.wrapped_dataset is None:
-            self.wrapped_dataset = wrapped_dataset
+        self.wrapped_dataset = wrapped_dataset
         assert self.wrapped_dataset is not None
 
         embedding_dim = embedding_model.model.config.hidden_size

@@ -122,7 +122,7 @@ class TrainingPipeline:
 
     @property
     def artifacts_dir(self):
-        return generate_artifacts_dir(self.config, self.current_seed)
+        return generate_artifacts_dir(self.config, self.current_seed, "train")
 
     @torch.no_grad
     def compute_extra_metrics(self, batch):

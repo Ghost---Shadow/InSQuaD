@@ -32,7 +32,7 @@ class QuaildGainCounterStrategy:
 
     def _populate_and_cache_index(self, cache_name, use_cache, wrapped_dataset):
         if use_cache and self.pipeline.dense_index.does_cache_exist(cache_name):
-            print("Found dense index cache")
+            print(f"Found dense index cache {cache_name}")
             self.pipeline.dense_index.load_index(wrapped_dataset, cache_name)
         else:
             # Populate dense index

@@ -4,8 +4,10 @@ from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
 
 
-def main(config: RootConfig, dataset_name: str):
+def main(config: RootConfig, dataset_name: str, seed: int):
     pipeline = OfflineEvaluationPipeline(config)
+    pipeline.set_seed(seed)
+    pipeline.current_dataset_name = dataset_name
 
     EXPERIMENT_NAME = config.wandb.name
     # TODO: Send the artifact to the same experiment as wandb
@@ -14,13 +16,13 @@ def main(config: RootConfig, dataset_name: str):
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
 
         print(f"Shortlisting")
-        pipeline.shortlist(dataset_name)
+        pipeline.shortlist()
 
         print(f"Generating one shots")
-        pipeline.generate_one_shots(dataset_name)
+        pipeline.generate_few_shots()
 
         print(f"Running inference")
-        pipeline.run_inference(dataset_name)
+        pipeline.run_inference()
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} finished!")
     except Exception as e:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} crashed!")
@@ -36,5 +38,6 @@ if __name__ == "__main__":
 
     config = Config.from_file(args.config)
 
-    for dataset_name in config.offline_validation.datasets:
-        main(config, dataset_name)
+    for seed in config.offline_validation.seeds:
+        for dataset_name in config.offline_validation.datasets:
+            main(config, dataset_name, seed)

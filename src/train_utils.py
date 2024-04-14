@@ -68,11 +68,22 @@ def get_hostname():
         return "UNKNOWN"
 
 
-def generate_artifacts_dir(config, current_seed):
+def generate_artifacts_dir(config, current_seed, current_dataset_name):
     assert current_seed is not None, "Seed not yet set"
+    assert current_dataset_name is not None, "Dataset name not yet set"
     seed = current_seed
     config_hash = generate_md5_hash(config)
     config_name = config.wandb.name
-    artifacts_dir = f"./artifacts/{config_name}_{config_hash}/seed_{seed}/"
+    artifacts_dir = (
+        f"./artifacts/{config_name}_{config_hash}/seed_{seed}/{current_dataset_name}"
+    )
     Path(artifacts_dir).mkdir(exist_ok=True, parents=True)
     return artifacts_dir
+
+
+def count_rows_jsonl(path):
+    counter = 0
+    with open(path, "r") as f:
+        for _ in f:
+            counter += 1
+    return counter
