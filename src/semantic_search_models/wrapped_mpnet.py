@@ -8,6 +8,8 @@ class WrappedMpnetModel(WrappedBaseModel):
     https://huggingface.co/sentence-transformers/all-mpnet-base-v2
     """
 
+    NAME = "mpnet"
+
     def __init__(self, config):
         super().__init__(config)
 

@@ -1,7 +1,8 @@
 from datasets import load_dataset
 from concurrent.futures import ThreadPoolExecutor
-from models.t5_model import T5ModelForQuestionGeneration
-from models.openai_chat_model import OpenAIChatModel
+
+# from generative_models.wrapped_t5 import WrappedT5
+from generative_models.openai_chat_model import OpenAIChatModel
 import json
 import os
 from tqdm import tqdm

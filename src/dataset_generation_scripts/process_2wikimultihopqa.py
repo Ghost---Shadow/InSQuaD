@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
-from models.openai_chat_model import OpenAIChatModel
+from generative_models.openai_chat_model import OpenAIChatModel
 from datasets import load_dataset
 from tqdm import tqdm
 from functools import lru_cache

@@ -3,6 +3,8 @@ import torch.nn.functional as F
 
 
 class KLDivLoss(BaseLoss):
+    NAME = "kl_divergence"
+
     def __init__(self, config=None):
         super(KLDivLoss, self).__init__()
         self.config = config

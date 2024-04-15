@@ -2,6 +2,8 @@ import torch
 
 
 class PickAndRerankStrategy:
+    NAME = "pick_and_rerank"
+
     def __init__(self, config, pipeline):
         self.pipeline = pipeline
         self.config = config

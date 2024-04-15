@@ -7,6 +7,8 @@ from config import RootConfig
 
 
 class QuaildGainCounterStrategy:
+    NAME = "quaild_gain_counter"
+
     def __init__(self, config: RootConfig, pipeline):
         self.config = config
         self.pipeline = pipeline

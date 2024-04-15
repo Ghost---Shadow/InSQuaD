@@ -3,6 +3,8 @@ import torch
 
 
 class TopKStrategy(BaseSubsetSelectionStrategy):
+    NAME = "top_k"
+
     def __init__(self, config):
         self.config = config
         self.k = config.architecture.subset_selection_strategy.k

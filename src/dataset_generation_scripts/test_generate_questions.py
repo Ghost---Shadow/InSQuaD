@@ -1,6 +1,6 @@
 from dataset_generation_scripts.process_hotpotqa import add_question_to_row
 from datasets import load_dataset
-from models.t5_model import T5ModelForQuestionGeneration
+from generative_models.wrapped_t5 import WrappedT5
 import unittest
 
 
@@ -21,7 +21,7 @@ class TestAddQuestionToRow(unittest.TestCase):
                 }
             }
         }
-        model = T5ModelForQuestionGeneration(config)
+        model = WrappedT5(config)
 
         modified_row = add_question_to_row(model, row)
 

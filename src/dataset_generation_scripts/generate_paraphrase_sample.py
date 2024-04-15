@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 import json
-from models.openai_chat_model import OpenAIChatModel
+from generative_models.openai_chat_model import OpenAIChatModel
 
 
 def add_paraphrases_to_row(model, row):

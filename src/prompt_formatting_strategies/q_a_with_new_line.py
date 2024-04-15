@@ -1,4 +1,6 @@
 class QAWithNewLine:
+    NAME = "q_a_with_new_line"
+
     def __init__(self, config):
         self.config = config
 

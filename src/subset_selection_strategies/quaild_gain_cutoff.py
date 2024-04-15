@@ -2,6 +2,8 @@ import torch
 
 
 class QuaildGainCutoffStrategy:
+    NAME = "gain_cutoff"
+
     def __init__(self, config, pipeline):
         self.config = config
         self.pipeline = pipeline

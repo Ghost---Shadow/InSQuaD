@@ -3,6 +3,8 @@ import torch
 
 
 class QuaildFacilityLocationLoss(BaseLoss):
+    NAME = "facility_location"
+
     def __init__(self, config):
         """
         Initialize the FacilityLocationLoss module.

@@ -6,6 +6,8 @@ from tqdm import tqdm
 
 
 class WrappedFaiss:
+    NAME = "faiss"
+
     def __init__(self, config, pipeline):
         self.config = config
         self.pipeline = pipeline

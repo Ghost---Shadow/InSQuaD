@@ -1,18 +1,30 @@
+from dataloaders.dbpedia import DBPedia
 from dataloaders.dummy import DummyDataset
-from dataloaders.mrpc import MRPC
 from dataloaders.dummy_hotpot_qa_with_q_loader import DummyHotpotQaWithQDataset
+from dataloaders.hellaswag import Hellaswag
 from dataloaders.hotpot_qa_loader import HotpotQaDataset
 from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
+from dataloaders.mnli import MNLI
+from dataloaders.mrpc import MRPC
+from dataloaders.rte import RTE
+from dataloaders.sst2 import SST2
 from dataloaders.wiki_multihop_qa_loader import WikiMultihopQaDataset
 from dataloaders.wiki_multihop_qa_with_q_loader import WikiMultihopQaWithQDataset
+from dataloaders.xsum import XsumDataset
 
 
 DATALOADERS_LUT = {
-    MRPC.NAME: MRPC,
+    DBPedia.NAME: DBPedia,
     DummyDataset.NAME: DummyDataset,
+    DummyHotpotQaWithQDataset.NAME: DummyHotpotQaWithQDataset,
+    Hellaswag.NAME: Hellaswag,
     HotpotQaDataset.NAME: HotpotQaDataset,
     HotpotQaWithQDataset.NAME: HotpotQaWithQDataset,
-    DummyHotpotQaWithQDataset.NAME: DummyHotpotQaWithQDataset,
+    MNLI.NAME: MNLI,
+    MRPC.NAME: MRPC,
+    RTE.NAME: RTE,
+    SST2.NAME: SST2,
     WikiMultihopQaDataset.NAME: WikiMultihopQaDataset,
     WikiMultihopQaWithQDataset.NAME: WikiMultihopQaWithQDataset,
+    XsumDataset.NAME: XsumDataset,
 }

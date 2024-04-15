@@ -16,10 +16,11 @@ def check_ids_in_jsonl(file_path, split):
     assert seen_rows == expected_length, seen_rows
 
 
-file_path = "data/2wikimultihopqa_with_q_gpt35/dev.jsonl"
-split = "dev"
-check_ids_in_jsonl(file_path, split)
+if __name__ == "__main__":
+    file_path = "data/2wikimultihopqa_with_q_gpt35/dev.jsonl"
+    split = "dev"
+    check_ids_in_jsonl(file_path, split)
 
-file_path = "data/2wikimultihopqa_with_q_gpt35/train.jsonl"
-split = "train"
-check_ids_in_jsonl(file_path, split)
+    file_path = "data/2wikimultihopqa_with_q_gpt35/train.jsonl"
+    split = "train"
+    check_ids_in_jsonl(file_path, split)

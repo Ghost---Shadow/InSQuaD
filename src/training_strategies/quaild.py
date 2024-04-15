@@ -1,11 +1,9 @@
-# from config import RootConfig
-import json
-from pathlib import Path
-import time
 import torch
 
 
 class QuaildStrategy:
+    NAME = "quaild"
+
     def __init__(self, config, pipeline):
         self.pipeline = pipeline
         self.config = config

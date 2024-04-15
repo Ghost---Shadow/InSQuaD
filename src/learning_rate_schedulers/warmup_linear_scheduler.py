@@ -3,6 +3,8 @@ from torch.optim.lr_scheduler import _LRScheduler
 
 
 class WarmupLinearScheduler(_LRScheduler):
+    NAME = "linear"
+
     def __init__(self, config: RootConfig, optimizer, train_loader, last_step):
         total_epochs = config.training.epochs
         warmup_ratio = config.training.warmup_ratio

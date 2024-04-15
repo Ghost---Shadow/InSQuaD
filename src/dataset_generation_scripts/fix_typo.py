@@ -13,20 +13,21 @@ def rename_key_in_jsonl(input_file, output_file, old_key, new_key):
             outfile.write("\n")
 
 
-# Paths to the original and new files
-input_files = [
-    "data/hotpotqa_with_qa_gpt35/potato/train_broken.jsonl.no",
-    "data/hotpotqa_with_qa_gpt35/potato/validation_broken.jsonl.no",
-]
-output_files = [
-    "data/hotpotqa_with_qa_gpt35/train.jsonl",
-    "data/hotpotqa_with_qa_gpt35/validation.jsonl",
-]
+if __name__ == "__main__":
+    # Paths to the original and new files
+    input_files = [
+        "data/hotpotqa_with_qa_gpt35/potato/train_broken.jsonl.no",
+        "data/hotpotqa_with_qa_gpt35/potato/validation_broken.jsonl.no",
+    ]
+    output_files = [
+        "data/hotpotqa_with_qa_gpt35/train.jsonl",
+        "data/hotpotqa_with_qa_gpt35/validation.jsonl",
+    ]
 
-# Process each file
-for in_file, out_file in zip(input_files, output_files):
-    rename_key_in_jsonl(
-        in_file, out_file, "questions_paraphrased", "paraphrased_questions"
-    )
+    # Process each file
+    for in_file, out_file in zip(input_files, output_files):
+        rename_key_in_jsonl(
+            in_file, out_file, "questions_paraphrased", "paraphrased_questions"
+        )
 
-print("Processing complete.")
+    print("Processing complete.")

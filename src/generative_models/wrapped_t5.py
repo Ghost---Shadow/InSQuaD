@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 
 class WrappedT5:
+    NAME = "t5"
+
     def __init__(self, config, generative_model_config):
         self.config = config
         self.generative_model_config = generative_model_config

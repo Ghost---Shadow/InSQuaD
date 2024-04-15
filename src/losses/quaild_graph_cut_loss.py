@@ -3,6 +3,8 @@ import torch
 
 
 class QuaildGraphCutLoss(BaseLoss):
+    NAME = "graph_cut"
+
     def __init__(self, config):
         super(QuaildGraphCutLoss, self).__init__()
         self.lambd = config.training.loss.lambd

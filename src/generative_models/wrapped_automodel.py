@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 
 class WrappedAutoModel:
+    NAME = "automodel"
+
     def __init__(self, config, generative_model_config):
         self.config = config
         self.generative_model_config = generative_model_config
