@@ -23,9 +23,68 @@ class TestWrappedAutoModel(unittest.TestCase):
         result1 = wrapped_model.evaluate(prompt, label1)
         result2 = wrapped_model.evaluate(prompt, label2)
 
-        assert result1["sequence_probability"] > result2["sequence_probability"]
-        assert result1["actual"] == "  and fox jumps", "(" + result1["actual"] + ")"
-        assert result2["actual"] == "  and fox jumps", "(" + result2["actual"] + ")"
+        # Result 1
+        assert (
+            result1["target_sequence_probability"]
+            == result1["predicted_sequence_probability"]
+        )
+        assert result1["predicted"] == result1["target"]
+        assert result1["predicted"] == " jumps over the lazy dog", (
+            "(" + result1["predicted"] + ")"
+        )
+
+        # Result 2
+        assert result2["predicted"] == " jumps over the lazy dog", (
+            "(" + result2["predicted"] + ")"
+        )
+
+        # Interaction
+        assert (
+            result1["target_sequence_probability"]
+            > result2["target_sequence_probability"]
+        ), (
+            result1["target_sequence_probability"],
+            result2["target_sequence_probability"],
+        )
+
+    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_gemma -v
+    def test_evaluate_gemma(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.offline_validation.generative_model.checkpoint = "google/gemma-2b"
+        wrapped_model = WrappedAutoModel(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = "The quick brown fox"
+        label1 = " jumps over the lazy dog"
+        label2 = " brick dig hat mat late"
+
+        result1 = wrapped_model.evaluate(prompt, label1)
+        result2 = wrapped_model.evaluate(prompt, label2)
+
+        # Result 1
+        assert (
+            result1["target_sequence_probability"]
+            == result1["predicted_sequence_probability"]
+        )
+        assert result1["predicted"] == result1["target"]
+        assert result1["predicted"] == " jumps over the lazy dog", (
+            "(" + result1["predicted"] + ")"
+        )
+
+        # Result 2
+        assert result2["predicted"] == " jumps over the lazy dog", (
+            "(" + result2["predicted"] + ")"
+        )
+
+        # Interaction
+        assert (
+            result1["target_sequence_probability"]
+            > result2["target_sequence_probability"]
+        ), (
+            result1["target_sequence_probability"],
+            result2["target_sequence_probability"],
+        )
 
 
 if __name__ == "__main__":
