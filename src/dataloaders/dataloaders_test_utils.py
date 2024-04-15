@@ -15,4 +15,4 @@ def test_if_one_token(DatasetClass):
         for label in labels:
             tokens = tokenizer(label, add_special_tokens=False).input_ids
             assert type(tokens) == list, tokens
-            assert len(tokens) == 1, tokens
+            assert len(tokens) == 1, (label, tokens)
