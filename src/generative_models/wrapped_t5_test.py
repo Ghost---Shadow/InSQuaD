@@ -17,9 +17,24 @@ class TestWrappedT5(unittest.TestCase):
         result1 = wrapped_t5.evaluate(prompt, label1)
         result2 = wrapped_t5.evaluate(prompt, label2)
 
-        assert result1["sequence_probability"] > result2["sequence_probability"]
-        assert result1["actual"] == "Thes up", result1["actual"]
-        assert result2["actual"] == "The wallsfoxx", result2["actual"]
+        # Result 1
+        assert result1["predicted"] == "The quick brown fox", (
+            "(" + result1["predicted"] + ")"
+        )
+
+        # Result 2
+        assert result2["predicted"] == "The quick brown fox", (
+            "(" + result2["predicted"] + ")"
+        )
+
+        # Interaction
+        assert (
+            result1["target_sequence_probability"]
+            > result2["target_sequence_probability"]
+        ), (
+            result1["target_sequence_probability"],
+            result2["target_sequence_probability"],
+        )
 
 
 if __name__ == "__main__":
