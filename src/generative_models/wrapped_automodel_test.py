@@ -86,6 +86,45 @@ class TestWrappedAutoModel(unittest.TestCase):
             result2["target_sequence_probability"],
         )
 
+    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_neo175m -v
+    def test_evaluate_neo175m(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.offline_validation.generative_model.checkpoint = (
+            "EleutherAI/gpt-neo-125m"
+        )
+        wrapped_model = WrappedAutoModel(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = "The quick brown fox"
+        label1 = " jumps over the lazy dog"
+        label2 = " brick dig hat mat late"
+
+        result1 = wrapped_model.evaluate(prompt, label1)
+        result2 = wrapped_model.evaluate(prompt, label2)
+
+        # print(result1)
+        # print(result2)
+
+        # Result 1
+        assert result1["predicted"] == "es are a great way", (
+            "(" + result1["predicted"] + ")"
+        )
+
+        # Result 2
+        assert result2["predicted"] == "es are a great way", (
+            "(" + result2["predicted"] + ")"
+        )
+
+        # Interaction
+        assert (
+            result1["target_sequence_probability"]
+            > result2["target_sequence_probability"]
+        ), (
+            result1["target_sequence_probability"],
+            result2["target_sequence_probability"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
