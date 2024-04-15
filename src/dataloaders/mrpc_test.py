@@ -47,17 +47,23 @@ class TestMRPCLoader(unittest.TestCase):
         self.assertEqual(batch["prompts"], expected_prompts)
         self.assertEqual(batch["labels"], expected_labels)
 
-    # python -m unittest dataloaders.mrpc_test.TestMRPCLoader.test_get_item -v
-    def test_get_item(self):
+    # python -m unittest dataloaders.mrpc_test.TestMRPCLoader.test_no_bad_rows -v
+    def test_no_bad_rows(self):
         # Set seed for deterministic testing
         set_seed(42)
 
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
-        mrpc_dataset = MRPC(config)
+        dataset = MRPC(config)
 
-        for row in tqdm(mrpc_dataset):
-            assert "prompts" in row
-            assert "labels" in row
+        train_loader = dataset.get_loader(split="train")
+        for batch in tqdm(train_loader):
+            assert "prompts" in batch
+            assert "labels" in batch
+
+        validation_loader = dataset.get_loader(split="validation")
+        for batch in tqdm(validation_loader):
+            assert "prompts" in batch
+            assert "labels" in batch
 
 
 if __name__ == "__main__":

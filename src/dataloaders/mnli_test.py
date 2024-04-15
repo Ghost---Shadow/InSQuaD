@@ -27,17 +27,23 @@ class TestMNLILoader(unittest.TestCase):
         )
         assert train_batch["labels"][0] == expected_label, train_batch["labels"][0]
 
-    # python -m unittest dataloaders.mnli_test.TestMNLILoader.test_get_item -v
-    def test_get_item(self):
+    # python -m unittest dataloaders.mnli_test.TestMNLILoader.test_no_bad_rows -v
+    def test_no_bad_rows(self):
         # Set seed for deterministic testing
         set_seed(42)
 
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
         mnli_dataset = MNLI(config)
 
-        for row in tqdm(mnli_dataset):
-            assert "prompts" in row
-            assert "labels" in row
+        train_loader = mnli_dataset.get_loader(split="train")
+        for batch in tqdm(train_loader):
+            assert "prompts" in batch
+            assert "labels" in batch
+
+        validation_loader = mnli_dataset.get_loader(split="validation")
+        for batch in tqdm(validation_loader):
+            assert "prompts" in batch
+            assert "labels" in batch
 
     # python -m unittest dataloaders.mnli_test.TestMNLILoader.test_labels_one_token -v
     def test_labels_one_token(self):

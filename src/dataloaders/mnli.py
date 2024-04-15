@@ -24,3 +24,8 @@ class MNLI(BaseDataset):
             prompts.append(prompt)
             labels.append(MNLI.LABELS[label])
         return {"prompts": prompts, "labels": labels}
+
+    def get_loader(self, split):
+        if split == "validation":
+            split = "validation_matched"
+        return super().get_loader(split)

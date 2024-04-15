@@ -28,17 +28,23 @@ class TestSST2Loader(unittest.TestCase):
         )
         assert train_batch["labels"][0] == expected_label, train_batch["labels"][0]
 
-    # python -m unittest dataloaders.sst2_test.TestSST2Loader.test_get_item -v
-    def test_get_item(self):
+    # python -m unittest dataloaders.sst2_test.TestSST2Loader.test_no_bad_rows -v
+    def test_no_bad_rows(self):
         # Set seed for deterministic testing
         set_seed(42)
 
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
         sst2_dataset = SST2(config)
 
-        for row in tqdm(sst2_dataset):
-            assert "prompts" in row
-            assert "labels" in row
+        train_loader = sst2_dataset.get_loader(split="train")
+        for batch in tqdm(train_loader):
+            assert "prompts" in batch
+            assert "labels" in batch
+
+        validation_loader = sst2_dataset.get_loader(split="validation")
+        for batch in tqdm(validation_loader):
+            assert "prompts" in batch
+            assert "labels" in batch
 
     # python -m unittest dataloaders.sst2_test.TestSST2Loader.test_labels_one_token -v
     def test_labels_one_token(self):
