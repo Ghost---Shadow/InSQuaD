@@ -167,7 +167,7 @@ class OfflineEvaluationPipeline:
             for line in file:
                 data = json.loads(line)  # Parse the JSON data from each line
 
-                if data["labels"] == data["target"]:
+                if data["predicted"] == data["target"]:
                     correct_count += 1
                     correct_predicted_sum += data["predicted_sequence_probability"]
                     correct_predicted_count += 1
