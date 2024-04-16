@@ -20,7 +20,7 @@ def main(config: RootConfig, dataset_name: str, seed: int):
         print(f"Shortlisting")
         pipeline.shortlist()
 
-        print(f"Generating one shots")
+        print(f"Generating few shots")
         pipeline.generate_few_shots()
 
         print(f"Running inference")
