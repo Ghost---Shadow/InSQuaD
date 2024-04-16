@@ -15,16 +15,19 @@ class QuaildGainCounterStrategy:
         self.counter = Counter()
         self.top_n = self.config.offline_validation.annotation_budget
 
-    def subsample_dataset(self, dataset):
+    def subsample_dataset(self, wrapped_dataset, split):
         # TODO: Shuffle the subsample
-        dataset_length = len(dataset)
+        dataset_length = len(wrapped_dataset.dataset[split])
+        row_iterator = wrapped_dataset.get_row_iterator(split)
         subsample_for_eval_size = self.config.offline_validation.subsample_for_eval_size
+        if subsample_for_eval_size is None:
+            subsample_for_eval_size = dataset_length
 
         total = min(dataset_length, subsample_for_eval_size)
 
         def _iterator():
             i = 0
-            for row in dataset:
+            for row in row_iterator:
                 yield row
                 i += 1
                 if i == total:
@@ -50,8 +53,10 @@ class QuaildGainCounterStrategy:
         self._populate_and_cache_index(cache_name, use_cache, wrapped_dataset)
 
         # Counting votes
-        total = len(wrapped_dataset.dataset["train"])
-        for row in tqdm(wrapped_dataset, total=total, desc="Counting votes"):
+        total, subsampled_train_iterator = self.subsample_dataset(
+            wrapped_dataset, "train"
+        )
+        for row in tqdm(subsampled_train_iterator, total=total, desc="Counting votes"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
             batch = self.pipeline.dense_index.retrieve(prompt_embedding)
@@ -94,12 +99,11 @@ class QuaildGainCounterStrategy:
         wrapped_shortlist_dataset = InMemoryDataset(self.config, shortlist)
         cache_name = "short_list.index"
         self._populate_and_cache_index(cache_name, use_cache, wrapped_shortlist_dataset)
-        validation_dataset = wrapped_dataset.get_row_iterator("validation")
-        total, sub_sampled_validation_dataset = self.subsample_dataset(
-            validation_dataset
+        total, subsampled_validation_iterator = self.subsample_dataset(
+            wrapped_dataset, "validation"
         )
         for row in tqdm(
-            sub_sampled_validation_dataset,
+            subsampled_validation_iterator,
             desc="Assembling few shot",
             total=total,
         ):
