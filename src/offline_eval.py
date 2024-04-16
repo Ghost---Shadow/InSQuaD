@@ -5,9 +5,6 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 
 
 def main(config: RootConfig, dataset_name: str, seed: int):
-    print("-" * 80)
-    print(f"Starting eval for {EXPERIMENT_NAME}, Dataset: {dataset_name}, Seed: {seed}")
-
     pipeline = OfflineEvaluationPipeline(config)
     pipeline.set_seed(seed)
     pipeline.current_dataset_name = dataset_name
@@ -15,6 +12,8 @@ def main(config: RootConfig, dataset_name: str, seed: int):
     EXPERIMENT_NAME = config.wandb.name
     # TODO: Send the artifact to the same experiment as wandb
 
+    print("-" * 80)
+    print(f"Starting eval for {EXPERIMENT_NAME}, Dataset: {dataset_name}, Seed: {seed}")
     try:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
 
