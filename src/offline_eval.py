@@ -23,6 +23,7 @@ def main(config: RootConfig, dataset_name: str, seed: int):
 
         print(f"Running inference")
         pipeline.run_inference()
+        pipeline.analyze_inference_outputs()
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} finished!")
     except Exception as e:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} crashed!")

@@ -134,7 +134,7 @@ class OfflineEvaluationPipeline:
             f.write(s)
 
     def run_inference(self, skip_if_done=True):
-        if os.path.exists(self.final_result_json_path) and skip_if_done:
+        if os.path.exists(self.inference_result_jsonl_path) and skip_if_done:
             print("Inference already done")
             return
 
@@ -148,54 +148,65 @@ class OfflineEvaluationPipeline:
                     f_out.write(json.dumps({**row, **result}))
                     f_out.write("\n")
 
-        self.analyze_inference_outputs()
-
     def analyze_inference_outputs(self):
         total_count = 0
         correct_count = 0
-        correct_prob_sum = 0
-        incorrect_prob_sum = 0
-        correct_prob_count = 0
-        incorrect_prob_count = 0
+
+        correct_predicted_sum = 0
+        incorrect_predicted_sum = 0
+        correct_predicted_count = 0
+        incorrect_predicted_count = 0
+
+        correct_target_sum = 0
+        incorrect_target_sum = 0
+        correct_target_count = 0
+        incorrect_target_count = 0
 
         # Read the JSONL file line by line
         with open(self.inference_result_jsonl_path, "r") as file:
             for line in file:
                 data = json.loads(line)  # Parse the JSON data from each line
 
-                if data["labels"] == data["actual"]:
+                if data["labels"] == data["target"]:
                     correct_count += 1
-                    correct_prob_sum += data["sequence_probability"]
-                    correct_prob_count += 1
+                    correct_predicted_sum += data["predicted_sequence_probability"]
+                    correct_predicted_count += 1
+
+                    correct_target_sum += data["target_sequence_probability"]
+                    correct_target_count += 1
                 else:
-                    incorrect_prob_sum += data["sequence_probability"]
-                    incorrect_prob_count += 1
+                    incorrect_predicted_sum += data["predicted_sequence_probability"]
+                    incorrect_predicted_count += 1
+
+                    incorrect_target_sum += data["target_sequence_probability"]
+                    incorrect_target_count += 1
 
                 total_count += 1
 
-        # Calculate the percentages and averages
-        if total_count > 0:
-            correct_percentage = (correct_count / total_count) * 100
-        else:
-            correct_percentage = 0
+        def calculate_average(sum_value, count):
+            return sum_value / count if count > 0 else 0
 
-        if correct_prob_count > 0:
-            average_correct_prob = correct_prob_sum / correct_prob_count
-        else:
-            average_correct_prob = 0
-
-        if incorrect_prob_count > 0:
-            average_incorrect_prob = incorrect_prob_sum / incorrect_prob_count
-        else:
-            average_incorrect_prob = 0
+        correct_percentage = calculate_average(correct_count, total_count) * 100
+        correct_predicted_avg = calculate_average(
+            correct_predicted_sum, correct_predicted_count
+        )
+        incorrect_predicted_avg = calculate_average(
+            incorrect_predicted_sum, incorrect_predicted_count
+        )
+        correct_target_avg = calculate_average(correct_target_sum, correct_target_count)
+        incorrect_target_avg = calculate_average(
+            incorrect_target_sum, incorrect_target_count
+        )
 
         # Write the results to an output file
         with open(self.final_result_json_path, "w") as f:
             json.dump(
                 {
                     "correct_percentage": correct_percentage,
-                    "average_correct_prob": average_correct_prob,
-                    "average_incorrect_prob": average_incorrect_prob,
+                    "correct_predicted_avg": correct_predicted_avg,
+                    "incorrect_predicted_avg": incorrect_predicted_avg,
+                    "correct_target_avg": correct_target_avg,
+                    "incorrect_target_avg": incorrect_target_avg,
                 },
                 f,
                 indent=2,
