@@ -15,16 +15,16 @@ class QuaildGainCounterStrategy:
         self.counter = Counter()
         self.top_n = self.config.offline_validation.annotation_budget
 
-    def subsample_dataset(self, wrapped_dataset):
+    def subsample_dataset(self, dataset):
         # TODO: Shuffle the subsample
-        dataset_length = len(wrapped_dataset.dataset["train"])
+        dataset_length = len(dataset)
         subsample_for_eval_size = self.config.offline_validation.subsample_for_eval_size
 
         total = min(dataset_length, subsample_for_eval_size)
 
         def _iterator():
             i = 0
-            for row in wrapped_dataset:
+            for row in dataset:
                 yield row
                 i += 1
                 if i == total:
@@ -50,8 +50,8 @@ class QuaildGainCounterStrategy:
         self._populate_and_cache_index(cache_name, use_cache, wrapped_dataset)
 
         # Counting votes
-        total, subsampled_dataset = self.subsample_dataset(wrapped_dataset)
-        for row in tqdm(subsampled_dataset, total=total, desc="Counting votes"):
+        total = len(wrapped_dataset.dataset["train"])
+        for row in tqdm(wrapped_dataset, total=total, desc="Counting votes"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
             batch = self.pipeline.dense_index.retrieve(prompt_embedding)
@@ -95,10 +95,13 @@ class QuaildGainCounterStrategy:
         cache_name = "short_list.index"
         self._populate_and_cache_index(cache_name, use_cache, wrapped_shortlist_dataset)
         validation_dataset = wrapped_dataset.get_row_iterator("validation")
+        total, sub_sampled_validation_dataset = self.subsample_dataset(
+            validation_dataset
+        )
         for row in tqdm(
-            validation_dataset,
+            sub_sampled_validation_dataset,
             desc="Assembling few shot",
-            total=len(wrapped_dataset.dataset["validation"]),
+            total=total,
         ):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
