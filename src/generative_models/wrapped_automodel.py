@@ -39,6 +39,7 @@ class WrappedAutoModel:
             max_new_tokens=longest_option_len,
             output_scores=True,
             return_dict_in_generate=True,
+            pad_token_id=self.tokenizer.eos_token_id,
         )
 
         # [sequence_length, batch_size, vocab_size] to [sequence_length, vocab_size]
@@ -94,9 +95,11 @@ class WrappedAutoModel:
         # Conduct the forward pass and calculate the loss automatically
         outputs = self.model.generate(
             input_ids=input_ids,
+            attention_mask=torch.ones(input_ids.shape, device=input_ids.device),
             max_new_tokens=target_answer_ids.shape[0],
             output_scores=True,
             return_dict_in_generate=True,
+            pad_token_id=self.tokenizer.eos_token_id,
         )
 
         # [sequence_length, batch_size, vocab_size] to [sequence_length, vocab_size]
