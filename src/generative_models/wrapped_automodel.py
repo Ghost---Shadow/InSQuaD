@@ -27,9 +27,7 @@ class WrappedAutoModel:
         target_answer_ids = self.tokenizer(
             target_answer, add_special_tokens=False
         ).input_ids
-        target_answer_ids = torch.tensor(
-            [target_answer_ids], device=self.device
-        ).squeeze()
+        target_answer_ids = torch.tensor(target_answer_ids, device=self.device)
 
         # Conduct the forward pass and calculate the loss automatically
         outputs = self.model.generate(
@@ -39,8 +37,8 @@ class WrappedAutoModel:
             return_dict_in_generate=True,
         )
 
-        # [sequence_length, vocab_size]
-        scores = torch.stack(outputs.scores).squeeze()
+        # [sequence_length, batch_size, vocab_size] to [sequence_length, vocab_size]
+        scores = torch.stack(outputs.scores).squeeze(1)
 
         # Softmax to convert logits to probabilities
         probabilities = F.softmax(scores, dim=-1)

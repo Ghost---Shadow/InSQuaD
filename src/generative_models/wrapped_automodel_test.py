@@ -6,6 +6,28 @@ from generative_models.wrapped_automodel import WrappedAutoModel
 # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel -v
 class TestWrappedAutoModel(unittest.TestCase):
 
+    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_single_token -v
+    def test_single_token(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.offline_validation.generative_model.checkpoint = (
+            "EleutherAI/gpt-neo-125m"
+        )
+        wrapped_model = WrappedAutoModel(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = "I have a"
+        label = " dog"
+
+        result = wrapped_model.evaluate(prompt, label)
+
+        assert result == {
+            "target_sequence_probability": 0.000470790226245299,
+            "predicted_sequence_probability": 0.03734087198972702,
+            "target": " dog",
+            "predicted": " problem",
+        }, result
+
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_stablelm -v
     def test_evaluate_stablelm(self):
         config = Config.from_file("experiments/quaild_test_experiment.yaml")
