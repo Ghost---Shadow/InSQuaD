@@ -184,6 +184,32 @@ class TestWrappedAutoModel(unittest.TestCase):
             result2["target_sequence_probability"],
         )
 
+    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_with_options_neo175m -v
+    def test_evaluate_with_options_neo175m(self):
+        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config.offline_validation.generative_model.checkpoint = (
+            "EleutherAI/gpt-neo-125m"
+        )
+        wrapped_model = WrappedAutoModel(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = "Q: Do you want a banana? Yes or no?"
+        options = ["yes", "no"]
+        correct_option_index = 0
+
+        result = wrapped_model.evaluate_with_options(
+            prompt, correct_option_index, options
+        )
+
+        assert result == {
+            "option_probabilities": {
+                "yes": 0.9760239720344543,
+                "no": 0.21766287088394165,
+            },
+            "correct": True,
+        }, result
+
 
 if __name__ == "__main__":
     unittest.main()

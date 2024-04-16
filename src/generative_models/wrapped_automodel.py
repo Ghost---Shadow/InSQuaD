@@ -17,6 +17,68 @@ class WrappedAutoModel:
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
         self.model = AutoModelForCausalLM.from_pretrained(checkpoint).to(device)
 
+    def evaluate_with_options(self, prompt, correct_option_index, options):
+        # Tokenize input
+        all_text = [prompt, *options]
+        all_encoded = self.tokenizer.batch_encode_plus(all_text)
+        prompt_input_ids = torch.tensor(
+            all_encoded["input_ids"][0], device=self.device
+        ).unsqueeze(0)
+        prompt_attention_mask = torch.tensor(
+            all_encoded["attention_mask"][0], device=self.device
+        ).unsqueeze(0)
+        options_input_ids = all_encoded["input_ids"][1:]
+
+        longest_option_len = max(
+            len(option_input_ids) for option_input_ids in options_input_ids
+        )
+
+        outputs = self.model.generate(
+            input_ids=prompt_input_ids,
+            attention_mask=prompt_attention_mask,
+            max_new_tokens=longest_option_len,
+            output_scores=True,
+            return_dict_in_generate=True,
+        )
+
+        # [sequence_length, batch_size, vocab_size] to [sequence_length, vocab_size]
+        scores = torch.stack(outputs.scores).squeeze(1)
+
+        # Softmax to convert logits to probabilities
+        probabilities = F.softmax(scores, dim=-1)
+
+        # Gather the log probabilities of the actual target tokens
+        options_sequence_probability = []
+        for option_input_ids in options_input_ids:
+            option_input_ids = torch.tensor(
+                option_input_ids, device=probabilities.device
+            )
+            option_probs = torch.gather(
+                probabilities, index=option_input_ids.unsqueeze(-1), dim=-1
+            ).squeeze(-1)
+            option_log_probs = torch.log(option_probs)
+
+            # Sum of log probabilities for the option sequence
+            option_log_likelihood = option_log_probs.sum()
+
+            # Exponential of the negative sum of log probabilities gives the sequence probability
+            option_sequence_probability = torch.exp(option_log_likelihood)
+            options_sequence_probability.append(option_sequence_probability)
+        options_sequence_probability = torch.stack(options_sequence_probability)
+        options_sequence_probability = options_sequence_probability / torch.norm(
+            options_sequence_probability
+        )
+
+        predicted_option = torch.argmax(options_sequence_probability)
+        option_probabilities = {}
+        for option, probability in zip(options, options_sequence_probability):
+            option_probabilities[option] = probability.item()
+
+        return {
+            "option_probabilities": option_probabilities,
+            "correct": (predicted_option == correct_option_index).item(),
+        }
+
     def evaluate(self, prompt, target_answer):
         # Tokenize input
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
