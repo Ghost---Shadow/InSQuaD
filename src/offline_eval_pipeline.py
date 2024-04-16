@@ -138,17 +138,70 @@ class OfflineEvaluationPipeline:
             print("Inference already done")
             return
 
+        wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
+        if hasattr(wrapped_dataset, "LABELS"):
+            print("Running MCQ eval")
+            options = list(wrapped_dataset.LABELS.values())
+        else:
+            print("Running free form eval")
+            options = None
+
         total = count_rows_jsonl(self.few_shot_data_jsonl_path)
         with open(self.few_shot_data_jsonl_path, "r") as f_in:
             with open(self.inference_result_jsonl_path, "w") as f_out:
                 for row in tqdm(f_in, total=total, desc="Running inference"):
                     row = json.loads(row)
                     prompt, true_answer = row["prompts"], row["labels"]
-                    result = self.generative_model.evaluate(prompt, true_answer)
+
+                    if options is None:
+                        result = self.generative_model.evaluate(prompt, true_answer)
+                    else:
+                        correct_option_index = options.index(true_answer)
+                        result = self.generative_model.evaluate_with_options(
+                            prompt, correct_option_index, options
+                        )
+
                     f_out.write(json.dumps({**row, **result}))
                     f_out.write("\n")
 
     def analyze_inference_outputs(self):
+        wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
+        is_mcq = hasattr(wrapped_dataset, "LABELS")
+        if is_mcq:
+            self.analyze_inference_outputs_mcq()
+        else:
+            self.analyze_inference_outputs_freeform()
+
+    def analyze_inference_outputs_mcq(self):
+        correct_count = 0
+        total_probability = 0
+        total = 0
+
+        with open(self.inference_result_jsonl_path, "r") as file:
+            for line in file:
+                item = json.loads(line)  # Parse the JSON data from each line
+                if item["correct"]:
+                    correct_count += 1
+                    label = item["labels"]
+                    probability = item["option_probabilities"][label]
+                    total_probability += probability
+                total += 1
+
+        accuracy = correct_count / total
+        avg_correct_probability = total_probability / total
+
+        # Write the results to an output file
+        with open(self.final_result_json_path, "w") as f:
+            json.dump(
+                {
+                    "accuracy": accuracy,
+                    "avg_correct_probability": avg_correct_probability,
+                },
+                f,
+                indent=2,
+            )
+
+    def analyze_inference_outputs_freeform(self):
         total_count = 0
         correct_count = 0
 
