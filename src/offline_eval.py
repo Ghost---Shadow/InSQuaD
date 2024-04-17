@@ -3,6 +3,7 @@ import json
 from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
+from run_analysis_scripts.excelify import excelify_for_discord
 
 
 def main(config: RootConfig, dataset_name: str, seed: int):
@@ -31,9 +32,12 @@ def main(config: RootConfig, dataset_name: str, seed: int):
         with open(pipeline.final_result_json_path) as f:
             accuracy = json.load(f)["accuracy"]
 
-        send_discord_notification(
-            f"Eval for {EXPERIMENT_NAME} finished with accuracy {accuracy}"
+        finish_message = (
+            f"Eval for {EXPERIMENT_NAME} finished with accuracy {accuracy}\n"
         )
+        table_message = excelify_for_discord()
+
+        send_discord_notification(finish_message + table_message)
     except Exception as e:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} crashed!")
         raise e
