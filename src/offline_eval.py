@@ -1,4 +1,5 @@
 import argparse
+import json
 from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
@@ -26,7 +27,13 @@ def main(config: RootConfig, dataset_name: str, seed: int):
         print(f"Running inference")
         pipeline.run_inference()
         pipeline.analyze_inference_outputs()
-        send_discord_notification(f"Eval for {EXPERIMENT_NAME} finished!")
+
+        with open(pipeline.final_result_json_path) as f:
+            accuracy = json.load(f)["accuracy"]
+
+        send_discord_notification(
+            f"Eval for {EXPERIMENT_NAME} finished with accuracy {accuracy}"
+        )
     except Exception as e:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} crashed!")
         raise e
