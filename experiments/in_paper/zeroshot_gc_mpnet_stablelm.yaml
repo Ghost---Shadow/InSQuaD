@@ -1,0 +1,58 @@
+wandb:
+  project: "quaild"
+  name: "zeroshot_gc_mpnet_stablelm"
+  # entity: "carml"
+
+architecture:
+  generative_model:
+    type: 'noop'
+    checkpoint: 'none'
+    device: 'none'
+  
+  semantic_search_model:
+    type: 'mpnet'
+    checkpoint: 'sentence-transformers/all-mpnet-base-v2'
+    device: "cuda:0"
+
+  subset_selection_strategy:
+    type: 'gain_cutoff'
+    gain_cutoff: 0.5
+
+  dense_index:
+    type: 'faiss'
+    index_class: 'IndexFlatL2'
+    repopulate_every: 'epoch'
+    k_for_rerank: 10
+
+  prompt_formatting_strategy:
+    type: 'q_a_with_new_line'
+
+# https://arxiv.org/pdf/2004.09297.pdf - Page 12
+training:
+  type: 'quaild'
+  dataset: 'hotpot_qa_with_q'
+  q_d_tradeoff_lambda: 1
+  extra_metrics: ['hotpot_qa_with_q_f1']
+  epochs: 7
+  batch_size: 4 # 32
+  learning_rate: 1e-5
+  weight_decay: 0.01
+  learning_rate_decay_strategy: 'linear'
+  warmup_ratio: 0.06
+  seeds: [42]
+  loss:
+    type: 'graph_cut'
+    lambd: 0.5
+
+offline_validation:
+  type: zero_shot
+  generative_model:
+    type: 'automodel'
+    checkpoint: 'stabilityai/stablelm-2-1_6b'
+    device: "cuda:0"
+  q_d_tradeoff_lambda: 1
+  datasets: ['mrpc', 'sst2','mnli', 'dbpedia', 'rte']
+  seeds: [42]
+  num_shots: 5
+  annotation_budget: 100
+  subsample_for_eval_size: 256
