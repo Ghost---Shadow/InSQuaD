@@ -1,0 +1,2 @@
+class NoOperation:
+    NAME = "noop"

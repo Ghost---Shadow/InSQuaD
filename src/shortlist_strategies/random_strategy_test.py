@@ -37,3 +37,29 @@ class TestRandomStrategy(unittest.TestCase):
             564,
         ], indexes
         assert confidences is None
+
+    # python -m unittest shortlist_strategies.random_strategy_test.TestRandomStrategy.test_assemble_few_shot -v
+    def test_assemble_few_shot(self):
+        config = Config.from_file("experiments/random_test_experiment.yaml")
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        if not os.path.exists(pipeline.shortlisted_data_path):
+            pipeline.shortlist()
+
+        for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
+            "mrpc", use_cache=False
+        ):
+            assert "prompts" in row, row
+            assert "labels" in row, row
+
+            assert "prompts" in few_shots, few_shots
+            assert "labels" in few_shots, few_shots
+
+            assert (
+                len(few_shots["prompts"]) == config.offline_validation.num_shots
+            ), few_shots
+            assert (
+                len(few_shots["labels"]) == config.offline_validation.num_shots
+            ), few_shots
