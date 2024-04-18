@@ -8,11 +8,6 @@ import torch
 
 
 def main(config: RootConfig, dataset_name: str, seed: int):
-    # Hopefully fix oom
-    torch.cuda.synchronize()
-    torch.cuda.empty_cache()
-    torch.cuda.synchronize()
-
     pipeline = OfflineEvaluationPipeline(config)
     pipeline.set_seed(seed)
     pipeline.current_dataset_name = dataset_name
@@ -47,6 +42,8 @@ def main(config: RootConfig, dataset_name: str, seed: int):
     except Exception as e:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME}/{dataset_name} crashed!")
         raise e
+    finally:
+        pipeline.cleanup()
 
 
 if __name__ == "__main__":

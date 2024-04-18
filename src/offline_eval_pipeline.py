@@ -10,6 +10,7 @@ from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from shortlist_strategies import SHORTLIST_STRATEGIES_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
+import torch
 from tqdm import tqdm
 from train_utils import count_rows_jsonl, generate_artifacts_dir, set_seed
 
@@ -21,6 +22,15 @@ class OfflineEvaluationPipeline:
         self.num_shots = config.offline_validation.num_shots
         self.current_seed = None
         self.current_dataset_name = None
+
+    def cleanup(self):
+        self.semantic_search_model.cpu()
+        self.generative_model.cpu()
+
+        # Hopefully fix oom
+        torch.cuda.synchronize()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
 
     def _load_parts(self, config: RootConfig):
         # Generative Model
