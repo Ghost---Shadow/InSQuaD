@@ -175,3 +175,7 @@ install_gpu_driver.py
 # custom
 scratch
 dump
+
+# keys
+id_rsa
+id_rsa.pub
