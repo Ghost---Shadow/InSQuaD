@@ -13,6 +13,7 @@ def main(config: RootConfig, dataset_name: str, seed: int):
     pipeline.current_dataset_name = dataset_name
     if pipeline.is_done():
         print("Already done")
+        pipeline.cleanup()
         return
 
     EXPERIMENT_NAME = config.wandb.name
