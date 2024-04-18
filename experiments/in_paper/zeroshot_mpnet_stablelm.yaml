@@ -1,6 +1,6 @@
 wandb:
   project: "quaild"
-  name: "random_gc_mpnet_stablelm"
+  name: "zeroshot_mpnet_stablelm"
   # entity: "carml"
 
 architecture:
@@ -45,7 +45,7 @@ training:
     lambd: 0.5
 
 offline_validation:
-  type: random
+  type: zero_shot
   generative_model:
     type: 'automodel'
     checkpoint: 'stabilityai/stablelm-2-1_6b'
