@@ -11,16 +11,18 @@ def main(config: RootConfig, dataset_name: str, seed: int):
     pipeline = OfflineEvaluationPipeline(config)
     pipeline.set_seed(seed)
     pipeline.current_dataset_name = dataset_name
-    if pipeline.is_done():
-        print("Already done")
-        pipeline.cleanup()
-        return
 
     EXPERIMENT_NAME = config.wandb.name
     # TODO: Send the artifact to the same experiment as wandb
 
     print("-" * 80)
     print(f"Starting eval for {EXPERIMENT_NAME}, Dataset: {dataset_name}, Seed: {seed}")
+
+    if pipeline.is_done():
+        print("Already done")
+        pipeline.cleanup()
+        return
+
     try:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
 
