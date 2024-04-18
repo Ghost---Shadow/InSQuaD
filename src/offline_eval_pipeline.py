@@ -40,6 +40,13 @@ class OfflineEvaluationPipeline:
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
 
+    def is_done(self):
+        if self.current_dataset_name is None:
+            return False
+        if self.current_dataset_name is None:
+            return False
+        return os.path.exists(self.final_result_json_path)
+
     def _load_parts(self, config: RootConfig):
         # Generative Model
         print("Loading generative model")

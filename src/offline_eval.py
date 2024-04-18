@@ -11,6 +11,9 @@ def main(config: RootConfig, dataset_name: str, seed: int):
     pipeline = OfflineEvaluationPipeline(config)
     pipeline.set_seed(seed)
     pipeline.current_dataset_name = dataset_name
+    if pipeline.is_done():
+        print("Already done")
+        return
 
     EXPERIMENT_NAME = config.wandb.name
     # TODO: Send the artifact to the same experiment as wandb
