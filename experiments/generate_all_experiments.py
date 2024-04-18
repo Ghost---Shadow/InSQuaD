@@ -2,6 +2,7 @@ import os
 
 
 def generate_shell_scripts(root_dir):
+    STOP_COMMAND = '\nsource devops/stop_current_gcp_instance.sh\n'
     root_dir = os.path.abspath(root_dir)  # Ensure absolute path
     for dirpath, dirnames, filenames in os.walk(root_dir):
         yaml_files = [f for f in filenames if f.endswith(".yaml")]
@@ -24,6 +25,8 @@ def generate_shell_scripts(root_dir):
                     )
                     train_script.write(train_command)
                     eval_script.write(eval_command)
+                train_script.write(STOP_COMMAND)
+                eval_script.write(STOP_COMMAND)
 
             print(
                 f"Generated {train_script_path} and {eval_script_path} for YAML files in {dirpath}"
