@@ -7,6 +7,10 @@ load_dotenv()
 
 
 def send_discord_notification(message):
+    if os.environ.get("IS_LOCAL") == "yes":
+        # No notifications on development
+        return
+
     try:
         data = {"content": message}
         headers = {"Content-Type": "application/json"}
