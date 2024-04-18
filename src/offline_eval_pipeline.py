@@ -1,3 +1,4 @@
+import gc
 import json
 import os
 from pathlib import Path
@@ -25,7 +26,14 @@ class OfflineEvaluationPipeline:
 
     def cleanup(self):
         self.semantic_search_model.model.cpu()
+        del self.semantic_search_model
+        self.semantic_search_model = None
+        gc.collect()
+
         self.generative_model.model.cpu()
+        del self.generative_model
+        self.generative_model = None
+        gc.collect()
 
         # Hopefully fix oom
         torch.cuda.synchronize()
