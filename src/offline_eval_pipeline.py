@@ -24,8 +24,8 @@ class OfflineEvaluationPipeline:
         self.current_dataset_name = None
 
     def cleanup(self):
-        self.semantic_search_model.cpu()
-        self.generative_model.cpu()
+        self.semantic_search_model.model.cpu()
+        self.generative_model.model.cpu()
 
         # Hopefully fix oom
         torch.cuda.synchronize()
