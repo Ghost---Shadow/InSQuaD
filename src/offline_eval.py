@@ -39,7 +39,7 @@ def main(config: RootConfig, dataset_name: str, seed: int):
 
         send_discord_notification(finish_message + table_message)
     except Exception as e:
-        send_discord_notification(f"Eval for {EXPERIMENT_NAME} crashed!")
+        send_discord_notification(f"Eval for {EXPERIMENT_NAME}/{dataset_name} crashed!")
         raise e
 
 
