@@ -51,6 +51,14 @@ def excelify():
         return None
 
 
+def excelify_for_discord():
+    df = excelify()
+    if df is not None:
+        s = df.to_markdown()
+        return f"```\n{s}\n```"
+    return "No data available."
+
+
 if __name__ == "__main__":
     df = excelify()
     if df is not None:
