@@ -4,9 +4,15 @@ from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
 from run_analysis_scripts.excelify import excelify_for_discord
+import torch
 
 
 def main(config: RootConfig, dataset_name: str, seed: int):
+    # Hopefully fix oom
+    torch.cuda.synchronize()
+    torch.cuda.empty_cache()
+    torch.cuda.synchronize()
+
     pipeline = OfflineEvaluationPipeline(config)
     pipeline.set_seed(seed)
     pipeline.current_dataset_name = dataset_name
