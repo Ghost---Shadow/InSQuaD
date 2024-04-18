@@ -2,7 +2,7 @@ import os
 
 
 def generate_shell_scripts(root_dir):
-    STOP_COMMAND = '\nsource devops/stop_current_gcp_instance.sh\n'
+    STOP_COMMAND = "\nsource devops/stop_current_gcp_instance.sh\n"
     root_dir = os.path.abspath(root_dir)  # Ensure absolute path
     for dirpath, dirnames, filenames in os.walk(root_dir):
         yaml_files = [f for f in filenames if f.endswith(".yaml")]
@@ -16,7 +16,7 @@ def generate_shell_scripts(root_dir):
                 for yaml_file in yaml_files:
                     config_path = os.path.join(dirpath, yaml_file)
                     # Make config_path relative to root_dir and replace backslashes if on a non-Unix system
-                    config_path = os.path.relpath(config_path, start=root_dir).replace(
+                    config_path = os.path.relpath(config_path, start="./").replace(
                         "\\", "/"
                     )
                     train_command = f"python src/train.py --config={config_path}\n"
