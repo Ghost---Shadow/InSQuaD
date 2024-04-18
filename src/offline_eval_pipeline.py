@@ -5,6 +5,7 @@ from pathlib import Path
 from config import RootConfig
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
+from eval_utils import evaluate_with_options_if_possible, get_options_if_possible
 from generative_models import GENERATIVE_MODELS_LUT
 from losses import LOSSES_LUT
 from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
@@ -164,12 +165,7 @@ class OfflineEvaluationPipeline:
             return
 
         wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
-        if hasattr(wrapped_dataset, "LABELS"):
-            print("Running MCQ eval")
-            options = list(wrapped_dataset.LABELS.values())
-        else:
-            print("Running free form eval")
-            options = None
+        options = get_options_if_possible(wrapped_dataset)
 
         total = count_rows_jsonl(self.few_shot_data_jsonl_path)
         with open(self.few_shot_data_jsonl_path, "r") as f_in:
@@ -178,13 +174,9 @@ class OfflineEvaluationPipeline:
                     row = json.loads(row)
                     prompt, true_answer = row["prompts"], row["labels"]
 
-                    if options is None:
-                        result = self.generative_model.evaluate(prompt, true_answer)
-                    else:
-                        correct_option_index = options.index(true_answer)
-                        result = self.generative_model.evaluate_with_options(
-                            prompt, correct_option_index, options
-                        )
+                    result = evaluate_with_options_if_possible(
+                        self.generative_model, options, prompt, true_answer
+                    )
 
                     f_out.write(json.dumps({**row, **result}))
                     f_out.write("\n")
