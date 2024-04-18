@@ -13,7 +13,7 @@ class TestRTELoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         rte_dataset = RTE(config)
@@ -34,7 +34,7 @@ class TestRTELoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         rte_dataset = RTE(config)
 
         train_loader = rte_dataset.get_loader(split="train")

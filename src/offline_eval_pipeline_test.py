@@ -7,7 +7,7 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 class TestOfflineEvaluationPipeline(unittest.TestCase):
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_shortlist -v
     def test_shortlist(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
 
         config = Config.from_file(config_path)
         pipeline = OfflineEvaluationPipeline(config)
@@ -19,7 +19,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_generate_few_shots -v
     def test_generate_few_shots(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
 
         config = Config.from_file(config_path)
         pipeline = OfflineEvaluationPipeline(config)
@@ -32,7 +32,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_generate_run_inference -v
     def test_generate_run_inference(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
 
         config = Config.from_file(config_path)
         pipeline = OfflineEvaluationPipeline(config)

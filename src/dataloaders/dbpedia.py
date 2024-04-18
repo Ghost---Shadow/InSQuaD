@@ -24,6 +24,7 @@ class DBPedia(BaseDataset):
     def __init__(self, config):
         super().__init__(config)
         self.cached_load_dataset(DBPedia.NAME, ("fancyzhx/dbpedia_14",))
+        self.split_lut = {"train": "train", "validation": "test", "test": "test"}
 
     @staticmethod
     def collate_fn(batch):
@@ -39,8 +40,3 @@ class DBPedia(BaseDataset):
             prompts.append(prompt)
             labels.append(DBPedia.LABELS[topic])
         return {"prompts": prompts, "labels": labels}
-
-    def get_loader(self, split):
-        if split == "validation":
-            split = "test"
-        return super().get_loader(split)

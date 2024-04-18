@@ -13,7 +13,7 @@ from training_pipeline import TrainingPipeline
 class TestCheckpointManager(unittest.TestCase):
     # python -m unittest checkpoint_manager_test.TestCheckpointManager.test_checkpoint_save_load -v
     def test_checkpoint_save_load(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
         config = Config.from_file(config_path)
         pipeline = TrainingPipeline(config)
         pipeline.current_seed = 42
@@ -46,7 +46,7 @@ class TestCheckpointManager(unittest.TestCase):
 
     # python -m unittest checkpoint_manager_test.TestCheckpointManager.test_get_latest_checkpoint -v
     def test_get_latest_checkpoint(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
         config = Config.from_file(config_path)
         pipeline = TrainingPipeline(config)
         pipeline.current_seed = 42
@@ -63,7 +63,7 @@ class TestCheckpointManager(unittest.TestCase):
 # python -m unittest checkpoint_manager_test.TestCheckpointManagerTraining -v
 class TestCheckpointManagerTraining(unittest.TestCase):
     def test_training_checkpoint(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
         config = Config.from_file(config_path)
         epochs = 20
         interrupt_epoch = 10
@@ -128,7 +128,7 @@ class TestCheckpointManagerTraining(unittest.TestCase):
 # python -m unittest checkpoint_manager_test.TestCheckpointManagerTrainingAmp -v
 class TestCheckpointManagerTrainingAmp(unittest.TestCase):
     def test_training_checkpoint(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
         config = Config.from_file(config_path)
         epochs = 20
         interrupt_epoch = 10

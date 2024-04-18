@@ -13,7 +13,7 @@ class TestMNLILoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         mnli_dataset = MNLI(config)
@@ -32,7 +32,7 @@ class TestMNLILoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         mnli_dataset = MNLI(config)
 
         train_loader = mnli_dataset.get_loader(split="train")

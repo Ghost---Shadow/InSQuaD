@@ -11,7 +11,7 @@ class TestMRPCLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         mrpc_dataset = MRPC(config)
@@ -30,7 +30,7 @@ class TestMRPCLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         mrpc_dataset = MRPC(config)
 
         indexes = [0, 1]
@@ -41,8 +41,8 @@ class TestMRPCLoader(unittest.TestCase):
             "Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .\nYucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .\n",
         ]
         expected_labels = [
-            "equivalent",
-            "not equivalent",
+            "yes",
+            "no",
         ]
         self.assertEqual(batch["prompts"], expected_prompts)
         self.assertEqual(batch["labels"], expected_labels)
@@ -52,7 +52,7 @@ class TestMRPCLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         dataset = MRPC(config)
 
         train_loader = dataset.get_loader(split="train")

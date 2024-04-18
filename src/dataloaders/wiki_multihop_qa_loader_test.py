@@ -13,7 +13,7 @@ class TestWikiMultihopQaLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         dataset = WikiMultihopQaDataset(config)
@@ -55,7 +55,7 @@ class TestWikiMultihopQaLoader(unittest.TestCase):
 
     # python -m unittest dataloaders.wiki_multihop_qa_loader_test.TestWikiMultihopQaLoader.test_no_bad_rows -v
     def test_no_bad_rows(self):
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 2
         dataset = WikiMultihopQaDataset(config)
         train_loader = dataset.get_loader(split="train")

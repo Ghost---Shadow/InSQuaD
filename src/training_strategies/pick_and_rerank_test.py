@@ -13,7 +13,7 @@ class TestPickAndRankStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
 
         training_strategy = PickAndRerankStrategy(config, pipeline)
@@ -33,7 +33,7 @@ class TestPickAndRankStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         training_strategy = PickAndRerankStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -54,7 +54,7 @@ class TestPickAndRankStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         training_strategy = PickAndRerankStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -83,7 +83,7 @@ class TestPickAndRankStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         training_strategy = PickAndRerankStrategy(config, pipeline)
         training_strategy.before_each_epoch()

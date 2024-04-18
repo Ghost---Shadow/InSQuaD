@@ -9,6 +9,11 @@ class MNLI(BaseDataset):
     def __init__(self, config):
         super().__init__(config)
         self.cached_load_dataset(MNLI.NAME, ("glue", "mnli"))
+        self.split_lut = {
+            "train": "train",
+            "validation": "validation_matched",
+            "validation_matched": "validation_matched",
+        }
 
     @staticmethod
     def collate_fn(batch):
@@ -24,8 +29,3 @@ class MNLI(BaseDataset):
             prompts.append(prompt)
             labels.append(MNLI.LABELS[label])
         return {"prompts": prompts, "labels": labels}
-
-    def get_loader(self, split):
-        if split == "validation":
-            split = "validation_matched"
-        return super().get_loader(split)

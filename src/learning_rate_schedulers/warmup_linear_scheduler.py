@@ -5,7 +5,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 class WarmupLinearScheduler(_LRScheduler):
     NAME = "linear"
 
-    def __init__(self, config: RootConfig, optimizer, train_loader, last_step):
+    def __init__(self, config: RootConfig, optimizer, wrapped_dataset, last_step):
         total_epochs = config.training.epochs
         warmup_ratio = config.training.warmup_ratio
 
@@ -13,15 +13,16 @@ class WarmupLinearScheduler(_LRScheduler):
             self.num_warmup_steps,
             self.num_training_steps,
         ) = WarmupLinearScheduler.compute_scheduler_steps(
-            train_loader, total_epochs, warmup_ratio
+            wrapped_dataset, total_epochs, warmup_ratio
         )
 
         # epoch = step, Bad nomenclature
         super(WarmupLinearScheduler, self).__init__(optimizer, last_epoch=last_step)
 
     @staticmethod
-    def compute_scheduler_steps(train_loader, total_epochs, warmup_ratio):
-        num_batches_per_epoch = len(train_loader.dataset["train"])
+    def compute_scheduler_steps(wrapped_dataset, total_epochs, warmup_ratio):
+        split = wrapped_dataset.split_lut["train"]
+        num_batches_per_epoch = len(wrapped_dataset.dataset[split])
         num_training_steps = num_batches_per_epoch * total_epochs
         num_warmup_steps = int(num_training_steps * warmup_ratio)
         return num_warmup_steps, num_training_steps

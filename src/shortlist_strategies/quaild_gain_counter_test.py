@@ -8,7 +8,7 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 class TestQuaildGainCounterStrategy(unittest.TestCase):
     # python -m unittest shortlist_strategies.quaild_gain_counter_test.TestQuaildGainCounterStrategy.test_shortlist -v
     def test_shortlist(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
@@ -60,7 +60,7 @@ class TestQuaildGainCounterStrategy(unittest.TestCase):
 
     # python -m unittest shortlist_strategies.quaild_gain_counter_test.TestQuaildGainCounterStrategy.test_assemble_few_shot -v
     def test_assemble_few_shot(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
 

@@ -9,7 +9,7 @@ import unittest
 class TestQuaildGainCutoffStrategy(unittest.TestCase):
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_subset_select -v
     def test_subset_select(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"
         config.architecture.dense_index.type = "in_memory"
         config.offline_validation.datasets = []  # Save time
@@ -37,7 +37,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_real_data -v
     def test_real_data(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         strategy = QuaildGainCutoffStrategy(config, pipeline)
         train_loader = pipeline.wrapped_train_dataset.get_loader("train")
@@ -67,7 +67,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_other_loss_types -v
     def test_other_loss_types(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"  # Save time
         config.architecture.dense_index.type = "in_memory"  # Save time
         config.offline_validation.datasets = []  # Save time
@@ -96,7 +96,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_all_below_gain_cutoff -v
     def test_all_below_gain_cutoff(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.subset_selection_strategy.gain_cutoff = 1000
         config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
@@ -121,7 +121,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_empty_shortlist -v
     def test_empty_shortlist(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
 

@@ -8,7 +8,7 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 class TestRandomStrategy(unittest.TestCase):
     # python -m unittest shortlist_strategies.random_strategy_test.TestRandomStrategy.test_shortlist -v
     def test_shortlist(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.type = "random"
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)

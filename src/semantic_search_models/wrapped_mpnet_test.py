@@ -11,7 +11,7 @@ class TestWrappedMpnetModel(unittest.TestCase):
 
     # python -m unittest semantic_search_models.wrapped_mpnet_test.TestWrappedMpnetModel.test_embed -v
     def test_embed(self):
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         model = WrappedMpnetModel(config)
         query = "What color is the fruit that Alice loves?"
         documents = [
@@ -43,7 +43,7 @@ class TestWrappedMpnetModel(unittest.TestCase):
 
     # python -m unittest semantic_search_models.wrapped_mpnet_test.TestWrappedMpnetModel.test_overfit -v
     def test_overfit(self):
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         model = WrappedMpnetModel(config)
 
         optimizer = optim.AdamW(model.get_all_trainable_parameters(), lr=1e-5)
@@ -108,7 +108,7 @@ class TestWrappedMpnetModel(unittest.TestCase):
             },
         ]
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         model = WrappedMpnetModel(config)
         question_embeddings = model.embed(queries)
         quality_vector, diversity_matrix = model.compute_quality_diversity(

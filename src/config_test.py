@@ -23,7 +23,7 @@ class TestConfigLoading(unittest.TestCase):
 
     # python -m unittest config_test.TestConfigLoading.test_validator -v
     def test_validator(self):
-        with open("experiments/dummy_experiment.yaml", "r") as file:
+        with open("experiments/tests/quaild_test_experiment.yaml", "r") as file:
             config_data = yaml.safe_load(file)
 
         # Should not crash

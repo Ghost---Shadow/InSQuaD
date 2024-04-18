@@ -13,7 +13,7 @@ class TestSST2Loader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         sst2_dataset = SST2(config)
@@ -33,7 +33,7 @@ class TestSST2Loader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         sst2_dataset = SST2(config)
 
         train_loader = sst2_dataset.get_loader(split="train")

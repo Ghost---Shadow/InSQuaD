@@ -9,12 +9,8 @@ class WikiMultihopQaDataset(BaseDataset):
     def __init__(self, config):
         super().__init__(config)
         self.dataset = load_dataset("scholarly-shadows-syndicate/2WikiMultihopQA")
+        self.split_lut = {"train": "train", "validation": "dev", "dev": "dev"}
 
     @staticmethod
     def collate_fn(batch):
         return HotpotQaDataset.collate_fn(batch, KEY_SENTENCES="content")
-
-    def get_loader(self, split):
-        if split == "validation":
-            split = "dev"
-        return super().get_loader(split)

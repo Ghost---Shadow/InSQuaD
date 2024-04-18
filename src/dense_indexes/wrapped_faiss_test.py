@@ -13,7 +13,7 @@ class TestFaissWrapper(unittest.TestCase):
     def test_repopulate_index(self):
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.dense_index.k_for_rerank = 2
         pipeline = TrainingPipeline(config)
 

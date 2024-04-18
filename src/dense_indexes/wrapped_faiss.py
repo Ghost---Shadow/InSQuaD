@@ -51,9 +51,9 @@ class WrappedFaiss:
 
         # Prepare dataset embeddings
         # TODO: Unhardcode
-        for row in tqdm(
-            self.wrapped_dataset.dataset["train"], desc="populating index", leave=False
-        ):
+        split = wrapped_dataset.split_lut["train"]
+        train_dataset = self.wrapped_dataset.dataset[split]
+        for row in tqdm(train_dataset, desc="populating index", leave=False):
             batch = self.wrapped_dataset.collate_fn([row])
             for prompt in batch["prompts"]:
                 with torch.no_grad():

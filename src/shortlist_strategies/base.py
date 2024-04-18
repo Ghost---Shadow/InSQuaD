@@ -10,6 +10,7 @@ class BaseStrategy:
 
     def subsample_dataset(self, wrapped_dataset, split):
         # TODO: Shuffle the subsample
+        split = wrapped_dataset.split_lut[split]
         dataset_length = len(wrapped_dataset.dataset[split])
         row_iterator = wrapped_dataset.get_row_iterator(split)
         subsample_for_eval_size = self.config.offline_validation.subsample_for_eval_size

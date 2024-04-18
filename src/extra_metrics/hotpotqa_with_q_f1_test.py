@@ -71,7 +71,7 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
 
     # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_generate_metric -v
     def test_generate_metric(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
 
         train_loader = pipeline.wrapped_train_dataset.get_loader("train")

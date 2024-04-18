@@ -21,7 +21,7 @@ class TestXsumDatasetLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         xsum_dataset = XsumDataset(config)
@@ -38,7 +38,7 @@ class TestXsumDatasetLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         xsum_dataset = XsumDataset(config)
 
         train_loader = xsum_dataset.get_loader(split="train")

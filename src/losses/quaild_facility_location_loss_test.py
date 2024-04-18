@@ -10,7 +10,7 @@ from train_utils import set_seed
 # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocationLoss -v
 class TestQuaildFacilityLocationLoss(unittest.TestCase):
     def setUp(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.loss.lambd = 1.0
         config.training.loss.type = "facility_location"
         self.loss_fn = QuaildFacilityLocationLoss(config)

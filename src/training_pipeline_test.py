@@ -15,7 +15,7 @@ class TestTrainingPipeline(unittest.TestCase):
 
     # python -m unittest training_pipeline_test.TestTrainingPipeline.test_train_one_epoch -v
     def test_train_one_epoch(self):
-        config_path = "experiments/quaild_test_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
 
         config = Config.from_file(config_path)
 
@@ -26,7 +26,7 @@ class TestTrainingPipeline(unittest.TestCase):
 
     # python -m unittest training_pipeline_test.TestTrainingPipeline.test_run_validation -v
     def test_run_validation(self):
-        config_path = "experiments/dummy_experiment.yaml"
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
 
         config = Config.from_file(config_path)
 

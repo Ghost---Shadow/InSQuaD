@@ -13,7 +13,7 @@ class TestDBPediaLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         dbpedia_dataset = DBPedia(config)
@@ -33,7 +33,7 @@ class TestDBPediaLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         dbpedia_dataset = DBPedia(config)
 
         train_loader = dbpedia_dataset.get_loader(split="train")

@@ -12,7 +12,7 @@ class TestQAWithNewLine(unittest.TestCase):
     def test_happy_path(self):
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
 
         batch = {
             "prompts": "What is Alice's favourite fruit?",
@@ -43,7 +43,7 @@ class TestQAWithNewLine(unittest.TestCase):
     def test_insufficient_context_length(self):
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
 
         batch = {
             "prompts": "What is Alice's favourite fruit?",

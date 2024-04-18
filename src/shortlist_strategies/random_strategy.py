@@ -13,7 +13,8 @@ class RandomStrategy(BaseStrategy):
 
     def shortlist(self, dataset_name, use_cache=True):
         wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-        total_dataset_length = len(wrapped_dataset.dataset["train"])
+        split = wrapped_dataset.split_lut["train"]
+        total_dataset_length = len(wrapped_dataset.dataset[split])
         indexes = np.arange(total_dataset_length)
         np.random.shuffle(indexes)
         indexes = indexes[: self.config.offline_validation.annotation_budget]

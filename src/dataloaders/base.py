@@ -9,6 +9,7 @@ class BaseDataset(Dataset):
         self.config = config
         self.batch_size = config.training.batch_size
         self.dataset = None
+        self.split_lut = {"train": "train", "validation": "validation"}
 
     def cached_load_dataset(self, name, source):
         """
@@ -34,6 +35,7 @@ class BaseDataset(Dataset):
         return dict(collated_batch)
 
     def get_loader(self, split):
+        split = self.split_lut[split]
         shuffle = False
         if split == "train":
             shuffle = True
@@ -46,6 +48,7 @@ class BaseDataset(Dataset):
 
     def get_row_iterator(self, split):
         # TODO: Cleanup
+        split = self.split_lut[split]
         for raw_row in self.dataset[split]:
             batch = self.collate_fn([raw_row])
             row = self.unbatch(batch)
@@ -60,10 +63,10 @@ class BaseDataset(Dataset):
         return row
 
     def random_access(self, indexes):
-        SPLIT = "train"
+        split = self.split_lut["train"]
         batch = []
         for index in indexes:
-            batch.append(self.dataset[SPLIT][index])
+            batch.append(self.dataset[split][index])
         return self.collate_fn(batch)
 
     def __getitem__(self, index):

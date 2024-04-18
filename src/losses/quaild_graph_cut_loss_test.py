@@ -9,7 +9,7 @@ from train_utils import set_seed
 # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut -v
 class TestQuaildGraphCut(unittest.TestCase):
     def setUp(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         self.loss_fn = QuaildGraphCutLoss(config)
 
     # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_theoretical_lower_bound -v

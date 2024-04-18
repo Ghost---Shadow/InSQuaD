@@ -8,7 +8,7 @@ class TestWrappedAutoModel(unittest.TestCase):
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_single_token -v
     def test_single_token(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.generative_model.checkpoint = (
             "EleutherAI/gpt-neo-125m"
         )
@@ -30,7 +30,7 @@ class TestWrappedAutoModel(unittest.TestCase):
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_stablelm -v
     def test_evaluate_stablelm(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.generative_model.checkpoint = (
             "stabilityai/stablelm-2-1_6b"
         )
@@ -71,7 +71,7 @@ class TestWrappedAutoModel(unittest.TestCase):
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_gemma -v
     def test_evaluate_gemma(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.generative_model.checkpoint = "google/gemma-2b"
         wrapped_model = WrappedAutoModel(
             config, config.offline_validation.generative_model
@@ -110,7 +110,7 @@ class TestWrappedAutoModel(unittest.TestCase):
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_neo175m -v
     def test_evaluate_neo175m(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.generative_model.checkpoint = (
             "EleutherAI/gpt-neo-125m"
         )
@@ -149,7 +149,7 @@ class TestWrappedAutoModel(unittest.TestCase):
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_gpt2 -v
     def test_evaluate_gpt2(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.generative_model.checkpoint = "openai-community/gpt2"
         wrapped_model = WrappedAutoModel(
             config, config.offline_validation.generative_model
@@ -186,7 +186,7 @@ class TestWrappedAutoModel(unittest.TestCase):
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_with_options_neo175m -v
     def test_evaluate_with_options_neo175m(self):
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.generative_model.checkpoint = (
             "EleutherAI/gpt-neo-125m"
         )

@@ -13,7 +13,7 @@ class TestHotpotQaLoader(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         dataset = HotpotQaDataset(config)
@@ -53,7 +53,7 @@ class TestHotpotQaLoader(unittest.TestCase):
     # python -m unittest dataloaders.hotpot_qa_loader_test.TestHotpotQaLoader.test_no_bad_rows -v
     def test_no_bad_rows(self):
         # https://github.com/hotpotqa/hotpot/issues/47
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 2
         dataset = HotpotQaDataset(config)
         train_loader = dataset.get_loader(split="train")

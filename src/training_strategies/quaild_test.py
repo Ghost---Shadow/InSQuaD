@@ -14,7 +14,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -35,7 +35,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -66,7 +66,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
@@ -96,7 +96,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # Set seed for deterministic testing
         set_seed(42)
 
-        config = Config.from_file("experiments/quaild_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"

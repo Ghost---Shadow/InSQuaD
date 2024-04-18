@@ -8,7 +8,7 @@ from dataloaders.hotpot_qa_with_q_loader_test import row_test_inner
 class TestDummyHotpotQaWithQDataset(unittest.TestCase):
     # python -m unittest dataloaders.dummy_hotpot_qa_with_q_loader_test.TestDummyHotpotQaWithQDataset.test_happy_path -v
     def test_happy_path(self):
-        config = Config.from_file("experiments/dummy_experiment.yaml")
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 1
 
         dataset = DummyHotpotQaWithQDataset(config)
