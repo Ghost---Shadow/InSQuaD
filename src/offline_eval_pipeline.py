@@ -93,7 +93,7 @@ class OfflineEvaluationPipeline:
             row["confidence"] = confidence
             shortlisted_rows.append(row)
 
-        with open(self.shortlisted_data_path, "w") as f:
+        with open(self.shortlisted_data_path, "w", encoding="utf-8") as f:
             json.dump(shortlisted_rows, f, indent=2)
 
     def generate_few_shots(self, skip_if_done=True):
@@ -102,7 +102,7 @@ class OfflineEvaluationPipeline:
             return
 
         try:
-            with open(self.few_shot_data_jsonl_path, "w") as f:
+            with open(self.few_shot_data_jsonl_path, "w", encoding="utf-8") as f:
                 for row, few_shot in self.shortlist_strategy.assemble_few_shot(
                     self.current_dataset_name
                 ):
@@ -130,7 +130,7 @@ class OfflineEvaluationPipeline:
                 if i == 5:
                     break
 
-        with open(self.few_shot_data_sanity_path, "w") as f:
+        with open(self.few_shot_data_sanity_path, "w", encoding="utf-8") as f:
             f.write(s)
 
     def run_inference(self, skip_if_done=True):
@@ -148,7 +148,7 @@ class OfflineEvaluationPipeline:
 
         total = count_rows_jsonl(self.few_shot_data_jsonl_path)
         with open(self.few_shot_data_jsonl_path, "r") as f_in:
-            with open(self.inference_result_jsonl_path, "w") as f_out:
+            with open(self.inference_result_jsonl_path, "w", encoding="utf-8") as f_out:
                 for row in tqdm(f_in, total=total, desc="Running inference"):
                     row = json.loads(row)
                     prompt, true_answer = row["prompts"], row["labels"]
@@ -191,7 +191,7 @@ class OfflineEvaluationPipeline:
         avg_correct_probability = total_probability / total
 
         # Write the results to an output file
-        with open(self.final_result_json_path, "w") as f:
+        with open(self.final_result_json_path, "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "accuracy": accuracy,
@@ -252,7 +252,7 @@ class OfflineEvaluationPipeline:
         )
 
         # Write the results to an output file
-        with open(self.final_result_json_path, "w") as f:
+        with open(self.final_result_json_path, "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "correct_percentage": correct_percentage,
