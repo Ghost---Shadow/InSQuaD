@@ -1,5 +1,6 @@
 import unittest
 from config import Config
+from dataloaders.dbpedia import DBPedia
 from generative_models.wrapped_automodel import WrappedAutoModel
 
 
@@ -206,6 +207,47 @@ class TestWrappedAutoModel(unittest.TestCase):
             "option_probabilities": {
                 "yes": 0.9760239720344543,
                 "no": 0.21766287088394165,
+            },
+            "correct": True,
+        }, result
+
+    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_lower_than_max_tokens -v
+    def test_lower_than_max_tokens(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.offline_validation.generative_model.checkpoint = (
+            "stabilityai/stablelm-2-1_6b"
+        )
+        wrapped_model = WrappedAutoModel(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = """Q: Title: Henkel
+Content:  Henkel AG & Company KGaA operates worldwide with leading brands and technologies in three business areas: Laundry & Home Care Beauty Care and Adhesive Technologies. Henkel is the name behind some of America’s favorite brands.
+Topic:
+A: """
+        options = list(DBPedia.LABELS.values())
+        correct_option_index = 0
+
+        result = wrapped_model.evaluate_with_options(
+            prompt, correct_option_index, options
+        )
+
+        assert result == {
+            "option_probabilities": {
+                "Company": 0.9973655939102173,
+                "EducationalInstitution": 0.0030768769793212414,
+                "Artist": 0.0007606353610754013,
+                "Athlete": 0.0005123738665133715,
+                "OfficeHolder": 0.062278542667627335,
+                "MeanOfTransportation": 0.0010649517644196749,
+                "Building": 0.02669544331729412,
+                "NaturalPlace": 0.0023292030673474073,
+                "Village": 0.01895320601761341,
+                "Animal": 0.007577642798423767,
+                "Plant": 0.004710435401648283,
+                "Album": 0.005166991148144007,
+                "Film": 0.0006463695899583399,
+                "WrittenWork": 0.013707134872674942,
             },
             "correct": True,
         }, result

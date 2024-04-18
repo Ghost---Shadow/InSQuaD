@@ -54,6 +54,12 @@ class WrappedAutoModel:
             option_input_ids = torch.tensor(
                 option_input_ids, device=probabilities.device
             )
+
+            # There may not be enough tokens
+            min_length = min(option_input_ids.shape[0], probabilities.shape[0])
+            option_input_ids = option_input_ids[:min_length]
+            probabilities = probabilities[:min_length]
+
             option_probs = torch.gather(
                 probabilities, index=option_input_ids.unsqueeze(-1), dim=-1
             ).squeeze(-1)
@@ -65,6 +71,7 @@ class WrappedAutoModel:
             # Exponential of the negative sum of log probabilities gives the sequence probability
             option_sequence_probability = torch.exp(option_log_likelihood)
             options_sequence_probability.append(option_sequence_probability)
+
         options_sequence_probability = torch.stack(options_sequence_probability)
         options_sequence_probability = options_sequence_probability / torch.norm(
             options_sequence_probability
