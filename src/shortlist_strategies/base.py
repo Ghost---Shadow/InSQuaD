@@ -8,6 +8,7 @@ class BaseStrategy:
         self.top_n = self.config.offline_validation.annotation_budget
 
     def subsample_dataset(self, wrapped_dataset, split):
+        # https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/get_task.py#L158
         # TODO: Shuffle the subsample
         split = wrapped_dataset.split_lut[split]
         dataset_length = len(wrapped_dataset.dataset[split])

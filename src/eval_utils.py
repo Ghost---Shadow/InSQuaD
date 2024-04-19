@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List
 from dataloaders.base import BaseDataset
 
@@ -23,3 +24,12 @@ def evaluate_with_options_if_possible(
         )
 
     return result
+
+
+def flatten_batch_of_batches(batch_of_batches):
+    result = defaultdict(list)
+    for batch in batch_of_batches:
+        for key in batch:
+            result[key] = [*result[key], *batch[key]]
+
+    return dict(result)
