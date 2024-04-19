@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 
 
-class FastVoteKStrategy(BaseSubsetSelectionStrategy):
+class FastVoteKSubsetStrategy(BaseSubsetSelectionStrategy):
     NAME = "fast_vote_k"
 
     def __init__(self, config, pipeline):
@@ -13,9 +13,12 @@ class FastVoteKStrategy(BaseSubsetSelectionStrategy):
         self.k = config.architecture.subset_selection_strategy.k
         self.number_to_select = self.config.offline_validation.annotation_budget
 
-    def subset_select(self, embedding_matrix):
-        return FastVoteKStrategy.fast_vote_k(
-            embedding_matrix, self.number_to_select, self.k
+    def subset_select(self, embedding_matrix, number_to_select=None):
+        if number_to_select is None:
+            number_to_select = self.number_to_select
+
+        return FastVoteKSubsetStrategy.fast_vote_k(
+            embedding_matrix, number_to_select, self.k
         )
 
     @staticmethod

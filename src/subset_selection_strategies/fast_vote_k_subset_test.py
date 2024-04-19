@@ -4,9 +4,9 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 import torch
 
 
-# python -m unittest subset_selection_strategies.fast_vote_k_test.TestFastVoteK -v
-class TestFastVoteK(unittest.TestCase):
-    # python -m unittest subset_selection_strategies.fast_vote_k_test.TestFastVoteK.test_fast_vote_k_happy -v
+# python -m unittest subset_selection_strategies.fast_vote_k_subset_test.TestFastVoteKSubsetStrategy -v
+class TestFastVoteKSubsetStrategy(unittest.TestCase):
+    # python -m unittest subset_selection_strategies.fast_vote_k_subset_test.TestFastVoteKSubsetStrategy.test_fast_vote_k_happy -v
     def test_fast_vote_k_happy(self):
         config = Config.from_file("experiments/tests/fastvotek_test_experiment.yaml")
         config.offline_validation.annotation_budget = 3  # number to select
