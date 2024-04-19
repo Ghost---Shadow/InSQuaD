@@ -29,7 +29,7 @@ architecture:
 
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
-  type: 'quaild'
+  type: 'noop'
   dataset: 'hotpot_qa_with_q'
   q_d_tradeoff_lambda: 1
   extra_metrics: ['hotpot_qa_with_q_f1']
