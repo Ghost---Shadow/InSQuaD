@@ -72,10 +72,9 @@ def generate_artifacts_dir(config, current_seed, current_dataset_name):
     assert current_seed is not None, "Seed not yet set"
     assert current_dataset_name is not None, "Dataset name not yet set"
     seed = current_seed
-    config_hash = generate_md5_hash(config)
-    config_name = config.wandb.name
+    config_name_with_hash = config.name_with_hash
     artifacts_dir = (
-        f"./artifacts/{config_name}_{config_hash}/seed_{seed}/{current_dataset_name}"
+        f"./artifacts/{config_name_with_hash}/seed_{seed}/{current_dataset_name}"
     )
     Path(artifacts_dir).mkdir(exist_ok=True, parents=True)
     return artifacts_dir

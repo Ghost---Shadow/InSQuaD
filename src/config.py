@@ -6,6 +6,7 @@ from losses import LOSSES_LUT
 from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
+from train_utils import generate_md5_hash
 from training_strategies import TRAINING_STRATEGIES_LUT
 import yaml
 from pydantic import BaseModel, model_validator, validator
@@ -164,6 +165,16 @@ class OfflineValidationConfig(BaseModel):
 
 
 class RootConfig(BaseModel):
+    @property
+    def name(self):
+        return self.wandb.name
+
+    @property
+    def name_with_hash(self):
+        config_hash = generate_md5_hash(self)
+        config_name = self.name
+        return f"{config_name}_{config_hash}"
+
     wandb: WandBConfig
     architecture: ArchitectureConfig
     offline_validation: OfflineValidationConfig

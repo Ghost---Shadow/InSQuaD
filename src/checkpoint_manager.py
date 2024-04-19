@@ -4,7 +4,6 @@ import random
 import re
 import numpy as np
 import torch
-from train_utils import generate_md5_hash
 from pydantic import BaseModel
 from typing import Any
 
@@ -82,9 +81,8 @@ class CheckpointManager:
     @property
     def checkpoint_dir(self):
         seed = self.pipeline.current_seed
-        config_hash = generate_md5_hash(self.config)
-        config_name = self.config.wandb.name
-        checkpoint_dir = f"./checkpoints/{config_name}_{config_hash}/seed_{seed}/"
+        config_name_with_hash = self.config.name_with_hash
+        checkpoint_dir = f"./checkpoints/{config_name_with_hash}/seed_{seed}/"
         return checkpoint_dir
 
     def save_checkpoint(self):
