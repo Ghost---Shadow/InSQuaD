@@ -1,7 +1,9 @@
 from shortlist_strategies.fast_vote_k import FastVoteKStrategy
+from shortlist_strategies.ideal import IdealStrategy
 from shortlist_strategies.least_confidence import LeastConfidenceStrategy
 from shortlist_strategies.quaild_gain_counter import QuaildGainCounterStrategy
 from shortlist_strategies.random_strategy import RandomStrategy
+from shortlist_strategies.shortlist_then_topk_strategy import ShortlistThenTopK
 from shortlist_strategies.vote_k import VoteKStrategy
 from shortlist_strategies.zero_shot_strategy import ZeroShotStrategy
 
@@ -13,4 +15,6 @@ SHORTLIST_STRATEGIES_LUT = {
     LeastConfidenceStrategy.NAME: LeastConfidenceStrategy,
     FastVoteKStrategy.NAME: FastVoteKStrategy,
     VoteKStrategy.NAME: VoteKStrategy,
+    ShortlistThenTopK.NAME: ShortlistThenTopK,
+    IdealStrategy.NAME: IdealStrategy,
 }

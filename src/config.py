@@ -59,6 +59,7 @@ class SubsetSelectionStrategyConfig(BaseModel):
     type: str
     k: int = None
     gain_cutoff: float = None
+    rand_iter: int = None  # TODO: Check if missing
 
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(SUBSET_SELECTION_STRATEGIES_LUT)

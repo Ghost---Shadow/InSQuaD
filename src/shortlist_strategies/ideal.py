@@ -1,5 +1,5 @@
 from shortlist_strategies.shortlist_then_topk_strategy import ShortlistThenTopK
 
 
-class FastVoteKStrategy(ShortlistThenTopK):
-    NAME = "fast_vote_k"
+class IdealStrategy(ShortlistThenTopK):
+    NAME = "ideal"
