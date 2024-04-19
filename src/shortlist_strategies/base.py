@@ -1,9 +1,8 @@
 from abc import abstractmethod
-from config import RootConfig
 
 
 class BaseStrategy:
-    def __init__(self, config: RootConfig, pipeline):
+    def __init__(self, config, pipeline):
         self.config = config
         self.pipeline = pipeline
         self.top_n = self.config.offline_validation.annotation_budget

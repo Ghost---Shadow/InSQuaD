@@ -15,8 +15,8 @@ architecture:
     device: "cuda:0"
 
   subset_selection_strategy:
-    type: 'gain_cutoff'
-    gain_cutoff: 0.5
+    type: 'fast_vote_k'
+    k: 150 # (https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/two_steps.py#L333)
 
   dense_index:
     type: 'faiss'

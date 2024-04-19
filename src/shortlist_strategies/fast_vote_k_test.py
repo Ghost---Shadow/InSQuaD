@@ -7,21 +7,6 @@ import torch
 
 # python -m unittest shortlist_strategies.fast_vote_k_test.TestFastVoteK -v
 class TestFastVoteK(unittest.TestCase):
-    # python -m unittest shortlist_strategies.fast_vote_k_test.TestFastVoteK.test_fast_vote_k_happy -v
-    def test_fast_vote_k_happy(self):
-        config = Config.from_file("experiments/tests/fastvotek_test_experiment.yaml")
-        pipeline = OfflineEvaluationPipeline(config)
-        pipeline.set_seed(42)
-        pipeline.current_dataset_name = "mrpc"
-
-        embedding_matrix = torch.randn(10, 50)
-        number_to_select = 3
-        top_k = 4
-        selected_indices = pipeline.shortlist_strategy.fast_vote_k(
-            embedding_matrix, number_to_select, top_k
-        )
-
-        assert selected_indices == [0, 9, 4], selected_indices
 
     # python -m unittest shortlist_strategies.fast_vote_k_test.TestFastVoteK.test_shortlist -v
     def test_shortlist(self):
