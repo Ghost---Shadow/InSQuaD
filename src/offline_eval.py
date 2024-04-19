@@ -4,7 +4,6 @@ from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
 from run_analysis_scripts.excelify import excelify_for_discord
-import torch
 
 
 def main(config: RootConfig, dataset_name: str, seed: int):
@@ -27,7 +26,8 @@ def main(config: RootConfig, dataset_name: str, seed: int):
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
 
         print(f"Shortlisting")
-        pipeline.shortlist()
+        with pipeline.timer():
+            pipeline.shortlist()
 
         print(f"Generating few shots")
         pipeline.generate_few_shots()

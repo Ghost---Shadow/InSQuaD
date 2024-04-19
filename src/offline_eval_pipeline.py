@@ -1,7 +1,9 @@
+from contextlib import contextmanager
 import gc
 import json
 import os
 from pathlib import Path
+import time
 from config import RootConfig
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
@@ -281,6 +283,30 @@ class OfflineEvaluationPipeline:
                 f,
                 indent=2,
             )
+
+    @contextmanager
+    def timer(self):
+        try:
+            start_time = time.time()  # Start timer
+            yield  # Allow the block of code to execute
+        finally:
+            # End timer
+            end_time = time.time()
+
+            # Elapsed time in milliseconds
+            elapsed_time = (end_time - start_time) * 1000
+
+            # Log the time to a JSON file
+            with open(Path(self.artifacts_dir) / "time_result.json", "w") as f:
+                json.dump(
+                    {
+                        "start_timestamp": start_time,
+                        "end_timestamp": end_time,
+                        "elapsed_milliseconds": elapsed_time,
+                    },
+                    f,
+                    indent=2,
+                )
 
     def set_seed(self, seed):
         set_seed(seed)
