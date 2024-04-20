@@ -26,16 +26,14 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
         """
         total_count = 0
         iter = self.rand_iter
-        max_iterations = 100
 
-        for _ in range(iter):
+        for _ in tqdm(range(iter), desc="Diffusion loop 1", leave=False):
             activated_nodes = deepcopy(seed)
             current_seed = deepcopy(seed)
 
-            iteration = 0  # It is taking forever
-            while current_seed and iteration < max_iterations:
+            while current_seed:
                 new_activated_nodes = []
-                for v in current_seed:
+                for v in tqdm(current_seed, desc="Diffusion loop 3", leave=False):
                     for w in G.successors(v):
                         if (
                             w not in activated_nodes
@@ -43,7 +41,6 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
                         ):
                             new_activated_nodes.append(w)
                             activated_nodes.append(w)
-                iteration += 1
 
                 current_seed = new_activated_nodes
 
@@ -91,7 +88,7 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
         for _ in bar:
             max_influence = 0
             best_node = None
-            for node in graph.nodes():
+            for node in tqdm(graph.nodes(), leave=False, desc="Checking for best node"):
                 if node not in selected_nodes:
                     selected_nodes.append(node)
                     influence = self.ic_diffusion_model(graph, selected_nodes)
