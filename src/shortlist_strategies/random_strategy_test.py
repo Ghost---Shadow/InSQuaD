@@ -8,8 +8,7 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 class TestRandomStrategy(unittest.TestCase):
     # python -m unittest shortlist_strategies.random_strategy_test.TestRandomStrategy.test_shortlist -v
     def test_shortlist(self):
-        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
-        config.offline_validation.type = "random"
+        config = Config.from_file("experiments/tests/random_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
@@ -36,11 +35,32 @@ class TestRandomStrategy(unittest.TestCase):
             842,
             564,
         ], indexes
-        assert confidences is None
+        assert confidences == [
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+            0.0002726281352235551,
+        ], confidences
 
     # python -m unittest shortlist_strategies.random_strategy_test.TestRandomStrategy.test_assemble_few_shot -v
     def test_assemble_few_shot(self):
-        config = Config.from_file("experiments/random_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/random_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"

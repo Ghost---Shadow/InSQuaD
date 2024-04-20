@@ -9,12 +9,12 @@ from shortlist_strategies.zero_shot_strategy import ZeroShotStrategy
 
 
 SHORTLIST_STRATEGIES_LUT = {
+    FastVoteKStrategy.NAME: FastVoteKStrategy,
+    IdealStrategy.NAME: IdealStrategy,
+    LeastConfidenceStrategy.NAME: LeastConfidenceStrategy,
     QuaildGainCounterStrategy.NAME: QuaildGainCounterStrategy,
     RandomStrategy.NAME: RandomStrategy,
-    ZeroShotStrategy.NAME: ZeroShotStrategy,
-    LeastConfidenceStrategy.NAME: LeastConfidenceStrategy,
-    FastVoteKStrategy.NAME: FastVoteKStrategy,
-    VoteKStrategy.NAME: VoteKStrategy,
     ShortlistThenTopK.NAME: ShortlistThenTopK,
-    IdealStrategy.NAME: IdealStrategy,
+    VoteKStrategy.NAME: VoteKStrategy,
+    ZeroShotStrategy.NAME: ZeroShotStrategy,
 }

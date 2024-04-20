@@ -68,9 +68,7 @@ class TestLeastConfidenceStrategy(unittest.TestCase):
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"
-
-        if not os.path.exists(pipeline.shortlisted_data_path):
-            pipeline.shortlist()
+        pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
             "mrpc", use_cache=False

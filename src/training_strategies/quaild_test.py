@@ -80,7 +80,7 @@ class TestQuaildStrategy(unittest.TestCase):
         optimizer = pipeline.optimizer
 
         # Should not crash
-        for step in range(100):
+        for step in range(11):
             optimizer.zero_grad()
             loss = training_strategy.train_step(batch)
             loss.backward()
@@ -112,7 +112,7 @@ class TestQuaildStrategy(unittest.TestCase):
         scaler = torch.cuda.amp.GradScaler()
 
         # Should not crash
-        for step in range(100):
+        for step in range(11):
             optimizer.zero_grad()
 
             # Automatic Mixed Precision

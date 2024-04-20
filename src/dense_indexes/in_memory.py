@@ -3,8 +3,11 @@ import torch
 
 
 class InMemory:
-    def __init__(self, config):
+    NAME = "in_memory"
+
+    def __init__(self, config, pipeline):
         self.config = config
+        self.config = pipeline
 
     def repopulate_index(self, wrapped_dataset: BaseDataset, embedding_model):
         raise NotImplementedError("TODO")

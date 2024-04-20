@@ -6,9 +6,9 @@ from subset_selection_strategies.top_k_strategy import TopKStrategy
 
 
 SUBSET_SELECTION_STRATEGIES_LUT = {
-    QuaildGainCutoffStrategy.NAME: QuaildGainCutoffStrategy,
-    TopKStrategy.NAME: TopKStrategy,
     FastVoteKSubsetStrategy.NAME: FastVoteKSubsetStrategy,
     IdealSubsetStrategy.NAME: IdealSubsetStrategy,
+    QuaildGainCutoffStrategy.NAME: QuaildGainCutoffStrategy,
     RandomSubsetStrategy.NAME: RandomSubsetStrategy,
+    TopKStrategy.NAME: TopKStrategy,
 }

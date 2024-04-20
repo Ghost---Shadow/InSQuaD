@@ -11,6 +11,7 @@ class TestQuaildGainCounterStrategy(unittest.TestCase):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
         indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
 
         assert indexes == [
@@ -63,9 +64,8 @@ class TestQuaildGainCounterStrategy(unittest.TestCase):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
-
-        if not os.path.exists(pipeline.shortlisted_data_path):
-            pipeline.shortlist("mrpc")
+        pipeline.current_dataset_name = "mrpc"
+        pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
             "mrpc", use_cache=False

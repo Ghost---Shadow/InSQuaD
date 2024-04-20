@@ -1,36 +1,32 @@
 import unittest
+from config import Config
+from dataloaders.mrpc import MRPC
 from learning_rate_schedulers.warmup_linear_scheduler import WarmupLinearScheduler
 import torch
 import matplotlib.pyplot as plt
-from dataloaders.hotpot_qa_with_q_loader import get_train_loader
 
 
 # python -m unittest learning_rate_schedulers.warmup_linear_scheduler_test.TestWarmupLinearScheduler -v
 class TestWarmupLinearScheduler(unittest.TestCase):
     def test_scheduler(self):
-        batch_size = 48
-        total_epochs = 10
-        warmup_ratio = 0.06
-        base_lr = 3e-5
         last_step = -1
-        filename = "./artifacts/TestWarmupLinearScheduler.png"
+        filename = "./TestWarmupLinearScheduler.png"
 
-        train_loader = get_train_loader(batch_size)
-
-        config = {
-            "training": {
-                "epochs": total_epochs,
-                "warmup_ratio": warmup_ratio,
-            }
-        }
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.training.batch_size = 1
+        mrpc_dataset = MRPC(config)
+        train_loader = mrpc_dataset.get_loader(split="train")
+        base_lr = config.training.learning_rate
 
         optimizer = torch.optim.Adam([torch.zeros(3, requires_grad=True)], lr=base_lr)
-        scheduler = WarmupLinearScheduler(config, optimizer, train_loader, last_step)
+        scheduler = WarmupLinearScheduler(config, optimizer, mrpc_dataset, last_step)
 
         num_steps_per_epoch = len(train_loader)
+        print(num_steps_per_epoch)
+        print(config.training.epochs)
 
         lrs = []
-        for _ in range(total_epochs):
+        for _ in range(config.training.epochs):
             for _ in range(num_steps_per_epoch):
                 optimizer.step()
                 scheduler.step()

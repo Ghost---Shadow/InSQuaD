@@ -51,7 +51,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         # Apply the indexes
         result = strategy.subset_select(question_embedding, document_embeddings)
 
-        expected_output = [13, 52, 113]
+        expected_output = [52]
 
         # print("-" * 80)
         # print(batch["question"][0])

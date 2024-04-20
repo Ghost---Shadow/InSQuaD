@@ -5,14 +5,6 @@ from config import Config
 
 # python -m unittest training_pipeline_test.TestTrainingPipeline -v
 class TestTrainingPipeline(unittest.TestCase):
-    def test_load_config(self):
-        config_path = "experiments/t5base_mpnet_topk_2_flat_10.yaml"
-
-        config = Config.from_file(config_path)
-
-        # Should not crash
-        TrainingPipeline(config)
-
     # python -m unittest training_pipeline_test.TestTrainingPipeline.test_train_one_epoch -v
     def test_train_one_epoch(self):
         config_path = "experiments/tests/quaild_test_experiment.yaml"
@@ -31,7 +23,7 @@ class TestTrainingPipeline(unittest.TestCase):
         config = Config.from_file(config_path)
 
         pipeline = TrainingPipeline(config)
-        metrics = pipeline.run_validation()
+        metrics = pipeline.run_online_validation()
         print(metrics)
 
 

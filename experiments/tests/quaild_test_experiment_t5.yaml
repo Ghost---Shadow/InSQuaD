@@ -1,6 +1,6 @@
 wandb:
   project: "quaild"
-  name: "quaild_test_experiment"
+  name: "quaild_test_experiment_t5"
   # entity: "carml"
 
 architecture:
@@ -47,8 +47,8 @@ training:
 offline_validation:
   type: quaild_gain_counter
   generative_model:
-    type: 'automodel'
-    checkpoint: 'EleutherAI/gpt-neo-125m'
+    type: 't5'
+    checkpoint: 'google/flan-t5-base'
     device: "cuda:0"
   q_d_tradeoff_lambda: 1
   datasets: ['mrpc']

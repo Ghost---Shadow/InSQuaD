@@ -52,7 +52,7 @@ def format_imports_and_lut(directory_name: str, class_details):
     formatted_imports = "\n".join(sorted(imports))
     formatted_lut = "\n".join(index_dict)
 
-    output = f"{formatted_imports}\n\n\n{directory_name.upper()}_LUT = {{\n{formatted_lut}\n}}"
+    output = f"{formatted_imports}\n\n\n{directory_name.upper()}_LUT = {{\n{formatted_lut}\n}}\n"
     return output
 
 

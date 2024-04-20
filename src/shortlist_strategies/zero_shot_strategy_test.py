@@ -8,7 +8,7 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 class TestZeroShotStrategy(unittest.TestCase):
     # python -m unittest shortlist_strategies.zero_shot_strategy_test.TestZeroShotStrategy.test_shortlist -v
     def test_shortlist(self):
-        config = Config.from_file("experiments/zeroshot_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/zeroshot_test_experiment.yaml")
         config.offline_validation.type = "zero_shot"
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
@@ -19,7 +19,7 @@ class TestZeroShotStrategy(unittest.TestCase):
 
     # python -m unittest shortlist_strategies.zero_shot_strategy_test.TestZeroShotStrategy.test_assemble_few_shot -v
     def test_assemble_few_shot(self):
-        config = Config.from_file("experiments/zeroshot_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/zeroshot_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"
