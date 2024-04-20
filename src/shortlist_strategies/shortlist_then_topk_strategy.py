@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 from dataloaders.in_memory import InMemoryDataset
 from shortlist_strategies.base import BaseStrategy
 import torch
@@ -11,8 +13,11 @@ class ShortlistThenTopK(BaseStrategy):
     def __init__(self, config, pipeline):
         super().__init__(config, pipeline)
 
-    def shortlist(self, use_cache=True):
-        longlist_rows = self.subsample_dataset_for_train()
+    def cached_embedding_matrix(self, longlist_rows, use_cache=True):
+        cache_file_name = Path(self.pipeline.artifacts_dir) / "longlist_embeddings.pt"
+        if os.path.exists(cache_file_name) and use_cache:
+            with open(cache_file_name) as f:
+                return torch.load(cache_file_name)
 
         embedding_matrix = []
         for row in tqdm(longlist_rows, desc="Generating embeddings"):
@@ -21,6 +26,16 @@ class ShortlistThenTopK(BaseStrategy):
             embedding_matrix.append(prompt_embedding.squeeze().detach().cpu())
 
         embedding_matrix = torch.stack(embedding_matrix)
+
+        with open(cache_file_name, "wb") as f:
+            torch.save(embedding_matrix, f)
+
+        return embedding_matrix
+
+    def shortlist(self, use_cache=True):
+        longlist_rows = self.subsample_dataset_for_train()
+
+        embedding_matrix = self.cached_embedding_matrix(longlist_rows, use_cache)
 
         # Diversity only strategy
         indexes, confidences = self.pipeline.subset_selection_strategy.subset_select(

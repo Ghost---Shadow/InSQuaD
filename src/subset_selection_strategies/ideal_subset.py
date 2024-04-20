@@ -26,12 +26,14 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
         """
         total_count = 0
         iter = self.rand_iter
+        max_iterations = 100
 
         for _ in range(iter):
             activated_nodes = deepcopy(seed)
             current_seed = deepcopy(seed)
 
-            while current_seed:
+            iteration = 0  # It is taking forever
+            while current_seed and iteration < max_iterations:
                 new_activated_nodes = []
                 for v in current_seed:
                     for w in G.successors(v):
@@ -41,6 +43,8 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
                         ):
                             new_activated_nodes.append(w)
                             activated_nodes.append(w)
+                iteration += 1
+
                 current_seed = new_activated_nodes
 
             total_count += len(activated_nodes)
@@ -80,6 +84,7 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
         out_degrees = dict(graph.out_degree())
         initial_point = max(out_degrees, key=out_degrees.get)
         selected_nodes.append(initial_point)
+        scores = [0]
 
         # Select nodes based on influence propagation
         bar = tqdm(range(select_num - 1), desc="Voting nodes")
@@ -98,8 +103,6 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
 
             if best_node is not None:
                 selected_nodes.append(best_node)
-
-        # No scores for this strategy
-        scores = [0 for _ in range(len(selected_nodes))]
+                scores.append(max_influence)
 
         return selected_nodes, scores

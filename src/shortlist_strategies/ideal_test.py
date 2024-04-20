@@ -15,7 +15,7 @@ class TestIdeal(unittest.TestCase):
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"
 
-        indexes, confidences = pipeline.shortlist_strategy.shortlist()
+        indexes, scores = pipeline.shortlist_strategy.shortlist()
 
         assert len(indexes) == config.offline_validation.annotation_budget, len(indexes)
 
@@ -41,7 +41,28 @@ class TestIdeal(unittest.TestCase):
             220,
             145,
         ], indexes
-        assert confidences == [0] * len(indexes), confidences
+        assert scores == [
+            0,
+            22.7,
+            32.1,
+            39.4,
+            41.3,
+            49.8,
+            50.9,
+            55.6,
+            57.2,
+            62.9,
+            60.5,
+            66.6,
+            74.2,
+            75.6,
+            73.1,
+            81.1,
+            81.6,
+            82.0,
+            84.3,
+            90.8,
+        ], scores
 
     # python -m unittest shortlist_strategies.ideal_test.TestIdeal.test_assemble_few_shot -v
     def test_assemble_few_shot(self):

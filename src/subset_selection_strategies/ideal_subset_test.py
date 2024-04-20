@@ -21,4 +21,4 @@ class TestIdealSubsetStrategy(unittest.TestCase):
         )
 
         assert selected_indices == [0, 4, 7], selected_indices
-        assert selected_scores == [0, 0, 0], selected_indices
+        assert selected_scores == [0, 5.2, 6.3], selected_scores
