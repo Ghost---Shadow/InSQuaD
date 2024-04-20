@@ -55,4 +55,5 @@ offline_validation:
   seeds: [42]
   num_shots: 5
   annotation_budget: 100
+  subsample_for_train_size: 300
   subsample_for_eval_size: 256

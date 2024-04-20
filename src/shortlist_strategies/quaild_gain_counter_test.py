@@ -12,51 +12,51 @@ class TestQuaildGainCounterStrategy(unittest.TestCase):
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert indexes == [
-            2846,
-            3506,
-            3034,
-            2044,
-            608,
-            2619,
-            818,
-            1646,
-            2997,
-            100,
-            2013,
-            527,
-            2396,
-            1001,
-            2552,
-            3142,
-            2197,
-            2025,
-            3335,
-            2359,
+            175,
+            93,
+            43,
+            34,
+            206,
+            53,
+            27,
+            289,
+            16,
+            138,
+            2,
+            210,
+            4,
+            234,
+            110,
+            72,
+            216,
+            285,
+            224,
+            79,
         ], indexes
         assert confidences == [
             1.0,
-            0.6666666666666666,
-            0.6666666666666666,
-            0.6666666666666666,
-            0.6666666666666666,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
+            1.0,
+            1.0,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
         ], confidences
 
     # python -m unittest shortlist_strategies.quaild_gain_counter_test.TestQuaildGainCounterStrategy.test_assemble_few_shot -v
@@ -68,7 +68,7 @@ class TestQuaildGainCounterStrategy(unittest.TestCase):
         pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row

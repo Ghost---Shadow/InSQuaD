@@ -13,51 +13,53 @@ class TestLeastConfidenceStrategy(unittest.TestCase):
         )
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        pipeline.current_dataset_name = "mrpc"
+
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert indexes == [
-            157,
-            133,
-            224,
-            94,
-            59,
-            233,
-            215,
-            45,
-            251,
-            43,
-            29,
-            71,
-            24,
-            79,
-            221,
-            254,
-            153,
-            109,
-            0,
-            33,
+            628,
+            842,
+            1160,
+            2335,
+            1457,
+            1556,
+            2667,
+            1367,
+            287,
+            2978,
+            1514,
+            2411,
+            1977,
+            882,
+            2177,
+            1580,
+            418,
+            2165,
+            1355,
+            710,
         ], indexes
         assert confidences == [
-            0.13465330004692078,
-            0.13955064117908478,
-            0.15235817432403564,
-            0.1582164317369461,
-            0.1603998839855194,
-            0.16353042423725128,
-            0.16524522006511688,
-            0.17059928178787231,
-            0.17839756608009338,
-            0.19302403926849365,
-            0.20361395180225372,
-            0.20452596247196198,
-            0.20828485488891602,
-            0.20997728407382965,
-            0.21962271630764008,
-            0.24555368721485138,
-            0.25548237562179565,
-            0.2645929753780365,
-            0.2755028009414673,
-            0.2778550684452057,
+            0.03724600747227669,
+            0.04732665419578552,
+            0.05275539681315422,
+            0.052786558866500854,
+            0.055073924362659454,
+            0.05930019170045853,
+            0.06320629268884659,
+            0.07422198355197906,
+            0.07641955465078354,
+            0.07648376375436783,
+            0.0848764181137085,
+            0.08602114021778107,
+            0.08661555498838425,
+            0.08821915090084076,
+            0.0884052962064743,
+            0.08892496675252914,
+            0.0933811366558075,
+            0.09409453719854355,
+            0.10303119570016861,
+            0.11095193773508072,
         ], confidences
 
     # python -m unittest shortlist_strategies.least_confidence_test.TestLeastConfidenceStrategy.test_assemble_few_shot -v
@@ -71,7 +73,7 @@ class TestLeastConfidenceStrategy(unittest.TestCase):
         pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row

@@ -11,51 +11,52 @@ class TestRandomStrategy(unittest.TestCase):
         config = Config.from_file("experiments/tests/random_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        pipeline.current_dataset_name = "mrpc"
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert indexes == [
-            179,
-            2679,
-            3133,
-            1061,
-            1091,
-            2230,
-            2287,
-            149,
-            965,
-            450,
-            32,
-            1807,
-            1465,
-            109,
-            415,
-            3479,
-            490,
-            325,
-            842,
-            564,
+            79,
+            233,
+            216,
+            196,
+            197,
+            66,
+            183,
+            128,
+            297,
+            163,
+            120,
+            230,
+            171,
+            267,
+            223,
+            175,
+            201,
+            57,
+            243,
+            84,
         ], indexes
         assert confidences == [
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
-            0.0002726281352235551,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
         ], confidences
 
     # python -m unittest shortlist_strategies.random_strategy_test.TestRandomStrategy.test_assemble_few_shot -v
@@ -69,7 +70,7 @@ class TestRandomStrategy(unittest.TestCase):
             pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row

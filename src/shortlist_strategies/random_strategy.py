@@ -11,31 +11,24 @@ class RandomStrategy(BaseStrategy):
     def __init__(self, config: RootConfig, pipeline):
         super().__init__(config, pipeline)
 
-    def shortlist(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-        split = wrapped_dataset.split_lut["train"]
-        total_dataset_length = len(wrapped_dataset.dataset[split])
-        indexes = np.arange(total_dataset_length)
+    def shortlist(self, use_cache=True):
+        longlist_rows = self.subsample_dataset_for_train()
+        total = len(longlist_rows)
+
+        indexes = np.arange(total)
         np.random.shuffle(indexes)
         indexes = indexes[: self.config.offline_validation.annotation_budget]
         indexes = indexes.tolist()
-        confidences = [1 / total_dataset_length] * len(indexes)  # Uniform
+        confidences = [1 / total] * len(indexes)  # Uniform
+
         return indexes, confidences
 
-    def assemble_few_shot(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-
+    def assemble_few_shot(self, use_cache=True):
         with open(self.pipeline.shortlisted_data_path) as f:
             shortlist = json.load(f)
 
-        total, subsampled_validation_iterator = self.subsample_dataset(
-            wrapped_dataset, "validation"
-        )
-        for row in tqdm(
-            subsampled_validation_iterator,
-            desc="Assembling few shot",
-            total=total,
-        ):
+        eval_list_rows = self.subsample_dataset_for_eval()
+        for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             num_shots = self.config.offline_validation.num_shots
             few_shots = np.random.choice(shortlist, size=num_shots, replace=False)
 

@@ -14,54 +14,68 @@ class ShortlistThenTopK(unittest.TestCase):
         )
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        pipeline.current_dataset_name = "mrpc"
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert len(indexes) == config.offline_validation.annotation_budget, len(indexes)
 
         assert indexes == [
-            228,
-            6,
             79,
-            206,
-            117,
-            185,
-            242,
-            167,
-            9,
-            30,
-            180,
-            222,
+            233,
+            216,
+            196,
+            197,
+            66,
+            183,
+            128,
+            297,
+            163,
+            120,
             230,
-            217,
-            136,
-            68,
-            199,
-            15,
-            96,
-            24,
+            171,
+            267,
+            223,
+            175,
+            201,
+            57,
+            243,
+            84,
         ], indexes
         assert confidences == [
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
-            0.00390625,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
+            0.0033333333333333335,
         ], confidences
+
+    # python -m unittest shortlist_strategies.shortlist_then_topk_strategy_test.ShortlistThenTopK.test_oom -v
+    def test_oom(self):
+        config = Config.from_file(
+            "experiments/tests/shortlistandtopk_test_experiment.yaml"
+        )
+        config.offline_validation.subsample_for_train_size = 3000
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        # Should not OOM
+        pipeline.shortlist_strategy.shortlist()
 
     # python -m unittest shortlist_strategies.shortlist_then_topk_strategy_test.ShortlistThenTopK.test_assemble_few_shot -v
     def test_assemble_few_shot(self):
@@ -76,7 +90,7 @@ class ShortlistThenTopK(unittest.TestCase):
             pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row

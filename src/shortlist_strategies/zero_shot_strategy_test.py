@@ -12,7 +12,8 @@ class TestZeroShotStrategy(unittest.TestCase):
         config.offline_validation.type = "zero_shot"
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        pipeline.current_dataset_name = "mrpc"
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert indexes == [], indexes
         assert confidences == [], confidences
@@ -28,7 +29,7 @@ class TestZeroShotStrategy(unittest.TestCase):
             pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row

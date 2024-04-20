@@ -14,53 +14,53 @@ class TestVoteK(unittest.TestCase):
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert len(indexes) == config.offline_validation.annotation_budget, len(indexes)
 
         assert indexes == [
-            1026,
-            3489,
-            666,
-            1919,
-            1973,
-            2383,
-            1831,
-            2235,
-            2303,
-            3034,
-            1848,
-            2447,
-            1538,
-            1323,
-            633,
-            730,
-            3630,
-            326,
-            777,
-            818,
+            3,
+            165,
+            43,
+            36,
+            42,
+            33,
+            175,
+            59,
+            61,
+            204,
+            28,
+            30,
+            17,
+            279,
+            23,
+            84,
+            226,
+            77,
+            105,
+            104,
         ], indexes
         assert confidences == [
-            0.9612076580524445,
-            0.7525136321783066,
-            0.5677379965782166,
-            0.46843743324279785,
-            0.30749231576919556,
-            0.21573203802108765,
-            0.20106947422027588,
-            0.16396701335906982,
-            0.11163413524627686,
-            0.059060513973236084,
-            0.03753089904785156,
-            0.032401204109191895,
-            0.015378236770629883,
-            -0.0035791397094726562,
-            -0.0070847272872924805,
-            -0.007876038551330566,
-            -0.03310680389404297,
-            -0.05064702033996582,
-            -0.05234181880950928,
-            -0.05771017074584961,
+            0.0061331987380981445,
+            -0.10036945343017578,
+            -0.10135483741760254,
+            -0.10500609874725342,
+            -0.11835360527038574,
+            -0.14868950843811035,
+            -0.1513378620147705,
+            -0.1575937271118164,
+            -0.16222691535949707,
+            -0.16232848167419434,
+            -0.18247485160827637,
+            -0.189894437789917,
+            -0.19379210472106934,
+            -0.21715831756591797,
+            -0.22450506687164307,
+            -0.22792792320251465,
+            -0.23586344718933105,
+            -0.248612642288208,
+            -0.2530827522277832,
+            -0.26886487007141113,
         ], confidences
 
     # python -m unittest shortlist_strategies.vote_k_test.TestVoteK.test_drop_exact_duplicates -v
@@ -109,12 +109,10 @@ class TestVoteK(unittest.TestCase):
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
         pipeline.current_dataset_name = "mrpc"
-
-        if not os.path.exists(pipeline.shortlisted_data_path):
-            pipeline.shortlist()
+        pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row
@@ -128,3 +126,16 @@ class TestVoteK(unittest.TestCase):
             assert (
                 len(few_shots["labels"]) == config.offline_validation.num_shots
             ), few_shots
+
+    # python -m unittest shortlist_strategies.vote_k_test.TestVoteK.test_oom -v
+    def test_oom(self):
+        config = Config.from_file(
+            "experiments/tests/shortlistandtopk_test_experiment.yaml"
+        )
+        config.offline_validation.subsample_for_train_size = 3000
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        # Should not OOM
+        pipeline.shortlist_strategy.shortlist()

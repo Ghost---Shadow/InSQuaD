@@ -11,17 +11,15 @@ class LeastConfidenceStrategy(BaseStrategy):
     def __init__(self, config: RootConfig, pipeline):
         super().__init__(config, pipeline)
 
-    def shortlist(self, dataset_name, use_cache=True):
+    def shortlist(self, use_cache=True):
+        dataset_name = self.pipeline.current_dataset_name
         wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-        total, subsampled_train_iterator = self.subsample_dataset(
-            wrapped_dataset, "train"
-        )
+        longlist_rows = self.subsample_dataset_for_train()
+
         options = get_options_if_possible(wrapped_dataset)
 
         all_confidences = []
-        for row in tqdm(
-            subsampled_train_iterator, total=total, desc="Computing confidences"
-        ):
+        for row in tqdm(longlist_rows, desc="Computing confidences"):
             prompt, true_answer = row["prompts"], row["labels"]
 
             result = evaluate_with_options_if_possible(
@@ -44,26 +42,17 @@ class LeastConfidenceStrategy(BaseStrategy):
 
         return indexes, confidences
 
-    def assemble_few_shot(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-
+    def assemble_few_shot(self, use_cache=True):
         with open(self.pipeline.shortlisted_data_path) as f:
             shortlist = json.load(f)
 
-        total, subsampled_validation_iterator = self.subsample_dataset(
-            wrapped_dataset, "validation"
-        )
+        eval_list_rows = self.subsample_dataset_for_eval()
 
         # Pick globally top-n least confident for all rows
         num_shots = self.config.offline_validation.num_shots
         few_shots = shortlist[:num_shots]
 
-        for row in tqdm(
-            subsampled_validation_iterator,
-            desc="Assembling few shot",
-            total=total,
-        ):
-
+        for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             collated_few_shots = {"prompts": [], "labels": []}
             for few_shot in few_shots:
                 collated_few_shots["prompts"].append(few_shot["prompts"])

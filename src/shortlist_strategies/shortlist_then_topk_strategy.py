@@ -11,32 +11,25 @@ class ShortlistThenTopK(BaseStrategy):
     def __init__(self, config, pipeline):
         super().__init__(config, pipeline)
 
-    def shortlist(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-        total, subsampled_train_iterator = self.subsample_dataset(
-            wrapped_dataset, "train"
-        )
+    def shortlist(self, use_cache=True):
+        longlist_rows = self.subsample_dataset_for_train()
 
         embedding_matrix = []
-        for row in tqdm(
-            subsampled_train_iterator, total=total, desc="Generating embeddings"
-        ):
+        for row in tqdm(longlist_rows, desc="Generating embeddings"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
-            embedding_matrix.append(prompt_embedding.squeeze())
+            embedding_matrix.append(prompt_embedding.squeeze().detach().cpu())
 
         embedding_matrix = torch.stack(embedding_matrix)
 
-        # Fast vote k
+        # Diversity only strategy
         indexes, confidences = self.pipeline.subset_selection_strategy.subset_select(
             embedding_matrix
         )
 
         return indexes, confidences
 
-    def assemble_few_shot(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-
+    def assemble_few_shot(self, use_cache=True):
         with open(self.pipeline.shortlisted_data_path) as f:
             shortlist = json.load(f)
 
@@ -45,15 +38,9 @@ class ShortlistThenTopK(BaseStrategy):
         cache_name = "short_list.index"
         self._populate_and_cache_index(cache_name, use_cache, wrapped_shortlist_dataset)
 
-        total, subsampled_validation_iterator = self.subsample_dataset(
-            wrapped_dataset, "validation"
-        )
+        eval_list_rows = self.subsample_dataset_for_eval()
 
-        for row in tqdm(
-            subsampled_validation_iterator,
-            desc="Assembling few shot",
-            total=total,
-        ):
+        for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
             candidate_fewshot = self.pipeline.dense_index.retrieve(prompt_embedding)

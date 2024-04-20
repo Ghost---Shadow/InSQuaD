@@ -13,31 +13,33 @@ class TestIdeal(unittest.TestCase):
         config = Config.from_file("experiments/tests/ideal_test_experiment.yaml")
         pipeline = OfflineEvaluationPipeline(config)
         pipeline.set_seed(42)
-        indexes, confidences = pipeline.shortlist_strategy.shortlist("mrpc")
+        pipeline.current_dataset_name = "mrpc"
+
+        indexes, confidences = pipeline.shortlist_strategy.shortlist()
 
         assert len(indexes) == config.offline_validation.annotation_budget, len(indexes)
 
         assert indexes == [
             0,
-            115,
-            251,
-            193,
-            191,
-            217,
-            1,
+            58,
+            227,
+            28,
+            48,
             179,
-            243,
-            56,
-            67,
-            154,
-            113,
-            20,
-            12,
-            66,
-            150,
-            35,
+            263,
+            102,
+            157,
             30,
-            8,
+            259,
+            21,
+            217,
+            289,
+            94,
+            40,
+            238,
+            88,
+            220,
+            145,
         ], indexes
         assert confidences == [0] * len(indexes), confidences
 
@@ -52,7 +54,7 @@ class TestIdeal(unittest.TestCase):
             pipeline.shortlist()
 
         for row, few_shots in pipeline.shortlist_strategy.assemble_few_shot(
-            "mrpc", use_cache=False
+            use_cache=False
         ):
             assert "prompts" in row, row
             assert "labels" in row, row

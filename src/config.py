@@ -149,6 +149,7 @@ class OfflineValidationConfig(BaseModel):
     seeds: List[int]
     num_shots: int
     annotation_budget: int
+    subsample_for_train_size: int = None
     subsample_for_eval_size: int = None
 
     _validate_datasets = validator("datasets", each_item=True, allow_reuse=True)(

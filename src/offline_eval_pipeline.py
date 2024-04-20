@@ -106,24 +106,30 @@ class OfflineEvaluationPipeline:
                 config
             )
 
+    @torch.no_grad
     def shortlist(self, skip_if_done=True):
-        dataset_name = self.current_dataset_name
         if os.path.exists(self.shortlisted_data_path) and skip_if_done:
             print("Shortlist already computed, skipping")
             return
 
-        indexes, confidences = self.shortlist_strategy.shortlist(dataset_name)
+        indexes, confidences = self.shortlist_strategy.shortlist()
 
-        dataset = self.offline_dataset_lut[dataset_name]
+        assert os.path.exists(
+            self.longlisted_data_path
+        ), "All shortlist strategies must invoke subsample_dataset_for_train function"
+        with open(self.longlisted_data_path) as f:
+            longlist_rows = json.load(f)
+
         shortlisted_rows = []
         for idx, confidence in zip(indexes, confidences):
-            row = dataset[idx]
+            row = longlist_rows[idx]
             row["confidence"] = confidence
             shortlisted_rows.append(row)
 
         with open(self.shortlisted_data_path, "w", encoding="utf-8") as f:
             json.dump(shortlisted_rows, f, indent=2)
 
+    @torch.no_grad
     def generate_few_shots(self, skip_if_done=True):
         if os.path.exists(self.few_shot_data_jsonl_path) and skip_if_done:
             print("few shots already computed, skipping")
@@ -161,6 +167,7 @@ class OfflineEvaluationPipeline:
         with open(self.few_shot_data_sanity_path, "w", encoding="utf-8") as f:
             f.write(s)
 
+    @torch.no_grad
     def run_inference(self, skip_if_done=True):
         if os.path.exists(self.inference_result_jsonl_path) and skip_if_done:
             print("Inference already done")
@@ -321,6 +328,11 @@ class OfflineEvaluationPipeline:
     @property
     def shortlisted_data_path(self):
         path = Path(self.artifacts_dir) / "shortlist.json"
+        return path
+
+    @property
+    def longlisted_data_path(self):
+        path = Path(self.artifacts_dir) / "longlist.json"
         return path
 
     @property

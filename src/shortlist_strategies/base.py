@@ -1,4 +1,6 @@
 from abc import abstractmethod
+import json
+import numpy as np
 
 
 class BaseStrategy:
@@ -6,28 +8,64 @@ class BaseStrategy:
         self.config = config
         self.pipeline = pipeline
         self.top_n = self.config.offline_validation.annotation_budget
+        self.subsampled_train_idxs = None
+        self.subsampled_eval_idxs = None
 
-    def subsample_dataset(self, wrapped_dataset, split):
+    def subsample_dataset_for_train(self):
+        assert (
+            self.pipeline.current_dataset_name is not None
+        ), "pipeline.current_dataset_name not set"
+        # TODO: Cache load
+
         # https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/get_task.py#L158
-        # TODO: Shuffle the subsample
+        subsample_size = self.config.offline_validation.subsample_for_train_size
+        wrapped_dataset = self.pipeline.offline_dataset_lut[
+            self.pipeline.current_dataset_name
+        ]
+
+        self.subsampled_train_idxs, _iterator = self.subsample_dataset(
+            wrapped_dataset, "train", subsample_size
+        )
+        rows = list(_iterator)  # TODO: Optimize
+        with open(self.pipeline.longlisted_data_path, "w") as f:
+            # For inspection only
+            json.dump(rows, f, indent=2)
+
+        return rows
+
+    def subsample_dataset_for_eval(self):
+        assert (
+            self.pipeline.current_dataset_name is not None
+        ), "pipeline.current_dataset_name not set"
+        # TODO: Cache load
+
+        # https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/get_task.py#L161
+        subsample_size = self.config.offline_validation.subsample_for_eval_size
+        wrapped_dataset = self.pipeline.offline_dataset_lut[
+            self.pipeline.current_dataset_name
+        ]
+        self.subsampled_eval_idxs, _iterator = self.subsample_dataset(
+            wrapped_dataset, "validation", subsample_size
+        )
+        rows = list(_iterator)  # TODO: Optimize
+        return rows
+
+    def subsample_dataset(self, wrapped_dataset, split, subsample_size):
         split = wrapped_dataset.split_lut[split]
         dataset_length = len(wrapped_dataset.dataset[split])
-        row_iterator = wrapped_dataset.get_row_iterator(split)
-        subsample_for_eval_size = self.config.offline_validation.subsample_for_eval_size
-        if subsample_for_eval_size is None:
-            subsample_for_eval_size = dataset_length
 
-        total = min(dataset_length, subsample_for_eval_size)
+        if subsample_size is None:
+            subsample_size = dataset_length
+
+        subsampled_indices = np.random.choice(
+            dataset_length, subsample_size, replace=False
+        ).tolist()
 
         def _iterator():
-            i = 0
-            for row in row_iterator:
-                yield row
-                i += 1
-                if i == total:
-                    break
+            for idx in subsampled_indices:
+                yield wrapped_dataset.get_row(split, idx)
 
-        return total, _iterator()
+        return subsampled_indices, _iterator()
 
     def _populate_and_cache_index(self, cache_name, use_cache, wrapped_dataset):
         if use_cache and self.pipeline.dense_index.does_cache_exist(cache_name):
@@ -42,7 +80,7 @@ class BaseStrategy:
             self.pipeline.dense_index.save_index(cache_name)
 
     @abstractmethod
-    def shortlist(self, dataset_name, use_cache=True): ...
+    def shortlist(self, use_cache=True): ...
 
     @abstractmethod
-    def assemble_few_shot(self, dataset_name, use_cache=True): ...
+    def assemble_few_shot(self, use_cache=True): ...

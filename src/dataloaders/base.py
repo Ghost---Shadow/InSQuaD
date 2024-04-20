@@ -54,6 +54,13 @@ class BaseDataset(Dataset):
             row = self.unbatch(batch)
             yield row
 
+    def get_row(self, split, idx):
+        split = self.split_lut[split]
+        raw_row = self.dataset[split][idx]
+        batch = self.collate_fn([raw_row])
+        row = self.unbatch(batch)
+        return row
+
     def unbatch(self, batch):
         # TODO: Cleanup
         row = {}
@@ -62,8 +69,8 @@ class BaseDataset(Dataset):
             row[key] = batch[key][0]
         return row
 
-    def random_access(self, indexes):
-        split = self.split_lut["train"]
+    def random_access(self, indexes, split="train"):
+        split = self.split_lut[split]
         batch = []
         for index in indexes:
             batch.append(self.dataset[split][index])

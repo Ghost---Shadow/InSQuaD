@@ -16,14 +16,12 @@ class VoteKStrategy(BaseStrategy):
         # https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/main.py#L37
         self.vote_k_batch_size = 10
 
-    def generate_embedding_matrix(self, subsampled_train_iterator, total):
+    def generate_embedding_matrix(self, longlist_rows):
         embedding_matrix = []
-        for row in tqdm(
-            subsampled_train_iterator, total=total, desc="Generating embeddings"
-        ):
+        for row in tqdm(longlist_rows, desc="Generating embeddings"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
-            embedding_matrix.append(prompt_embedding.squeeze())
+            embedding_matrix.append(prompt_embedding.squeeze().detach().cpu())
 
         embedding_matrix = torch.stack(embedding_matrix)
 
@@ -47,21 +45,14 @@ class VoteKStrategy(BaseStrategy):
 
         return batch_results
 
-    def shortlist(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
+    def shortlist(self, use_cache=True):
+        longlist_rows = self.subsample_dataset_for_train()
+
         cache_name = "long_list.index"
-        self._populate_and_cache_index(cache_name, use_cache, wrapped_dataset)
+        wrapped_longlist_dataset = InMemoryDataset(self.config, longlist_rows)
+        self._populate_and_cache_index(cache_name, use_cache, wrapped_longlist_dataset)
 
-        total, subsampled_train_iterator = self.subsample_dataset(
-            wrapped_dataset, "train"
-        )
-        # Actualize the generator
-        # TODO: Optimize
-        subsampled_train_iterator = list(subsampled_train_iterator)
-
-        embedding_matrix = self.generate_embedding_matrix(
-            subsampled_train_iterator, total
-        )
+        embedding_matrix = self.generate_embedding_matrix(longlist_rows)
 
         # Shortlist with fast vote k
         query_indexes, _ = self.pipeline.subset_selection_strategy.subset_select(
@@ -70,7 +61,7 @@ class VoteKStrategy(BaseStrategy):
         )
 
         batch_query_prompts = []
-        for idx, row in enumerate(subsampled_train_iterator):
+        for idx, row in enumerate(longlist_rows):
             if idx in query_indexes:
                 batch_query_prompts.append(row["prompts"])
 
@@ -109,9 +100,7 @@ class VoteKStrategy(BaseStrategy):
 
         return indexes, scores
 
-    def assemble_few_shot(self, dataset_name, use_cache=True):
-        wrapped_dataset = self.pipeline.offline_dataset_lut[dataset_name]
-
+    def assemble_few_shot(self, use_cache=True):
         with open(self.pipeline.shortlisted_data_path) as f:
             shortlist = json.load(f)
 
@@ -120,15 +109,9 @@ class VoteKStrategy(BaseStrategy):
         cache_name = "short_list.index"
         self._populate_and_cache_index(cache_name, use_cache, wrapped_shortlist_dataset)
 
-        total, subsampled_validation_iterator = self.subsample_dataset(
-            wrapped_dataset, "validation"
-        )
+        eval_list_rows = self.subsample_dataset_for_eval()
 
-        for row in tqdm(
-            subsampled_validation_iterator,
-            desc="Assembling few shot",
-            total=total,
-        ):
+        for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
             candidate_fewshot = self.pipeline.dense_index.retrieve(prompt_embedding)
