@@ -26,16 +26,12 @@ class IdealSubsetStrategy(BaseSubsetSelectionStrategy):
         """
         total_count = 0
         iter = self.rand_iter
-        max_iterations = 10  # IT IS TAKING FOREVER!!!
 
         for _ in tqdm(range(iter), desc="Diffusion loop 1", leave=False):
             activated_nodes = deepcopy(seed)
             current_seed = deepcopy(seed)
 
-            for _ in range(max_iterations):
-                if not current_seed:
-                    break
-
+            while current_seed:
                 new_activated_nodes = []
                 for v in tqdm(current_seed, desc="Diffusion loop 3", leave=False):
                     for w in G.successors(v):
