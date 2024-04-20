@@ -54,6 +54,6 @@ offline_validation:
   datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag']
   seeds: [42]
   num_shots: 5
-  annotation_budget: 100
+  annotation_budget: 18
   subsample_for_train_size: 3000
   subsample_for_eval_size: 256
