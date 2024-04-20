@@ -57,6 +57,8 @@ class BaseStrategy:
         if subsample_size is None:
             subsample_size = dataset_length
 
+        # Don't try to sample larger than population
+        subsample_size = min(subsample_size, dataset_length)
         subsampled_indices = np.random.choice(
             dataset_length, subsample_size, replace=False
         ).tolist()

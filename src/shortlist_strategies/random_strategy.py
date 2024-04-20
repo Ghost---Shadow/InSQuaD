@@ -30,6 +30,7 @@ class RandomStrategy(BaseStrategy):
         eval_list_rows = self.subsample_dataset_for_eval()
         for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             num_shots = self.config.offline_validation.num_shots
+            num_shots = min(num_shots, len(shortlist))
             few_shots = np.random.choice(shortlist, size=num_shots, replace=False)
 
             collated_few_shots = {"prompts": [], "labels": []}
