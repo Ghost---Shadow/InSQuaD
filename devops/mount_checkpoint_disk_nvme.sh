@@ -16,6 +16,12 @@ ln -s /mnt/checkpoints/artifacts ./artifacts
 sudo chown -R $(whoami):$(whoami) /mnt/checkpoints/artifacts
 sudo chmod 766 /mnt/checkpoints/artifacts
 
+# ~/.cache directory
+sudo mkdir /mnt/checkpoints/.cache
+ln -s /mnt/checkpoints/.cache ~/.cache
+sudo chown -R $(whoami):$(whoami) /mnt/checkpoints/.cache
+sudo chmod 766 /mnt/checkpoints/.cache
+
 # Send to fstab in case of reboot
 LINE='/dev/nvme0n2 /mnt/checkpoints ext4 defaults 0 2'
 
