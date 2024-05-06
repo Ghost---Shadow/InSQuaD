@@ -14,3 +14,4 @@ sentence-transformers>=2.3.1
 openai>=1.16.2
 tabulate>=0.5
 tiktoken>=0.6.0
+accelerate>=0.30.0
