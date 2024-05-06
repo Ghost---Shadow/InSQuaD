@@ -1,0 +1,19 @@
+
+\begin{table}[H]
+\centering
+\small
+\caption{Results on gemma}
+\label{table:gemma_results}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l|ccccc|c|c|cc}
+\hline
+\textbf{Method} & \multicolumn{5}{c|}{\textbf{Classification}} & \multicolumn{1}{c|}{\textbf{Multi-Choice}} & \multicolumn{1}{c|}{\textbf{Dialogue}} & \multicolumn{2}{c}{\textbf{Generation}} \\
+\cmidrule(lr){2-10}
+& \textbf{MRPC} & \textbf{SST5} & \textbf{MNLI} & \textbf{DBpedia} & \textbf{RTE} & \textbf{HellaSwag} & \textbf{MWoZ} & \textbf{GeoQ} & \textbf{Xsum} \\
+\hline
+Zeroshot & 88.5 & 45.6 & 75.0 & ??.? & ??.? & 60.2 & ??.? & 70.1 & ??.? \\
+Random & 23.5 & 32.5 & 34.3 & 22.3 & 32.3 & 34.4 & ??.? & ??.? & ??.? \\
+
+\hline
+\end{tabular}
+\end{table}
