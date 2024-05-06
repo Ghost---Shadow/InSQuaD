@@ -336,3 +336,34 @@ def generate_model_size_ablations(df):
     )
 
     return result
+
+
+def generate_main_table(df):
+    caption = "Effects of $\\lambda$ on StableLM (1.6B) (Quality-Diversity tradeoff)"
+    label = "qd_tradeoff"
+    method_lut = {
+        "zeroshot_mpnet_stablelm": "Zeroshot",
+        "random_mpnet_stablelm": "Random",
+        "leastconfidence_mpnet_stablelm": "Least Confidence",
+        "dpp_stablelm": "DPP",
+        "lens_stablelm": "LENS",
+        "fast_vote_k_stablelm": "Fast-Vote-K",
+        "vote_k_stablelm": "Vote-K",
+        "ideal_stablelm": "IDEAL",
+        "quaild_nt_fl_mpnet_stablelm": "QuailD-FL (NT)",
+        "quaild_nt_gc_mpnet_stablelm": "QuailD-GC (NT)",
+        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+    }
+    extra_column_lut = None
+    extra_column_name = None
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
