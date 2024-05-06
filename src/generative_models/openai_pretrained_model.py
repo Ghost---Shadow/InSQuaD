@@ -22,11 +22,19 @@ class WrappedOpenAiPretrained:
             + "\n".join([f"{idx+1}: {option}" for idx, option in enumerate(options)])
             + "\nA: "
         )
+
+        # Calculate the maximum tokens required for the indices and potential responses
+        max_tokens = 0
+        for idx in range(len(options)):
+            # Ensure to account for both the number as a token and the possible length of the response
+            encoded_index = self.tokenizer.encode(f"{idx+1}")
+            max_tokens = max(max_tokens, len(encoded_index))
+
         response = self.client.completions.create(
             model=self.model_name,
             prompt=full_prompt,
             temperature=0.5,
-            max_tokens=1,
+            max_tokens=max_tokens,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
@@ -37,23 +45,33 @@ class WrappedOpenAiPretrained:
         # Extract the log probabilities for the completion's token
         token_logprobs = response["choices"][0]["logprobs"]["top_logprobs"][0]
 
-        # Convert log probabilities to probabilities and match them with the correct options
-        option_probabilities = {}
+        # Initialize probabilities for each option to zero
+        option_probabilities = {option: 0 for option in options}
+
+        # Update probabilities with those obtained from logprobs
         for i, option in enumerate(options):
             token_key = str(i + 1)  # Matching index to token keys which are 1-based
             if token_key in token_logprobs:
                 option_probabilities[option] = math.exp(token_logprobs[token_key])
 
-        # Normalize probabilities to sum to 1
+        # Normalize probabilities to sum to 1 if any probabilities are non-zero
         total_prob = sum(option_probabilities.values())
-        option_probabilities = {
-            option: prob / total_prob for option, prob in option_probabilities.items()
-        }
+        if total_prob > 0:
+            option_probabilities = {
+                option: prob / total_prob
+                for option, prob in option_probabilities.items()
+            }
+        else:
+            # Just let it be zero
+            ...
 
         # Determine if the most likely option is the correct one
         most_likely_option = max(option_probabilities, key=option_probabilities.get)
         most_likely_option_index = options.index(most_likely_option)
         is_correct = most_likely_option_index == correct_option_index
+
+        # If all are wrong, then max does not matter
+        is_correct = is_correct and total_prob > 0
 
         return {
             "option_probabilities": option_probabilities,
