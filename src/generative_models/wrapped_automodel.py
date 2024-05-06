@@ -15,7 +15,11 @@ class WrappedAutoModel:
         self.checkpoint = checkpoint
 
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-        self.model = AutoModelForCausalLM.from_pretrained(checkpoint).to(device)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            checkpoint, 
+            device_map=device, 
+            torch_dtype="auto",
+        )
 
     def evaluate_with_options(self, prompt, correct_option_index, options):
         # Tokenize input
