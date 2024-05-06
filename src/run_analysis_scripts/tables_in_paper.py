@@ -239,3 +239,39 @@ def generate_annotation_budget_ablations(df):
     )
 
     return result
+
+
+def generate_qd_tradeoff_ablations(df):
+    caption = "Effects of $\\lambda$ on StableLM (1.6B) (Quality-Diversity tradeoff)"
+    label = "qd_tradeoff"
+    method_lut = {
+        "zeroshot_mpnet_stablelm": "Zeroshot",
+        "random_mpnet_stablelm": "Random",
+        "quaild_gain_fl_mpnet_stablelm_lambda_0": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm_lambda_0": "QuailD-GC",
+        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+        "quaild_gain_fl_mpnet_stablelm_lambda_1": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm_lambda_1": "QuailD-GC",
+    }
+    extra_column_lut = {
+        "zeroshot_mpnet_stablelm": "",
+        "random_mpnet_stablelm": "",
+        "quaild_gain_fl_mpnet_stablelm_lambda_0": "0",
+        "quaild_gain_gc_mpnet_stablelm_lambda_0": "0",
+        "quaild_gain_fl_mpnet_stablelm": "0.5",
+        "quaild_gain_gc_mpnet_stablelm": "0.5",
+        "quaild_gain_fl_mpnet_stablelm_lambda_1": "1",
+        "quaild_gain_gc_mpnet_stablelm_lambda_1": "1",
+    }
+    extra_column_name = "$\\lambda$"
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result

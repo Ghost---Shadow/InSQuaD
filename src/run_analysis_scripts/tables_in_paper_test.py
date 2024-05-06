@@ -9,6 +9,7 @@ from run_analysis_scripts.tables_in_paper import (
     GROUPS,
     generate_annotation_budget_ablations,
     generate_latex_table,
+    generate_qd_tradeoff_ablations,
     generate_retrieval_method_ablations,
     get_column_spec,
 )
@@ -89,6 +90,12 @@ class TestGenerateLatexTable(unittest.TestCase):
     def test_generate_annotation_budget_ablations(self):
         df = excelify()
         result = generate_annotation_budget_ablations(df)
+        snapshot_helper(result, update=True)
+
+    # python -m unittest run_analysis_scripts.tables_in_paper_test.TestGenerateLatexTable.test_generate_qd_tradeoff_ablations -v
+    def test_generate_qd_tradeoff_ablations(self):
+        df = excelify()
+        result = generate_qd_tradeoff_ablations(df)
         snapshot_helper(result, update=True)
 
 
