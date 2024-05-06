@@ -197,15 +197,14 @@ def generate_annotation_budget_ablations(df):
     caption = "Effects of annotation budget StableLM (1.6B)"
     label = "budget_ablations"
     method_lut = {
-        # budget 18
         "zeroshot_mpnet_stablelm": "Zeroshot",
+        # budget 18
         "random_mpnet_stablelm": "Random",
         "vote_k": "Vote-K",
         "ideal": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
         # budget 100
-        "zeroshot_mpnet_stablelm": "Zeroshot",  # no change
         "random_mpnet_stablelm_100": "Random",
         "vote_k_100": "Vote-K",
         "ideal_100": "IDEAL",
@@ -213,15 +212,15 @@ def generate_annotation_budget_ablations(df):
         "quaild_gain_gc_mpnet_stablelm_100": "QuailD-GC",
     }
     extra_column_lut = {
+        # Zeroshot
+        "zeroshot_mpnet_stablelm": "",
         # budget 18
-        "zeroshot_mpnet_stablelm": "18",
         "random_mpnet_stablelm": "18",
         "vote_k": "18",
         "ideal": "18",
         "quaild_gain_fl_mpnet_stablelm": "18",
         "quaild_gain_gc_mpnet_stablelm": "18",
         # budget 100
-        "zeroshot_mpnet_stablelm": "100",  # no change
         "random_mpnet_stablelm_100": "100",
         "vote_k_100": "100",
         "ideal_100": "100",
