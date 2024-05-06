@@ -33,9 +33,9 @@ class WrappedOpenAiPretrained:
         response = self.client.completions.create(
             model=self.model_name,
             prompt=full_prompt,
-            temperature=0.5,
+            temperature=0,
             max_tokens=max_tokens,
-            top_p=1,
+            top_p=0,
             frequency_penalty=0,
             presence_penalty=0,
             logprobs=5,  # Get log probabilities for the top 5 tokens
@@ -76,4 +76,40 @@ class WrappedOpenAiPretrained:
         return {
             "option_probabilities": option_probabilities,
             "correct": is_correct,
+        }
+
+    def evaluate(self, prompt, target_answer):
+        encoded_target_answer = self.tokenizer.encode(target_answer)
+        max_tokens = len(encoded_target_answer)
+
+        # Send the encoded prompt to the model and get a prediction
+        response = self.client.completions.create(
+            model=self.model_name,
+            prompt=prompt,
+            temperature=0,
+            max_tokens=max_tokens,
+            top_p=0,
+            frequency_penalty=0,
+            presence_penalty=0,
+            logprobs=5,
+        )
+        response = response.model_dump()
+
+        predicted = response["choices"][0]["text"]
+        encoded_predicted = self.tokenizer.encode(predicted)
+
+        # Decode sequences to human-readable format if needed
+        redecoded_target = self.tokenizer.decode(encoded_target_answer)
+        predicted = self.tokenizer.decode(encoded_predicted)
+
+        log_predicted_sequence_probability = sum(
+            response["choices"][0]["logprobs"]["token_logprobs"]
+        )
+        predicted_sequence_probability = math.exp(log_predicted_sequence_probability)
+
+        return {
+            "target_sequence_probability": -1,  # Not possible with API
+            "predicted_sequence_probability": predicted_sequence_probability,
+            "target": redecoded_target,
+            "predicted": predicted,
         }

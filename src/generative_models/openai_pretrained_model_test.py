@@ -30,3 +30,32 @@ class TestWrappedOpenAiPretrained(unittest.TestCase):
             },
             "correct": True,
         }, result
+
+    # python -m unittest generative_models.openai_pretrained_model_test.TestWrappedOpenAiPretrained.test_evaluate -v
+    def test_evaluate(self):
+        config = Config.from_file(
+            "experiments/model_size_ablations/zeroshot_mpnet_davinci2.yaml"
+        )
+        wrapped_model = WrappedOpenAiPretrained(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = "The quick brown fox"
+        label1 = " jumps over the lazy dog"
+        label2 = " brick dig hat mat late"
+
+        result1 = wrapped_model.evaluate(prompt, label1)
+        result2 = wrapped_model.evaluate(prompt, label2)
+
+        assert result1 == {
+            "target_sequence_probability": -1,
+            "predicted_sequence_probability": 0.6685865372033624,
+            "target": " jumps over the lazy dog",
+            "predicted": " jumps over the lazy dog",
+        }, result1
+        assert result2 == {
+            "target_sequence_probability": -1,
+            "predicted_sequence_probability": 0.6685865372033624,
+            "target": " brick dig hat mat late",
+            "predicted": " jumps over the lazy dog",
+        }, result2
