@@ -200,14 +200,14 @@ def generate_annotation_budget_ablations(df):
         "zeroshot_mpnet_stablelm": "Zeroshot",
         # budget 18
         "random_mpnet_stablelm": "Random",
-        "vote_k": "Vote-K",
-        "ideal": "IDEAL",
+        "vote_k_stablelm": "Vote-K",
+        "ideal_stablelm": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
         # budget 100
         "random_mpnet_stablelm_100": "Random",
-        "vote_k_100": "Vote-K",
-        "ideal_100": "IDEAL",
+        "vote_k_stablelm_100": "Vote-K",
+        "ideal_stablelm_100": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm_100": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm_100": "QuailD-GC",
     }
@@ -216,14 +216,14 @@ def generate_annotation_budget_ablations(df):
         "zeroshot_mpnet_stablelm": "",
         # budget 18
         "random_mpnet_stablelm": "18",
-        "vote_k": "18",
-        "ideal": "18",
+        "vote_k_stablelm": "18",
+        "ideal_stablelm": "18",
         "quaild_gain_fl_mpnet_stablelm": "18",
         "quaild_gain_gc_mpnet_stablelm": "18",
         # budget 100
         "random_mpnet_stablelm_100": "100",
-        "vote_k_100": "100",
-        "ideal_100": "100",
+        "vote_k_stablelm_100": "100",
+        "ideal_stablelm_100": "100",
         "quaild_gain_fl_mpnet_stablelm_100": "100",
         "quaild_gain_gc_mpnet_stablelm_100": "100",
     }
@@ -264,6 +264,68 @@ def generate_qd_tradeoff_ablations(df):
         "quaild_gain_gc_mpnet_stablelm_lambda_1": "1",
     }
     extra_column_name = "$\\lambda$"
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
+
+
+def generate_model_size_ablations(df):
+    caption = "Effects of model size"
+    label = "model_size"
+    method_lut = {
+        # stablelm
+        "zeroshot_mpnet_stablelm": "Zeroshot",
+        "random_mpnet_stablelm": "Random",
+        "vote_k_stablelm": "Vote-K",
+        "ideal_stablelm": "IDEAL",
+        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+        # llama7b
+        "zeroshot_mpnet_llama7b": "Zeroshot",
+        "random_mpnet_llama7b": "Random",
+        "vote_k_llama7b": "Vote-K",
+        "ideal_llama7b": "IDEAL",
+        "quaild_gain_fl_mpnet_llama7b": "QuailD-FL",
+        "quaild_gain_gc_mpnet_llama7b": "QuailD-GC",
+        # davinci2
+        "zeroshot_mpnet_davinci2": "Zeroshot",
+        "random_mpnet_davinci2": "Random",
+        "vote_k_davinci2": "Vote-K",
+        "ideal_davinci2": "IDEAL",
+        "quaild_gain_fl_mpnet_davinci2": "QuailD-FL",
+        "quaild_gain_gc_mpnet_davinci2": "QuailD-GC",
+    }
+    extra_column_lut = {
+        # stablelm
+        "zeroshot_mpnet_stablelm": "StableLM1.6B",
+        "random_mpnet_stablelm": "StableLM1.6B",
+        "vote_k_stablelm": "StableLM1.6B",
+        "ideal_stablelm": "StableLM1.6B",
+        "quaild_gain_fl_mpnet_stablelm": "StableLM1.6B",
+        "quaild_gain_gc_mpnet_stablelm": "StableLM1.6B",
+        # llama7b
+        "zeroshot_mpnet_llama7b": "llama7b",
+        "random_mpnet_llama7b": "llama7b",
+        "vote_k_llama7b": "llama7b",
+        "ideal_llama7b": "llama7b",
+        "quaild_gain_fl_mpnet_llama7b": "llama7b",
+        "quaild_gain_gc_mpnet_llama7b": "llama7b",
+        # davinci2
+        "zeroshot_mpnet_davinci2": "davinci2-175b",
+        "random_mpnet_davinci2": "davinci2-175b",
+        "vote_k_davinci2": "davinci2-175b",
+        "ideal_davinci2": "davinci2-175b",
+        "quaild_gain_fl_mpnet_davinci2": "davinci2-175b",
+        "quaild_gain_gc_mpnet_davinci2": "davinci2-175b",
+    }
+    extra_column_name = "Model"
     result = generate_latex_table(
         df,
         caption,
