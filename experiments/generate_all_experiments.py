@@ -1,4 +1,6 @@
 import os
+from training_strategies.no_operation import NoOperation
+import yaml
 
 
 def generate_shell_scripts(root_dir):
@@ -19,7 +21,12 @@ def generate_shell_scripts(root_dir):
                     config_path = os.path.relpath(config_path, start="./").replace(
                         "\\", "/"
                     )
-                    train_command = f"python src/train.py --config={config_path}\n"
+                    with open(config_path) as f:
+                        config = yaml.safe_load(f)
+                    if config["training"]["type"] != NoOperation.NAME:
+                        train_command = f"python src/train.py --config={config_path}\n"
+                    else:
+                        train_command = ""
                     eval_command = (
                         f"python src/offline_eval.py --config={config_path}\n"
                     )
