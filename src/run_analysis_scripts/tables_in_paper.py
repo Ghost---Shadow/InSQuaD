@@ -191,3 +191,51 @@ def generate_retrieval_method_ablations(df):
     )
 
     return result
+
+
+def generate_annotation_budget_ablations(df):
+    caption = "Effects of annotation budget StableLM (1.6B)"
+    label = "budget_ablations"
+    method_lut = {
+        # budget 18
+        "zeroshot_mpnet_stablelm": "Zeroshot",
+        "random_mpnet_stablelm": "Random",
+        "vote_k": "Vote-K",
+        "ideal": "IDEAL",
+        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+        # budget 100
+        "zeroshot_mpnet_stablelm": "Zeroshot",  # no change
+        "random_mpnet_stablelm_100": "Random",
+        "vote_k_100": "Vote-K",
+        "ideal_100": "IDEAL",
+        "quaild_gain_fl_mpnet_stablelm_100": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm_100": "QuailD-GC",
+    }
+    extra_column_lut = {
+        # budget 18
+        "zeroshot_mpnet_stablelm": "18",
+        "random_mpnet_stablelm": "18",
+        "vote_k": "18",
+        "ideal": "18",
+        "quaild_gain_fl_mpnet_stablelm": "18",
+        "quaild_gain_gc_mpnet_stablelm": "18",
+        # budget 100
+        "zeroshot_mpnet_stablelm": "100",  # no change
+        "random_mpnet_stablelm_100": "100",
+        "vote_k_100": "100",
+        "ideal_100": "100",
+        "quaild_gain_fl_mpnet_stablelm_100": "100",
+        "quaild_gain_gc_mpnet_stablelm_100": "100",
+    }
+    extra_column_name = "Budget"
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
