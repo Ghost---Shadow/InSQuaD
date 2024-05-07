@@ -200,14 +200,14 @@ def generate_annotation_budget_ablations(df):
         "zeroshot_mpnet_stablelm": "Zeroshot",
         # budget 18
         "random_mpnet_stablelm": "Random",
-        "vote_k_stablelm": "Vote-K",
-        "ideal_stablelm": "IDEAL",
+        "votek_mpnet_stablelm": "Vote-K",
+        "ideal_mpnet_stablelm": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
         # budget 100
         "random_mpnet_stablelm_100": "Random",
-        "vote_k_stablelm_100": "Vote-K",
-        "ideal_stablelm_100": "IDEAL",
+        "votek_mpnet_stablelm_100": "Vote-K",
+        "ideal_mpnet_stablelm_100": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm_100": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm_100": "QuailD-GC",
     }
@@ -216,14 +216,14 @@ def generate_annotation_budget_ablations(df):
         "zeroshot_mpnet_stablelm": "",
         # budget 18
         "random_mpnet_stablelm": "18",
-        "vote_k_stablelm": "18",
-        "ideal_stablelm": "18",
+        "votek_mpnet_stablelm": "18",
+        "ideal_mpnet_stablelm": "18",
         "quaild_gain_fl_mpnet_stablelm": "18",
         "quaild_gain_gc_mpnet_stablelm": "18",
         # budget 100
         "random_mpnet_stablelm_100": "100",
-        "vote_k_stablelm_100": "100",
-        "ideal_stablelm_100": "100",
+        "votek_mpnet_stablelm_100": "100",
+        "ideal_mpnet_stablelm_100": "100",
         "quaild_gain_fl_mpnet_stablelm_100": "100",
         "quaild_gain_gc_mpnet_stablelm_100": "100",
     }
@@ -283,8 +283,8 @@ def generate_model_size_ablations(df):
         # stablelm
         "zeroshot_mpnet_stablelm": "Zeroshot",
         "random_mpnet_stablelm": "Random",
-        "vote_k_stablelm": "Vote-K",
-        "ideal_stablelm": "IDEAL",
+        "votek_mpnet_stablelm": "Vote-K",
+        "ideal_mpnet_stablelm": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
         # llama7b
@@ -306,8 +306,8 @@ def generate_model_size_ablations(df):
         # stablelm
         "zeroshot_mpnet_stablelm": "StableLM1.6B",
         "random_mpnet_stablelm": "StableLM1.6B",
-        "vote_k_stablelm": "StableLM1.6B",
-        "ideal_stablelm": "StableLM1.6B",
+        "votek_mpnet_stablelm": "StableLM1.6B",
+        "ideal_mpnet_stablelm": "StableLM1.6B",
         "quaild_gain_fl_mpnet_stablelm": "StableLM1.6B",
         "quaild_gain_gc_mpnet_stablelm": "StableLM1.6B",
         # llama7b
@@ -347,9 +347,9 @@ def generate_main_table(df):
         "leastconfidence_mpnet_stablelm": "Least Confidence",
         "dpp_stablelm": "DPP",
         "lens_stablelm": "LENS",
-        "fast_vote_k_stablelm": "Fast-Vote-K",
-        "vote_k_stablelm": "Vote-K",
-        "ideal_stablelm": "IDEAL",
+        "fastvotek_mpnet_stablelm": "Fast-Vote-K",
+        "votek_mpnet_stablelm": "Vote-K",
+        "ideal_mpnet_stablelm": "IDEAL",
         "quaild_nt_fl_mpnet_stablelm": "QuailD-FL (NT)",
         "quaild_nt_gc_mpnet_stablelm": "QuailD-GC (NT)",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
