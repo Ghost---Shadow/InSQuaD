@@ -3,6 +3,26 @@ from extra_metrics.utils import compute_pr_metrics
 import torch
 
 
+def pretty_print(a, b):
+    result = ""
+    seen = set()  # To track elements seen so far in `a`.
+
+    for index, element in enumerate(a):
+        if element in b:
+            if element in seen:
+                # Element is repeating and is present in `b`.
+                result += "\033[93m|\033[0m"
+            else:
+                # Element is present in `b` and not seen before.
+                result += "\033[92m|\033[0m"
+                seen.add(element)
+        else:
+            # Element is not present in `b`.
+            result += "\033[91m|\033[0m"
+
+    return result
+
+
 class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
     NAME = "hotpot_qa_with_q_f1"
 
@@ -18,6 +38,8 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
                 flipped_predicted_indices.append(paraphrase_lut[idx])
             else:
                 flipped_predicted_indices.append(idx)
+
+        print(pretty_print(flipped_predicted_indices, no_paraphrase_idxs))
 
         return len(set(flipped_predicted_indices).intersection(set(no_paraphrase_idxs)))
 

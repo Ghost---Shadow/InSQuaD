@@ -32,6 +32,7 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
             3,
         )
 
+    # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_duplicates_and_paraphrases -v
     def test_duplicates_and_paraphrases(self):
         """Predicted indices contain duplicates and paraphrases."""
         predicted_indices = [1, 5, 5, 3, 6]
@@ -44,6 +45,7 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
             3,
         )
 
+    # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_no_correct_predictions -v
     def test_no_correct_predictions(self):
         """No correct predictions."""
         predicted_indices = [4, 5, 6]
@@ -56,6 +58,7 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
             0,
         )
 
+    # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_all_correct_with_all_paraphrases -v
     def test_all_correct_with_all_paraphrases(self):
         """All predicted indices are correct but are all paraphrases."""
         predicted_indices = [4, 5, 6]
