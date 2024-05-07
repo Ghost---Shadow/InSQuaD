@@ -39,8 +39,11 @@ class QuaildGainCutoffStrategy:
                     diversity = 1 - self.pipeline.loss_function.similarity(
                         picked_embeddings, candidate_embedding
                     )
-
-                score = torch.log(quality) + self.lambdA * torch.log(diversity)
+                log_quality = torch.log(quality)
+                log_diversity = torch.log(diversity)
+                score = 2 * (
+                    (1 - self.lambdA) * log_quality + self.lambdA * log_diversity
+                )
                 score = torch.exp(score).item()
                 scores.append((candidate_index, score))
 

@@ -100,6 +100,7 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
+        # config.architecture.subset_selection_strategy.type = "flat_cutoff"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -113,6 +114,7 @@ class TestQuaildStrategy(unittest.TestCase):
 
         # Should not crash
         for step in range(11):
+            # for step in range(111):
             optimizer.zero_grad()
 
             # Automatic Mixed Precision
