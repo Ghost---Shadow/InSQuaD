@@ -27,7 +27,7 @@ class BaseLoss(nn.Module):
         else:
             raise ValueError("Unsupported tensor shapes.")
 
-        return cos_sim
+        return cos_sim.mean()
 
     @abstractmethod
     def forward(self, a, b): ...
