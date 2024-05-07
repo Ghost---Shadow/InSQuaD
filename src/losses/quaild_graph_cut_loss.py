@@ -8,7 +8,6 @@ class QuaildGraphCutLoss(BaseLoss):
     def __init__(self, config):
         super(QuaildGraphCutLoss, self).__init__()
         self.lambd = config.training.loss.lambd
-        self.epsilon = 0.0  # Adjust if necessary
 
     def similarity(self, a, b):
         if len(a.shape) == 2:
@@ -25,6 +24,7 @@ class QuaildGraphCutLoss(BaseLoss):
 
         # Matrix multiplication [batch_size, num_docs, num_docs]
         similarity = torch.matmul(a, b_t)
+        similarity = (similarity + 1.0) / 2.0  # Center at 0.5
 
         # Normalize and rescale
         similarity = similarity.reshape([batch_size, num_docs_a * num_docs_b])
@@ -37,6 +37,7 @@ class QuaildGraphCutLoss(BaseLoss):
 
         # Adjust the lower bound for each item in the batch
         theoretical_lower_bound = 2 * self.lambd * -1
-        loss = loss - theoretical_lower_bound + self.epsilon
+        loss = loss - theoretical_lower_bound
 
+        # Should never be negative at this point, so mean along batch
         return loss.mean()
