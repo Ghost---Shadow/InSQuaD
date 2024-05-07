@@ -48,6 +48,7 @@ class BaseStrategy:
             wrapped_dataset, "validation", subsample_size
         )
         rows = list(_iterator)  # TODO: Optimize
+        assert subsample_size == len(rows), len(rows)
         return rows
 
     def subsample_dataset(self, wrapped_dataset, split, subsample_size):
