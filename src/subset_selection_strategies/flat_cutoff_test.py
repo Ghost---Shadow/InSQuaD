@@ -19,12 +19,13 @@ class TestFlatCutoffStrategy(unittest.TestCase):
         # Create an instance of the strategy
         strategy = FlatCutoffStrategy(config, pipeline)
 
-        query_embedding = torch.tensor([1, 0, 0], dtype=torch.float32)
+        query_embedding = torch.tensor([1, 1, 0], dtype=torch.float32)
         shortlist_embeddings = torch.tensor(
             [
                 [1, 0, 0],
+                [1, 1, 0],
                 [1, 0, 0],
-                [0, 1, 0],
+                [0, 0, 1],
             ],
             dtype=torch.float32,
         )
@@ -32,6 +33,6 @@ class TestFlatCutoffStrategy(unittest.TestCase):
         # Apply the indexes
         result = strategy.subset_select(query_embedding, shortlist_embeddings)
 
-        expected_output = [0, 1]
+        expected_output = [1, 0, 2]
 
         assert result.tolist() == expected_output, result.tolist()

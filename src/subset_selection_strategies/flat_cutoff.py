@@ -25,15 +25,19 @@ class FlatCutoffStrategy:
             shortlist_embeddings.ndim == 2
         ), f"shortlist_embeddings.ndim {shortlist_embeddings.ndim} != 2"
 
+        # Expand query_embedding to 2D for matrix multiplication
         query_embedding = query_embedding.unsqueeze(0)
 
-        # Embeddings are already normalized, do matrix multiplication to get cosine similarity
+        # Calculate cosine similarity
         similarity = torch.matmul(query_embedding, shortlist_embeddings.T).squeeze()
 
-        # Pick indices with similarity > self.gain_cutoff
-        picked_indices = torch.nonzero(similarity > self.gain_cutoff).squeeze()
+        # Filter indices based on gain_cutoff
+        picked_indices = (similarity > self.gain_cutoff).nonzero(as_tuple=True)[0]
 
-        if picked_indices.ndim < 1:
-            picked_indices = picked_indices.unsqueeze(0)
+        # Sort picked_indices by similarity, in descending order
+        if picked_indices.numel() > 0:
+            picked_similarities = similarity[picked_indices]
+            sorted_indices = picked_similarities.argsort(descending=True)
+            picked_indices = picked_indices[sorted_indices]
 
         return picked_indices
