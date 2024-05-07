@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from pydantic import BaseModel
 from typing import Any
+from train_utils import generate_md5_hash
+import yaml
 
 
 class Checkpoint(BaseModel):
@@ -45,7 +47,9 @@ class CheckpointManager:
         return True
 
     def load_checkpoint(self, epoch=None):
-        checkpoint_files = os.listdir(self.checkpoint_dir)
+        checkpoint_files = [
+            file for file in os.listdir(self.checkpoint_dir) if file.endswith(".pth")
+        ]
         if not checkpoint_files:
             raise FileNotFoundError("No checkpoints found in the directory.")
 
@@ -81,13 +85,21 @@ class CheckpointManager:
     @property
     def checkpoint_dir(self):
         seed = self.pipeline.current_seed
-        config_name_with_hash = self.config.name_with_hash
+        # Reuse trained models with same training config
+        train_config = self.config.training.model_dump()
+        del train_config["extra_metrics"]
+        del train_config["seeds"]
+        config_name_with_hash = generate_md5_hash(train_config)
         checkpoint_dir = f"./checkpoints/{config_name_with_hash}/seed_{seed}/"
+        Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
+        config_path = Path(checkpoint_dir) / "config.yaml"
+        if not config_path.exists():
+            with open(config_path, "w") as f:
+                yaml.safe_dump(train_config, f)
         return checkpoint_dir
 
     def save_checkpoint(self):
         epoch = self.pipeline.current_epoch
-        Path(self.checkpoint_dir).mkdir(parents=True, exist_ok=True)
         checkpoint_path = os.path.join(self.checkpoint_dir, f"epoch_{epoch}.pth")
         checkpoint = Checkpoint(
             epoch=epoch,

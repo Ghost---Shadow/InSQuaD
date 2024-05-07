@@ -42,7 +42,7 @@ class TestCheckpointManager(unittest.TestCase):
         self.assertEqual(new_pipeline.current_epoch, 0)
 
         # Cleanup
-        rmrf_if_possible(checkpoint_dir)
+        # rmrf_if_possible(checkpoint_dir)
 
     # python -m unittest checkpoint_manager_test.TestCheckpointManager.test_get_latest_checkpoint -v
     def test_get_latest_checkpoint(self):
