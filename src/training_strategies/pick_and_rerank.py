@@ -24,10 +24,11 @@ class PickAndRerankStrategy:
         retrieved_documents = self.pipeline.dense_index.retrieve(question_embeddings)
 
         # Compute the quality diversity terms
-        quality_vector, diversity_matrix = (
-            self.pipeline.semantic_search_model.compute_quality_diversity(
-                question_embeddings, retrieved_documents
-            )
+        (
+            quality_vector,
+            diversity_matrix,
+        ) = self.pipeline.semantic_search_model.compute_quality_diversity(
+            question_embeddings, retrieved_documents
         )
 
         # Rerank selected questions and pick a subset

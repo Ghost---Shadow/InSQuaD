@@ -7,7 +7,6 @@ from shortlist_strategies.vote_k import VoteKStrategy
 
 # python -m unittest shortlist_strategies.vote_k_test.TestVoteK -v
 class TestVoteK(unittest.TestCase):
-
     # python -m unittest shortlist_strategies.vote_k_test.TestVoteK.test_shortlist -v
     def test_shortlist(self):
         config = Config.from_file("experiments/tests/votek_test_experiment.yaml")

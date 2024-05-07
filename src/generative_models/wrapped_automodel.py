@@ -16,8 +16,8 @@ class WrappedAutoModel:
 
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
         self.model = AutoModelForCausalLM.from_pretrained(
-            checkpoint, 
-            device_map=device, 
+            checkpoint,
+            device_map=device,
             torch_dtype="auto",
         )
 

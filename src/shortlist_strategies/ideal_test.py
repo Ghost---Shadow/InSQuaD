@@ -7,7 +7,6 @@ import torch
 
 # python -m unittest shortlist_strategies.ideal_test.TestIdeal -v
 class TestIdeal(unittest.TestCase):
-
     # python -m unittest shortlist_strategies.ideal_test.TestIdeal.test_shortlist -v
     def test_shortlist(self):
         config = Config.from_file("experiments/tests/ideal_test_experiment.yaml")

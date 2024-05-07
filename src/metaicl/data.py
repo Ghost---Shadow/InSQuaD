@@ -21,7 +21,6 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 
 
 class MetaICLData(object):
-
     def __init__(
         self,
         logger=None,
@@ -37,7 +36,6 @@ class MetaICLData(object):
         n_gpu=None,
         local_rank=-1,
     ):
-
         self.logger = logger
         self.tokenizer = tokenizer
         self.method = method
@@ -454,7 +452,6 @@ class MetaICLData(object):
         )
 
     def tensorize(self, _train_data, _test_data, options=None, add_newlines=True):
-
         if options is not None:
             assert np.all([dp["output"] in options for dp in _train_data])
             for i, dp in enumerate(_test_data):
@@ -707,7 +704,6 @@ class MetaICLData(object):
 def prepro_sentence_pair_single(
     ids1, ids2, max_length, bos_token_id, eos_token_id, allow_truncation=False
 ):
-
     # if bos_token_id is not None:
     #    ids1 = [bos_token_id] + ids1
     # if eos_token_id is not None:

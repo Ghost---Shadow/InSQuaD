@@ -17,7 +17,6 @@ from metaicl.utils import get_checkpoint_id, download_file
 
 
 class MetaICLModel(object):
-
     def __init__(self, logger=None, out_dir=None, fp16=True, local_rank=-1):
         if logger is None:
 

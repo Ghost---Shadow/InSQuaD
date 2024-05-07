@@ -16,9 +16,10 @@ class TestFastVoteKSubsetStrategy(unittest.TestCase):
         pipeline.current_dataset_name = "mrpc"
 
         embedding_matrix = torch.randn(10, 50)
-        selected_indices, selected_scores = (
-            pipeline.subset_selection_strategy.subset_select(embedding_matrix)
-        )
+        (
+            selected_indices,
+            selected_scores,
+        ) = pipeline.subset_selection_strategy.subset_select(embedding_matrix)
 
         assert selected_indices == [0, 2, 7], selected_indices
         assert selected_scores == [6, 2.2, 1.2000000000000002], selected_indices

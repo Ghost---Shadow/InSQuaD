@@ -5,7 +5,6 @@ from generative_models.wrapped_t5 import WrappedT5
 
 # python -m unittest generative_models.wrapped_t5_test.TestWrappedT5 -v
 class TestWrappedT5(unittest.TestCase):
-
     def test_evaluate(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment_t5.yaml")
         wrapped_t5 = WrappedT5(config, config.offline_validation.generative_model)

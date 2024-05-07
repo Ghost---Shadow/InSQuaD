@@ -6,7 +6,6 @@ from training_pipeline import TrainingPipeline
 
 # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1 -v
 class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
-
     # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_all_correct_no_paraphrases -v
     def test_all_correct_no_paraphrases(self):
         """All predicted indices are correct and no paraphrases are involved."""

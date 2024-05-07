@@ -115,7 +115,6 @@ class TestGenerateLatexTable(unittest.TestCase):
 
 # python -m unittest run_analysis_scripts.tables_in_paper_test.TestLaTeXColumnSpec -v
 class TestLaTeXColumnSpec(unittest.TestCase):
-
     def test_column_spec_and_multicolumn_with_dict(self):
         expected_column_spec = "l|ccccc|c|c|cc"
         expected_multicolumn_line = "\\textbf{Method} & \\multicolumn{5}{c|}{\\textbf{Classification}} & \\multicolumn{1}{c|}{\\textbf{Multi-Choice}} & \\multicolumn{1}{c|}{\\textbf{Dialogue}} & \\multicolumn{2}{c}{\\textbf{Generation}}"

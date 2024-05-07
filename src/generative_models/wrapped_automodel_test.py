@@ -6,7 +6,6 @@ from generative_models.wrapped_automodel import WrappedAutoModel
 
 # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel -v
 class TestWrappedAutoModel(unittest.TestCase):
-
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_single_token -v
     def test_single_token(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")

@@ -6,7 +6,6 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 
 # python -m unittest shortlist_strategies.shortlist_then_topk_strategy_test.ShortlistThenTopK -v
 class ShortlistThenTopK(unittest.TestCase):
-
     # python -m unittest shortlist_strategies.shortlist_then_topk_strategy_test.ShortlistThenTopK.test_shortlist -v
     def test_shortlist(self):
         config = Config.from_file(

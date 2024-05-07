@@ -26,7 +26,6 @@ checkpoint_dir = "https://dl.fbaipublicfiles.com/MetaICL"
 
 
 def get_checkpoint_id(key):
-
     if key in all_methods:
         setting = "hr_to_lr"
         method = key

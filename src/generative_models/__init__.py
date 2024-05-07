@@ -6,7 +6,7 @@ from generative_models.wrapped_t5 import WrappedT5
 
 GENERATIVE_MODELS_LUT = {
     NoOp.NAME: NoOp,
+    WrappedOpenAiPretrained.NAME: WrappedOpenAiPretrained,
     WrappedAutoModel.NAME: WrappedAutoModel,
     WrappedT5.NAME: WrappedT5,
-    WrappedOpenAiPretrained.NAME: WrappedOpenAiPretrained,
 }

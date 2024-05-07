@@ -1,6 +1,1 @@
-
-
-
-NOTIFICATIONS_LUT = {
-
-}
+NOTIFICATIONS_LUT = {}

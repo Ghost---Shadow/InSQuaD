@@ -16,9 +16,10 @@ class TestIdealSubsetStrategy(unittest.TestCase):
         pipeline.current_dataset_name = "mrpc"
 
         embedding_matrix = torch.randn(10, 50)
-        selected_indices, selected_scores = (
-            pipeline.subset_selection_strategy.subset_select(embedding_matrix)
-        )
+        (
+            selected_indices,
+            selected_scores,
+        ) = pipeline.subset_selection_strategy.subset_select(embedding_matrix)
 
         assert selected_indices == [0, 4, 7], selected_indices
         assert selected_scores == [0, 5.2, 6.3], selected_scores

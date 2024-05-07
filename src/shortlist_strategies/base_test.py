@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 # python -m unittest shortlist_strategies.base_test.TestBaseStrategy -v
 class TestBaseStrategy(unittest.TestCase):
-
     # python -m unittest shortlist_strategies.base_test.TestBaseStrategy.test_subsample_dataset -v
     def test_subsample_dataset(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")

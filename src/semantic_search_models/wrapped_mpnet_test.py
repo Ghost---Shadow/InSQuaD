@@ -8,7 +8,6 @@ from src.config import Config
 
 # python -m unittest semantic_search_models.wrapped_mpnet_test.TestWrappedMpnetModel -v
 class TestWrappedMpnetModel(unittest.TestCase):
-
     # python -m unittest semantic_search_models.wrapped_mpnet_test.TestWrappedMpnetModel.test_embed -v
     def test_embed(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")

@@ -7,7 +7,6 @@ import torch
 
 # python -m unittest shortlist_strategies.fast_vote_k_test.TestFastVoteK -v
 class TestFastVoteK(unittest.TestCase):
-
     # python -m unittest shortlist_strategies.fast_vote_k_test.TestFastVoteK.test_shortlist -v
     def test_shortlist(self):
         config = Config.from_file("experiments/tests/fastvotek_test_experiment.yaml")
