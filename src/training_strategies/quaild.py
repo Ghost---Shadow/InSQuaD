@@ -86,9 +86,9 @@ class QuaildStrategy:
         loss_q = (torch.log(gq_plus) - torch.log(gq_minus)).mean()
         loss_d = (torch.log(gd_plus) - torch.log(gd_minus)).mean()
 
-        lambdA = self.config.training.loss.lambd
+        lambdA = self.config.training.q_d_tradeoff_lambda
 
-        loss = loss_q + lambdA * loss_d
+        loss = (1 - lambdA) * loss_q + lambdA * loss_d
 
         # Lower bound it to 0
         loss = torch.exp(loss)

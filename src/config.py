@@ -129,6 +129,7 @@ class TrainingConfig(BaseModel):
     seeds: List[int]
     loss: TrainingLossConfig
     extra_metrics: List[str]
+    q_d_tradeoff_lambda: float
 
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(TRAINING_STRATEGIES_LUT)
