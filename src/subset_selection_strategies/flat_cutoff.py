@@ -11,7 +11,7 @@ class FlatCutoffStrategy:
             self.config.architecture.subset_selection_strategy.gain_cutoff
         )
         assert (
-            self.gain_cutoff
+            self.gain_cutoff is not None
         ), f"architecture.subset_selection_strategy.gain_cutoff not initialized {self.gain_cutoff}"
 
     def subset_select(
