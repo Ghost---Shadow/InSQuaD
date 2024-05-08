@@ -7,6 +7,25 @@ from train_utils import set_seed
 import torch.nn.functional as F
 
 
+def bind_pick_most_diverse(self):
+    def _pick_most_diverse(picked_set, candidate_set):
+        picked_set = torch.tensor([picked_set])
+        best_diversity = -1
+        best_candidate = None
+        for candidate in candidate_set:
+            candidate_set = torch.tensor([[candidate]])
+            picked_set = F.normalize(picked_set, dim=-1)
+            candidate_set = F.normalize(candidate_set, dim=-1)
+            diversity = 1 - self.loss_fn.similarity(picked_set, candidate_set)
+            # print(candidate, diversity.item())
+            if diversity > best_diversity:
+                best_diversity = diversity.item()
+                best_candidate = candidate
+        return best_diversity, best_candidate
+
+    return _pick_most_diverse
+
+
 # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut -v
 class TestQuaildGraphCut(unittest.TestCase):
     def setUp(self):
@@ -68,6 +87,70 @@ class TestQuaildGraphCut(unittest.TestCase):
         b = F.normalize(b, dim=-1)
         loss = self.loss_fn(a, b)
         self.assertAlmostEqual(loss.item(), 0.0)
+
+    # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_submodularity -v
+    def test_submodularity(self):
+        # q = [0.7071, 0.7071, 0.0000] # query
+        a = [1.0000, 0.0000, 0.0000]  # 0 # partial match
+        b = [0.7071, 0.7071, 0.0000]  # 1 # perflect quality, first pick
+        c = [0.0000, 0.0000, 1.0000]  # 2 # completely orthogonal
+        d = [0.7071, 0.7071, 0.0000]  # 3 # perfect quality, wrong diversity
+        e = [-0.7071, -0.7071, 0.0000]  # 4 # anti-parallel quality
+
+        pick_most_diverse = bind_pick_most_diverse(self)
+
+        best_diversity, best_candidate = pick_most_diverse([b], [a, c, d, e])
+
+        assert best_diversity == 1.0, best_diversity
+        assert best_candidate == e, best_candidate
+
+        best_diversity, best_candidate = pick_most_diverse([b, e], [a, c, d])
+
+        assert best_diversity == 0.5, best_diversity
+        assert best_candidate == a, best_candidate
+
+        best_diversity, best_candidate = pick_most_diverse([a, b, e], [c, d])
+
+        assert best_diversity == 0.5, best_diversity
+        assert best_candidate == c, best_candidate
+
+        best_diversity, best_candidate = pick_most_diverse([a, b, c, e], [d])
+
+        assert best_diversity == 0.4116116762161255, best_diversity
+        assert best_candidate == d, best_candidate
+
+    # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_submodularity_with_arbitary_order -v
+    def test_submodularity_with_arbitary_order(self):
+        # q = [0.7071, 0.7071, 0.0000] # query
+        a = [1.0000, 0.0000, 0.0000]  # 0 # partial match
+        b = [0.7071, 0.7071, 0.0000]  # 1 # perflect quality, first pick
+        c = [0.0000, 0.0000, 1.0000]  # 2 # completely orthogonal
+        d = [0.7071, 0.7071, 0.0000]  # 3 # perfect quality, wrong diversity
+        e = [-0.7071, -0.7071, 0.0000]  # 4 # anti-parallel quality
+
+        # [1, 0, 2, 3, 4]
+
+        pick_most_diverse = bind_pick_most_diverse(self)
+
+        best_diversity, best_candidate = pick_most_diverse([b], [a, c, d, e])
+
+        assert best_diversity == 1.0, best_diversity
+        assert best_candidate == e, best_candidate
+
+        best_diversity, best_candidate = pick_most_diverse([a, b], [c, d, e])
+
+        assert best_diversity == 0.9267767667770386, best_diversity
+        assert best_candidate == e, best_candidate
+
+        best_diversity, best_candidate = pick_most_diverse([a, b, c], [d, e])
+
+        assert best_diversity == 0.7845178246498108, best_diversity
+        assert best_candidate == e, best_candidate
+
+        best_diversity, best_candidate = pick_most_diverse([a, b, c, d], [e])
+
+        assert best_diversity == 0.8383883833885193, best_diversity
+        assert best_candidate == e, best_candidate
 
     # python -m unittest losses.quaild_graph_cut_loss_test.TestQuaildGraphCut.test_overfit -v
     def test_overfit(self):
