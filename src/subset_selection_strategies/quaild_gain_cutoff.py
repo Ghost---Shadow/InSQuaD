@@ -14,6 +14,7 @@ class QuaildGainCutoffStrategy:
             self.gain_cutoff is not None
         ), f"architecture.subset_selection_strategy.gain_cutoff not initialized {self.gain_cutoff}"
         self.lambdA = self.config.offline_validation.q_d_tradeoff_lambda
+        self.epsilon = 1e-7
 
     def subset_select(
         self, query_embedding: torch.Tensor, shortlist_embeddings: torch.Tensor
@@ -38,12 +39,13 @@ class QuaildGainCutoffStrategy:
                     diversity = 1 - self.pipeline.loss_function.similarity(
                         picked_embeddings, candidate_embedding
                     )
-                log_quality = torch.log(quality)
-                log_diversity = torch.log(diversity)
+                log_quality = torch.log(quality + self.epsilon)
+                log_diversity = torch.log(diversity + self.epsilon)
                 score = (1 - self.lambdA) * log_quality + self.lambdA * log_diversity
                 score = torch.exp(score).item()
                 scores.append((candidate_index, score))
-                # print(candidate_index, score, quality.item(), diversity.item())
+            #     s = f"{candidate_index.item()}\t{score:.4f}\t{quality.item():.4f}\t{diversity.item():.4f}"
+            #     print(s)
 
             # print("-" * 80)
 
