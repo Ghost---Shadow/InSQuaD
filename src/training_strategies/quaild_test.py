@@ -101,8 +101,8 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
-        config.training.q_d_tradeoff_lambda = 5e-1
-        config.offline_validation.q_d_tradeoff_lambda = 5e-1
+        config.training.q_d_tradeoff_lambda = 5e-3
+        config.offline_validation.q_d_tradeoff_lambda = 5e-3
         # config.architecture.subset_selection_strategy.type = "flat_cutoff"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
