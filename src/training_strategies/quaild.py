@@ -7,6 +7,7 @@ class QuaildStrategy:
     def __init__(self, config, pipeline):
         self.pipeline = pipeline
         self.config = config
+        self.epsilon = 1e-7
 
     def before_each_epoch(self): ...
 
@@ -66,20 +67,12 @@ class QuaildStrategy:
                 actual_embeddings, not_paraphrase_embeddings
             )
 
-            if torch.isfinite(torch.log(inner_gd_plus)) and torch.isfinite(
-                torch.log(inner_gd_minus)
-            ):
-                all_gd_plus.append(inner_gd_plus)
-                all_gd_minus.append(inner_gd_minus)
+            all_gd_plus.append(inner_gd_plus)
+            all_gd_minus.append(inner_gd_minus)
 
         # gd_plus.shape = [num_docs]
-        if len(all_gd_plus) > 0 and len(all_gd_minus) > 0:
-            gd_plus = torch.stack(all_gd_plus)
-            gd_minus = torch.stack(all_gd_minus)
-        else:
-            # TODO: Permanent fix
-            gd_plus = torch.tensor([1.0])
-            gd_minus = torch.tensor([1.0])
+        gd_plus = torch.stack(all_gd_plus) + self.epsilon
+        gd_minus = torch.stack(all_gd_minus) + self.epsilon
 
         # Plus are correct, but gq is "loss" so high is bad
         # Similarity of gq_plus needs to be maximized, so gq_plus loss is minimized
@@ -88,9 +81,7 @@ class QuaildStrategy:
 
         lambdA = self.config.training.q_d_tradeoff_lambda
 
-        loss = (1.0 - lambdA) * loss_q + lambdA * loss_d
-
         # Lower bound it to 0
-        loss = torch.exp(loss)
+        loss = (1.0 - lambdA) * torch.exp(loss_q) + lambdA * torch.exp(loss_d)
 
         return loss
