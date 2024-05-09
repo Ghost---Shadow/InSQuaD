@@ -1,3 +1,6 @@
+import datetime
+import json
+import os
 import traceback
 from checkpoint_manager import CheckpointManager
 from dataloaders import DATALOADERS_LUT
@@ -150,6 +153,34 @@ class TrainingPipeline:
                 # Automatic Mixed Precision
                 with torch.cuda.amp.autocast():
                     loss = self.training_strategy.train_step(batch)
+
+                    # Bad batch
+                    if loss.isnan().any():
+                        # If loss is NaN, dump the batch to a file
+                        print("[train_one_epoch] Skipping batch due to NaN loss")
+
+                        # Generate a unique timestamp for the filename
+                        timestamp = datetime.datetime.now().strftime(
+                            "%Y-%m-%d_%H-%M-%S"
+                        )
+                        directory_path = "./artifacts/bad"
+                        os.makedirs(
+                            directory_path, exist_ok=True
+                        )  # Ensure the directory exists
+                        file_path = os.path.join(directory_path, f"{timestamp}.json")
+
+                        # Prepare batch for dumping; convert tensors to lists
+                        batch_dump = {
+                            key: value.tolist() if torch.is_tensor(value) else value
+                            for key, value in batch.items()
+                        }
+
+                        # Write the batch data to the file
+                        with open(file_path, "w") as f:
+                            json.dump(batch_dump, f)
+
+                        continue
+
                     extra_metrics = {}
                     if self.current_step % 100 == 0:
                         extra_metrics = self.compute_extra_metrics(batch)
@@ -172,6 +203,11 @@ class TrainingPipeline:
 
                 # Scales loss. Calls backward() on scaled loss to create scaled gradients.
                 self.scaler.scale(loss).backward()
+
+                # Clip grads to hopefully prevent OOMs
+                torch.nn.utils.clip_grad_norm_(
+                    self.semantic_search_model.model.parameters(), max_norm=1.0
+                )
 
                 # Unscales gradients and calls or skips optimizer.step()
                 self.scaler.step(self.optimizer)
