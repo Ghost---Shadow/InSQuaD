@@ -3,31 +3,13 @@ from extra_metrics.utils import compute_pr_metrics
 import torch
 
 
-def pretty_print(a, b):
-    result = ""
-    seen = set()  # To track elements seen so far in `a`.
-
-    for index, element in enumerate(a):
-        if element in b:
-            if element in seen:
-                # Element is repeating and is present in `b`.
-                result += "\033[93m|\033[0m"
-            else:
-                # Element is present in `b` and not seen before.
-                result += "\033[92m|\033[0m"
-                seen.add(element)
-        else:
-            # Element is not present in `b`.
-            result += "\033[91m|\033[0m"
-
-    return result
-
-
 class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
     NAME = "hotpot_qa_with_q_f1"
 
     @staticmethod
-    def _count_actually_correct(predicted_indices, no_paraphrase_idxs, paraphrase_lut):
+    def _count_actually_correct(
+        predicted_indices, no_paraphrase_idxs, paraphrase_lut, scores
+    ):
         """
         If the model and selection picks both the correct answer
         and its paraphrase then only count one as correct
@@ -39,7 +21,14 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             else:
                 flipped_predicted_indices.append(idx)
 
-        print(pretty_print(flipped_predicted_indices, no_paraphrase_idxs))
+        # bar, correct_mask = pretty_print(
+        #     flipped_predicted_indices, no_paraphrase_idxs, scores
+        # )
+        # print(bar)
+        # print("".join([get_color(value) + " " + "\033[0m" for value in scores]))
+        # ALL_SCORES.append(scores)
+        # CORRECT_MASKS.append(correct_mask)
+        # plot_to_disk()
 
         return len(set(flipped_predicted_indices).intersection(set(no_paraphrase_idxs)))
 
@@ -60,13 +49,15 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             question_embedding = all_embeddings[0]
             document_embeddings = all_embeddings[1:]
 
-            predicted_indices = self.pipeline.subset_selection_strategy.subset_select(
-                question_embedding, document_embeddings
+            predicted_indices, scores = (
+                self.pipeline.subset_selection_strategy.subset_select(
+                    question_embedding, document_embeddings
+                )
             )
             predicted_indices = predicted_indices.tolist()
 
             num_correct = ExtraMetricHotpotQaWithQF1._count_actually_correct(
-                predicted_indices, no_paraphrase_idxs, paraphrase_lut
+                predicted_indices, no_paraphrase_idxs, paraphrase_lut, scores
             )
             num_shortlisted = len(predicted_indices)
             max_correct = len(no_paraphrase_idxs)
