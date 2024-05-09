@@ -24,6 +24,9 @@ class QuaildFacilityLocationLoss(BaseLoss):
         assert len(a.shape) == 3, len(a.shape)
         assert len(b.shape) == 3, len(b.shape)
 
+        assert all(dim > 0 for dim in a.shape), "a has zero-size dimension"
+        assert all(dim > 0 for dim in b.shape), "b has zero-size dimension"
+
         # Compute similarity matrix S using dot product
         # S_ij = a_i . b_j^T
         # [batch_size, num_docs, features] to [batch_size, num_docs, num_docs]
