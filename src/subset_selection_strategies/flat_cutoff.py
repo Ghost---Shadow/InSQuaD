@@ -39,5 +39,6 @@ class FlatCutoffStrategy:
             picked_similarities = similarity[picked_indices]
             sorted_indices = picked_similarities.argsort(descending=True)
             picked_indices = picked_indices[sorted_indices]
+            picked_similarities = picked_similarities[sorted_indices]
 
-        return picked_indices
+        return picked_indices, picked_similarities

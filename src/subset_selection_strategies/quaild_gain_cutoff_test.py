@@ -36,13 +36,21 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1)
 
         # Apply the indexes
-        result = pipeline.subset_selection_strategy.subset_select(
+        result, scores = pipeline.subset_selection_strategy.subset_select(
             query_embedding, shortlist_embeddings
         )
 
         expected_output = [1, 0, 2, 3, 4]
+        expected_scores = [
+            1.0000001192092896,
+            0.5252508521080017,
+            0.5000001192092896,
+            0.4642007648944855,
+            0.00018402989371679723,
+        ]
 
         assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_real_data -v
     def test_real_data(self):
@@ -95,11 +103,13 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         )
 
         # Apply the indexes
-        result = strategy.subset_select(query_embedding, shortlist_embeddings)
+        result, scores = strategy.subset_select(query_embedding, shortlist_embeddings)
 
         expected_output = [0]
+        expected_scores = [1.0000001192092896]
 
         assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_all_below_gain_cutoff -v
     def test_all_below_gain_cutoff(self):
@@ -120,11 +130,13 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
             dtype=torch.float32,
         )
 
-        result = strategy.subset_select(query_embedding, shortlist_embeddings)
+        result, scores = strategy.subset_select(query_embedding, shortlist_embeddings)
 
         expected_output = []
+        expected_scores = []
 
         assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_empty_shortlist -v
     def test_empty_shortlist(self):
@@ -137,11 +149,13 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         query_embedding = torch.tensor([0.1, 0.2, 0.7], dtype=torch.float32)
         shortlist_embeddings = torch.tensor([], dtype=torch.float32).reshape(0, 3)
 
-        result = strategy.subset_select(query_embedding, shortlist_embeddings)
+        result, scores = strategy.subset_select(query_embedding, shortlist_embeddings)
 
-        self.assertTrue(
-            result.numel() == 0, "Expected no selection with an empty shortlist."
-        )
+        expected_output = []
+        expected_scores = []
+
+        assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
 
 
 if __name__ == "__main__":

@@ -31,8 +31,10 @@ class TestFlatCutoffStrategy(unittest.TestCase):
         )
 
         # Apply the indexes
-        result = strategy.subset_select(query_embedding, shortlist_embeddings)
+        result, scores = strategy.subset_select(query_embedding, shortlist_embeddings)
 
         expected_output = [1, 0, 2]
+        expected_scores = [2.0, 1.0, 1.0]
 
         assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()

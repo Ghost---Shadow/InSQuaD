@@ -35,7 +35,7 @@ class QuaildGainCounterStrategy(BaseStrategy):
                 shortlist_prompts
             )
 
-            local_shortlist_indices = (
+            local_shortlist_indices, _ = (
                 self.pipeline.subset_selection_strategy.subset_select(
                     prompt_embedding, shortlist_embeddings
                 )
@@ -80,7 +80,7 @@ class QuaildGainCounterStrategy(BaseStrategy):
                 candidate_fewshot_prompts
             )
 
-            local_fewshot_indices = (
+            local_fewshot_indices, _ = (
                 self.pipeline.subset_selection_strategy.subset_select(
                     prompt_embedding, candidate_fewshot_embeddings
                 )

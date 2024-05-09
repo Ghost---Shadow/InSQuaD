@@ -60,5 +60,6 @@ class QuaildGainCutoffStrategy:
         gains.sort(key=lambda x: x[1], reverse=True)
         # print(gains)
         picked_indices = torch.tensor([x[0] for x in gains])
+        gains = torch.tensor([x[1] for x in gains])
 
-        return picked_indices
+        return picked_indices, gains
