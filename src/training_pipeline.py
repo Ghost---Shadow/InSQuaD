@@ -1,6 +1,3 @@
-import datetime
-import json
-import os
 import traceback
 from checkpoint_manager import CheckpointManager
 from dataloaders import DATALOADERS_LUT
@@ -14,7 +11,12 @@ from prompt_formatting_strategies import PROMPT_FORMATTING_STRATEGIES_LUT
 from semantic_search_models import SEMANTIC_SEARCH_MODELS_LUT
 from subset_selection_strategies import SUBSET_SELECTION_STRATEGIES_LUT
 import torch
-from train_utils import average_dicts, generate_artifacts_dir, set_seed
+from train_utils import (
+    average_dicts,
+    check_for_nan_then_dump,
+    generate_artifacts_dir,
+    set_seed,
+)
 from training_strategies import TRAINING_STRATEGIES_LUT
 from config import RootConfig
 from torch.cuda.amp import GradScaler
@@ -155,30 +157,7 @@ class TrainingPipeline:
                     loss = self.training_strategy.train_step(batch)
 
                     # Bad batch
-                    if loss.isnan().any():
-                        # If loss is NaN, dump the batch to a file
-                        print("[train_one_epoch] Skipping batch due to NaN loss")
-
-                        # Generate a unique timestamp for the filename
-                        timestamp = datetime.datetime.now().strftime(
-                            "%Y-%m-%d_%H-%M-%S"
-                        )
-                        directory_path = "./artifacts/bad"
-                        os.makedirs(
-                            directory_path, exist_ok=True
-                        )  # Ensure the directory exists
-                        file_path = os.path.join(directory_path, f"{timestamp}.json")
-
-                        # Prepare batch for dumping; convert tensors to lists
-                        batch_dump = {
-                            key: value.tolist() if torch.is_tensor(value) else value
-                            for key, value in batch.items()
-                        }
-
-                        # Write the batch data to the file
-                        with open(file_path, "w") as f:
-                            json.dump(batch_dump, f)
-
+                    if check_for_nan_then_dump(loss, batch):
                         continue
 
                     extra_metrics = {}
@@ -193,11 +172,7 @@ class TrainingPipeline:
                             }
                         }
                     }
-                    try:
-                        pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
-                    except Exception as e:
-                        # Loss can be NaN
-                        pbar.set_description(f"Loss: NaN")
+                    pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
 
                     wandb_safe_log(metrics, step=self.current_step)
 
@@ -216,7 +191,6 @@ class TrainingPipeline:
                 # Updates the scale for next iteration
                 self.scaler.update()
             except Exception as e:
-                # TODO: WHYYYYY
                 traceback.print_exc()
                 print("[train_one_epoch]", e)
                 torch.cuda.empty_cache()

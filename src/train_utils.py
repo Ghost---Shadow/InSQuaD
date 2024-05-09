@@ -1,5 +1,7 @@
+import datetime
 import hashlib
 import json
+import os
 from pathlib import Path
 import random
 import shutil
@@ -86,3 +88,29 @@ def count_rows_jsonl(path):
         for _ in f:
             counter += 1
     return counter
+
+
+def check_for_nan_then_dump(loss, batch):
+    if loss.isnan().any():
+        # If loss is NaN, dump the batch to a file
+        print("[train_one_epoch] Skipping batch due to NaN loss")
+
+        # Generate a unique timestamp for the filename
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        directory_path = "./artifacts/bad"
+        os.makedirs(directory_path, exist_ok=True)  # Ensure the directory exists
+        file_path = os.path.join(directory_path, f"{timestamp}.json")
+
+        # Prepare batch for dumping; convert tensors to lists
+        batch_dump = {
+            key: value.tolist() if torch.is_tensor(value) else value
+            for key, value in batch.items()
+        }
+
+        # Write the batch data to the file
+        with open(file_path, "w") as f:
+            json.dump(batch_dump, f)
+
+        return True
+
+    return False
