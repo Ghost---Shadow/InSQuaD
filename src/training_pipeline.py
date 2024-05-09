@@ -163,10 +163,10 @@ class TrainingPipeline:
                     }
                     try:
                         pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
-                    except Exception:
+                    except Exception as e:
                         # Loss can be NaN
-                        # TODO: Permanent fix
-                        ...
+                        pbar.set_description(f"Loss: NaN")
+
                     wandb_safe_log(metrics, step=self.current_step)
 
                 # Scales loss. Calls backward() on scaled loss to create scaled gradients.
