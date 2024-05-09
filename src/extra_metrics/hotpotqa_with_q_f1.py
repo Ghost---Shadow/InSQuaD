@@ -1,5 +1,5 @@
 from extra_metrics.base import ExtraMetricsBase
-from extra_metrics.utils import compute_pr_metrics
+from extra_metrics.utils import compute_pr_metrics, get_color, pretty_print
 import torch
 
 

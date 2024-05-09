@@ -28,6 +28,7 @@ class QuaildFacilityLocationLoss(BaseLoss):
         # S_ij = a_i . b_j^T
         # [batch_size, num_docs, features] to [batch_size, num_docs, num_docs]
         similarities = torch.matmul(a, b.transpose(1, 2))
+        similarities = (similarities + 1.0) / 2.0  # Center at 0.5
 
         # Compute max similarity for each i in a with all j in b
         # [batch_size, num_docs, num_docs] to [batch_size, num_docs]
@@ -35,9 +36,13 @@ class QuaildFacilityLocationLoss(BaseLoss):
         max_similarities_b_to_a, _ = torch.max(similarities, dim=2)
 
         # Sum these max similarities and apply the regularization term
-        mean_max_similarities = max_similarities_a_to_b.mean(
-            dim=-1
-        ) + self.lambd * max_similarities_b_to_a.mean(dim=-1)
+        mean_a_to_b = max_similarities_a_to_b.mean(dim=-1)
+        mean_b_to_a = max_similarities_b_to_a.mean(dim=-1)
+        mean_max_similarities = mean_a_to_b + self.lambd * mean_b_to_a
+
+        # Upper bound is now 1
+        mean_max_similarities = mean_max_similarities / (1 + self.lambd)
+
         return mean_max_similarities
 
     def forward(self, a, b):
@@ -52,10 +57,8 @@ class QuaildFacilityLocationLoss(BaseLoss):
         Returns:
         - loss (Tensor): The computed Facility Location loss.
         """
-        loss = -self.similarity(a, b)
+        # similarity returns value in range [0,1]
+        loss = 1 - self.similarity(a, b)
 
-        # Adjust the lower bound for each item in the batch
-        theoretical_lower_bound = -1 + self.lambd * -1
-        loss = loss - theoretical_lower_bound + self.epsilon
-
+        # Should never be negative at this point, so mean along batch
         return loss.mean()
