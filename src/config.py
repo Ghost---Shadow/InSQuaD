@@ -174,7 +174,12 @@ class RootConfig(BaseModel):
 
     @property
     def name_with_hash(self):
-        config_hash = generate_md5_hash(self)
+        config_copy = self.model_dump()
+        del config_copy["offline_validation"]["datasets"]
+        del config_copy["offline_validation"]["seeds"]
+        del config_copy["training"]["seeds"]
+        del config_copy["training"]["extra_metrics"]
+        config_hash = generate_md5_hash(config_copy)
         config_name = self.name
         return f"{config_name}_{config_hash}"
 
