@@ -37,6 +37,9 @@ class QuaildStrategy:
         gq_plus = self.pipeline.loss_function(correct_embeddings, question_embedding)
         gq_minus = self.pipeline.loss_function(incorrect_embeddings, question_embedding)
 
+        gq_plus = gq_plus + self.epsilon
+        gq_minus = gq_minus + self.epsilon
+
         all_gd_plus = []
         all_gd_minus = []
         for paraphrase_mask in paraphrase_masks:
