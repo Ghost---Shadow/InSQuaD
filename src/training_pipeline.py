@@ -1,3 +1,4 @@
+import traceback
 from checkpoint_manager import CheckpointManager
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
@@ -180,6 +181,7 @@ class TrainingPipeline:
                 self.scaler.update()
             except Exception as e:
                 # TODO: WHYYYYY
+                traceback.print_exc()
                 print("[train_one_epoch]", e)
                 torch.cuda.empty_cache()
 
