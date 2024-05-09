@@ -34,7 +34,7 @@ training:
   q_d_tradeoff_lambda: 0.5
   extra_metrics: ['hotpot_qa_with_q_f1']
   epochs: 7
-  batch_size: 4 # 32
+  batch_size: 1 # 32 (Paper uses 32 with pretraining objective, our effective size is dynamic and larger)
   learning_rate: 1e-5
   weight_decay: 0.01
   learning_rate_decay_strategy: 'linear'
