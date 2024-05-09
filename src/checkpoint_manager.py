@@ -37,16 +37,16 @@ class CheckpointManager:
         latest_checkpoint = checkpoint_files[-1]
         return os.path.join(self.checkpoint_dir, latest_checkpoint)
 
-    def try_load_checkpoint(self, epoch=None):
+    def try_load_checkpoint(self, epoch=None, for_eval=False):
         assert self.pipeline.current_seed is not None
         try:
-            self.load_checkpoint(epoch)
+            self.load_checkpoint(epoch, for_eval)
         except FileNotFoundError:
             print(f"No checkpoint found at {self.checkpoint_dir} starting new run")
             return False
         return True
 
-    def load_checkpoint(self, epoch=None):
+    def load_checkpoint(self, epoch=None, for_eval=False):
         checkpoint_files = [
             file for file in os.listdir(self.checkpoint_dir) if file.endswith(".pth")
         ]
@@ -68,19 +68,24 @@ class CheckpointManager:
         self.pipeline.semantic_search_model.model.load_state_dict(
             checkpoint.semantic_search_model_state_dict
         )
-        self.pipeline.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
-        self.pipeline.lr_scheduler.load_state_dict(checkpoint.lr_scheduler_state_dict)
-        self.pipeline.scaler.load_state_dict(checkpoint.scaler_state_dict)
+        if not for_eval:
+            # Required for training but not eval
+            self.pipeline.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+            self.pipeline.lr_scheduler.load_state_dict(
+                checkpoint.lr_scheduler_state_dict
+            )
+            self.pipeline.scaler.load_state_dict(checkpoint.scaler_state_dict)
 
-        # Restoring random states
-        random.setstate(checkpoint.random_state)
-        np.random.set_state(checkpoint.numpy_random_state)
-        torch.set_rng_state(checkpoint.torch_random_state)
+            # Restoring random states
+            random.setstate(checkpoint.random_state)
+            np.random.set_state(checkpoint.numpy_random_state)
+            torch.set_rng_state(checkpoint.torch_random_state)
+
+            self.pipeline.current_step = checkpoint.step
+            self.pipeline.current_epoch = checkpoint.epoch
+            self.pipeline.current_seed = checkpoint.seed
 
         print(f"Checkpoint loaded from {checkpoint_path}")
-        self.pipeline.current_step = checkpoint.step
-        self.pipeline.current_epoch = checkpoint.epoch
-        self.pipeline.current_seed = checkpoint.seed
 
     @property
     def checkpoint_dir(self):

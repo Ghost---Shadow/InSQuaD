@@ -22,6 +22,8 @@ def main(config: RootConfig, dataset_name: str, seed: int):
         pipeline.cleanup()
         return
 
+    pipeline.checkpoint_manager.try_load_checkpoint(for_eval=True)
+
     try:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
 

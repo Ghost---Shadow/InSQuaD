@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import time
+from checkpoint_manager import CheckpointManager
 from config import RootConfig
 from dataloaders import DATALOADERS_LUT
 from dense_indexes import DENSE_INDEXES_LUT
@@ -22,10 +23,10 @@ from train_utils import count_rows_jsonl, generate_artifacts_dir, set_seed
 class OfflineEvaluationPipeline:
     def __init__(self, config: RootConfig):
         self.config = config
-        self._load_parts(config)
         self.num_shots = config.offline_validation.num_shots
         self.current_seed = None
         self.current_dataset_name = None
+        self._load_parts(config)
 
     def cleanup(self):
         self.semantic_search_model.model.cpu()
@@ -65,7 +66,7 @@ class OfflineEvaluationPipeline:
         self.semantic_search_model = SEMANTIC_SEARCH_MODELS_LUT[
             semantic_search_model_type
         ](config)
-        # TODO: Immediately load latest checkpoint
+        self.checkpoint_manager = CheckpointManager(self)
 
         # Subset Selection Strategy
         subset_selection_strategy_type = (
