@@ -43,8 +43,8 @@ def main(config: RootConfig, seed: int):
             print(f"Saving checkpoint epoch {epoch}, seed {seed}")
             pipeline.checkpoint_manager.save_checkpoint()
 
-            print(f"Starting online validation epoch {epoch}, seed {seed}")
-            pipeline.run_online_validation()
+            # print(f"Starting online validation epoch {epoch}, seed {seed}")
+            # pipeline.run_online_validation()
 
             # Hopefully Fix OOM
             torch.cuda.empty_cache()
