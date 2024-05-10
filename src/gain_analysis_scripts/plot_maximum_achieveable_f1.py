@@ -6,6 +6,17 @@ import matplotlib.pyplot as plt
 import os
 
 
+def format_experiment_name(experiment_name):
+    EXPERIMENT_NAME_LUT = {
+        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
+        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+        "quaild_nt_fl_mpnet_stablelm": "QuailD-FL (NT)",
+        "quaild_nt_gc_mpnet_stablelm": "QuailD-GC (NT)",
+    }
+    experiment_name = "_".join(experiment_name.split("_")[:-1])
+    return EXPERIMENT_NAME_LUT.get(experiment_name, experiment_name)
+
+
 def plot_graph(plot_name, key_name):
     sns.set_theme("paper")
     plt.tight_layout()
@@ -26,16 +37,22 @@ def plot_graph(plot_name, key_name):
                     for f1 in f1_scores:
                         if key_name == "gain":
                             key = float(key)
+                            # key = float(f"{key:.2f}")  # larger buckets
                         else:
                             key = int(key)
-                        data_list.append([f"{experiment_name}", key, f1])
+                        formatted_experiment_name = format_experiment_name(
+                            f"{experiment_name}"
+                        )
+                        data_list.append([formatted_experiment_name, key, f1])
 
     df = pd.DataFrame(data_list, columns=["Experiment", key_name, "F1"])
     df = df.sort_values(key_name, ascending=True)
+    df = df[df[key_name] > -0.002]
+    # df.to_csv(f"{key_name}.csv")
 
     # Create a lineplot
     sns.lineplot(x=key_name, y="F1", hue="Experiment", data=df)
-    # plt.ylim(top=1)
+    plt.ylim(top=0.35)
 
     # Calculate the average F1 score for each key value within each experiment
     df_grouped = df.groupby(["Experiment", key_name]).mean().reset_index()
@@ -55,7 +72,7 @@ def plot_graph(plot_name, key_name):
 
         # Annotate with text
         plt.text(
-            0,
+            -0.00175,
             max_f1,
             f"(F1: {max_f1:.2f}, {key_name}: {max_key_value})",
             color="r",
