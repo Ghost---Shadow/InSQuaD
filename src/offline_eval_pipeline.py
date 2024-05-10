@@ -107,7 +107,7 @@ class OfflineEvaluationPipeline:
                 config
             )
 
-    @torch.no_grad
+    @torch.no_grad()
     def shortlist(self, skip_if_done=True):
         if os.path.exists(self.shortlisted_data_path) and skip_if_done:
             print("Shortlist already computed, skipping")
@@ -130,7 +130,7 @@ class OfflineEvaluationPipeline:
         with open(self.shortlisted_data_path, "w", encoding="utf-8") as f:
             json.dump(shortlisted_rows, f, indent=2)
 
-    @torch.no_grad
+    @torch.no_grad()
     def generate_few_shots(self, skip_if_done=True):
         if os.path.exists(self.few_shot_data_jsonl_path) and skip_if_done:
             print("few shots already computed, skipping")
@@ -168,7 +168,7 @@ class OfflineEvaluationPipeline:
         with open(self.few_shot_data_sanity_path, "w", encoding="utf-8") as f:
             f.write(s)
 
-    @torch.no_grad
+    @torch.no_grad()
     def run_inference(self, skip_if_done=True):
         if os.path.exists(self.inference_result_jsonl_path) and skip_if_done:
             print("Inference already done")
