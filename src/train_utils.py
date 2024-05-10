@@ -102,14 +102,15 @@ def check_for_nan_then_dump(loss, batch):
         file_path = os.path.join(directory_path, f"{timestamp}.json")
 
         # Prepare batch for dumping; convert tensors to lists
-        batch_dump = {
-            key: value.tolist() if torch.is_tensor(value) else value
-            for key, value in batch.items()
+        relevant_batch = {
+            "question": batch["question"],
+            "documents": batch["documents"],
+            "relevant_indexes": batch["relevant_indexes"].tolist(),
         }
 
         # Write the batch data to the file
         with open(file_path, "w") as f:
-            json.dump(batch_dump, f)
+            json.dump(relevant_batch, f, indent=2)
 
         return True
 
