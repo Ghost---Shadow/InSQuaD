@@ -15,8 +15,8 @@ architecture:
     device: "cuda:0"
 
   subset_selection_strategy:
-    type: 'gain_cutoff'
-    gain_cutoff: 0.5
+    type: 'quaild_submodular'
+    k: 10
 
   dense_index:
     type: 'faiss'

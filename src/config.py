@@ -65,17 +65,6 @@ class SubsetSelectionStrategyConfig(BaseModel):
         type_validator(SUBSET_SELECTION_STRATEGIES_LUT)
     )
 
-    @model_validator(mode="before")
-    def check_k_or_gain_cutoff(cls, values):
-        k, gain_cutoff = values.get("k"), values.get("gain_cutoff")
-        if k is not None and gain_cutoff is not None:
-            raise ValueError(
-                'Only one of "k" or "gain_cutoff" must be provided, not both.'
-            )
-        if k is None and gain_cutoff is None:
-            raise ValueError('One of "k" or "gain_cutoff" must be provided.')
-        return values
-
 
 class DenseIndexConfig(BaseModel):
     type: str
@@ -108,13 +97,6 @@ class TrainingLossConfig(BaseModel):
     type: str
     lambd: float = None
     _validate_type = validator("type", allow_reuse=True)(type_validator(LOSSES_LUT))
-
-    @model_validator(mode="before")
-    def check_lambd(cls, values):
-        type, lambd = values.get("type"), values.get("lambd")
-        if type == "quaild" and lambd is None:
-            raise ValueError("lambd is required for type quaild")
-        return values
 
 
 class TrainingConfig(BaseModel):
@@ -156,15 +138,6 @@ class OfflineValidationConfig(BaseModel):
     _validate_datasets = validator("datasets", each_item=True, allow_reuse=True)(
         type_validator(DATALOADERS_LUT)
     )
-
-    @model_validator(mode="before")
-    def check_q_d_tradeoff_lambda(cls, values):
-        type, q_d_tradeoff_lambda = values.get("type"), values.get(
-            "q_d_tradeoff_lambda"
-        )
-        if type == "quaild" and q_d_tradeoff_lambda is None:
-            raise ValueError("q_d_tradeoff_lambda is required for type quaild")
-        return values
 
 
 class RootConfig(BaseModel):

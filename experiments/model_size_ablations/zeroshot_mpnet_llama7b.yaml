@@ -15,8 +15,7 @@ architecture:
     device: "cuda:0"
 
   subset_selection_strategy:
-    type: 'gain_cutoff'
-    gain_cutoff: 0.5
+    type: 'noop'
 
   dense_index:
     type: 'faiss'
@@ -50,7 +49,6 @@ offline_validation:
     type: 'automodel'
     checkpoint: 'meta-llama/Llama-2-7b-hf'
     device: "cuda:0"
-  q_d_tradeoff_lambda: 1e-2
   datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag']
   seeds: [42]
   num_shots: 5

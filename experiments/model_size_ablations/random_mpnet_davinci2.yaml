@@ -15,8 +15,7 @@ architecture:
     device: "cuda:0"
 
   subset_selection_strategy:
-    type: 'gain_cutoff'
-    gain_cutoff: 0.5
+    type: 'noop'
 
   dense_index:
     type: 'faiss'

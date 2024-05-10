@@ -1,20 +1,20 @@
 import torch
 from config import Config
 from training_pipeline import TrainingPipeline
-from subset_selection_strategies.quaild_gain_cutoff import QuaildGainCutoffStrategy
+from subset_selection_strategies.quaild_submodular import QuaildSubmodularStrategy
 import unittest
 import torch.nn.functional as F
 
 
-# python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy -v
-class TestQuaildGainCutoffStrategy(unittest.TestCase):
-    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_subset_select -v
+# python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy -v
+class TestQuaildSubmodularStrategy(unittest.TestCase):
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select -v
     def test_subset_select(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"
         config.architecture.dense_index.type = "in_memory"
         config.offline_validation.datasets = []  # Save time
-        config.offline_validation.q_d_tradeoff_lambda = 0.5
+        # config.offline_validation.q_d_tradeoff_lambda = 0.5
         config.architecture.subset_selection_strategy.gain_cutoff = 0.0
         pipeline = TrainingPipeline(config)
 
@@ -30,8 +30,6 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
             dtype=torch.float32,
         )
 
-        # Expected sequence = [1, 0, 2, 3, 4]
-
         query_embedding = F.normalize(query_embedding, dim=-1)
         shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1)
 
@@ -40,47 +38,43 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
             query_embedding, shortlist_embeddings
         )
 
-        expected_output = [1, 0, 2, 3, 4]
+        # Expected sequence = [1, 0, 2, 3, 4]
+        expected_output = [1, 3, 0, 2, 4]
         expected_scores = [
-            1.0000001192092896,
-            0.5252508521080017,
-            0.5000001192092896,
-            0.4642007648944855,
-            0.00018402989371679723,
+            1.0,
+            0.0,
+            -0.04881554841995239,
+            -0.1127961277961731,
+            -0.167677640914917,
         ]
 
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()
 
-    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_real_data -v
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_real_data -v
     def test_real_data(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
-        config.architecture.subset_selection_strategy.gain_cutoff = 0.5
+        # config.architecture.subset_selection_strategy.gain_cutoff = 0
+        config.architecture.subset_selection_strategy.k = 5
         pipeline = TrainingPipeline(config)
         train_loader = pipeline.wrapped_train_dataset.get_loader("train")
         batch = next(iter(train_loader))
 
-        # all_text = [batch["question"][0], *batch["documents"][0]]
-        # all_embeddings = pipeline.semantic_search_model.embed(all_text)
-        # question_embedding = all_embeddings[0]
-        # document_embeddings = all_embeddings[1:]
-
-        # # Apply the indexes
-        # result = strategy.subset_select(question_embedding, document_embeddings)
-
-        # expected_output = [52]
-
-        # assert result.tolist() == expected_output, result.tolist()
-
         metrics = pipeline.compute_extra_metrics(batch)
 
+        # assert metrics == {
+        #     "precision": 1.0,
+        #     "recall": 0.125,
+        #     "f1_score": 0.2222222222222222,
+        # }, metrics
+
         assert metrics == {
-            "precision": 0.16666666666666666,
-            "recall": 0.75,
-            "f1_score": 0.27272727272727276,
+            "precision": 0.6,
+            "recall": 0.375,
+            "f1_score": 0.4615384615384615,
         }, metrics
 
-    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_other_loss_types -v
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_other_loss_types -v
     def test_other_loss_types(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"  # Save time
@@ -90,7 +84,7 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         pipeline = TrainingPipeline(config)
 
         # Create an instance of the strategy
-        strategy = QuaildGainCutoffStrategy(config, pipeline)
+        strategy = QuaildSubmodularStrategy(config, pipeline)
 
         query_embedding = torch.tensor([1, 0, 0], dtype=torch.float32)
         shortlist_embeddings = torch.tensor(
@@ -105,20 +99,20 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         # Apply the indexes
         result, scores = strategy.subset_select(query_embedding, shortlist_embeddings)
 
-        expected_output = [0]
-        expected_scores = [1.0000001192092896]
+        expected_output = [0, 1, 2]
+        expected_scores = [1.0, 0.0, -0.3333333134651184]
 
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()
 
-    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_all_below_gain_cutoff -v
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_all_below_gain_cutoff -v
     def test_all_below_gain_cutoff(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.subset_selection_strategy.gain_cutoff = 1000
         config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
 
-        strategy = QuaildGainCutoffStrategy(config, pipeline)
+        strategy = QuaildSubmodularStrategy(config, pipeline)
 
         query_embedding = torch.tensor([0.1, 0.2, 0.7], dtype=torch.float32)
         shortlist_embeddings = torch.tensor(
@@ -138,13 +132,13 @@ class TestQuaildGainCutoffStrategy(unittest.TestCase):
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()
 
-    # python -m unittest subset_selection_strategies.quaild_gain_cutoff_test.TestQuaildGainCutoffStrategy.test_empty_shortlist -v
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_empty_shortlist -v
     def test_empty_shortlist(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
 
-        strategy = QuaildGainCutoffStrategy(config, pipeline)
+        strategy = QuaildSubmodularStrategy(config, pipeline)
 
         query_embedding = torch.tensor([0.1, 0.2, 0.7], dtype=torch.float32)
         shortlist_embeddings = torch.tensor([], dtype=torch.float32).reshape(0, 3)

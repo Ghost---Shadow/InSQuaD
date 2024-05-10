@@ -18,6 +18,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_random_flow -v
     def test_random_flow(self):
@@ -32,6 +33,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_zeroshot_flow -v
     def test_zeroshot_flow(self):
@@ -46,6 +48,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_least_confidence_flow -v
     def test_least_confidence_flow(self):
@@ -60,6 +63,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_fast_vote_k_flow -v
     def test_fast_vote_k_flow(self):
@@ -74,6 +78,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_vote_k_flow -v
     def test_vote_k_flow(self):
@@ -88,6 +93,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_ideal_flow -v
     def test_ideal_flow(self):
@@ -102,6 +108,7 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.shortlist(skip_if_done=True)
         pipeline.generate_few_shots(skip_if_done=True)
         pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
 
 
 if __name__ == "__main__":
