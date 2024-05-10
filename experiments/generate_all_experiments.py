@@ -5,6 +5,7 @@ import yaml
 
 def generate_shell_scripts(root_dir):
     UPLOAD_ARTIFACTS = "source devops/upload_artifacts.sh\n\n"
+    UPLOAD_CHECKPOINTS = "source devops/upload_all_checkpoints.sh\n\n"
     STOP_COMMAND = "\nsource devops/stop_current_gcp_instance.sh\n"
     root_dir = os.path.abspath(root_dir)  # Ensure absolute path
     for dirpath, dirnames, filenames in os.walk(root_dir):
@@ -33,7 +34,7 @@ def generate_shell_scripts(root_dir):
                     )
                     if train_command:
                         train_script.write(train_command)
-                        train_script.write(UPLOAD_ARTIFACTS)
+                        train_script.write(UPLOAD_CHECKPOINTS)
                     eval_script.write(eval_command)
                     eval_script.write(UPLOAD_ARTIFACTS)
                 train_script.write(STOP_COMMAND)

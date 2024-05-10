@@ -1,6 +1,9 @@
 python src/offline_eval.py --config=experiments/main_table/leastconfidence_mpnet_stablelm.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/main_table/oracle_mpnet_stablelm.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/main_table/quaild_gain_fl_mpnet_stablelm.yaml
 source devops/upload_artifacts.sh
 
