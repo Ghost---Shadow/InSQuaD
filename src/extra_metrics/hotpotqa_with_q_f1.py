@@ -37,7 +37,7 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
         return len(set(flipped_predicted_indices).intersection(set(no_paraphrase_idxs)))
 
     @torch.no_grad()
-    def sweeping_pr_curve(self, batch, resolution=100):
+    def sweeping_pr_curve(self, batch):
         result_score = defaultdict(list)
         result_k = defaultdict(list)
         for question, documents, no_paraphrase_idxs, paraphrase_lut in zip(
@@ -61,8 +61,8 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             for k in range(1, len(scores) - 1):
                 sliced_scores = scores[:k]
                 sliced_predicted_indices = predicted_indices[:k]
-                next_score = scores[k]
-                next_score = int((next_score * resolution * resolution)) // resolution
+                next_score = scores[k].item()
+                next_score = f"{next_score:.4f}"
 
                 num_correct = ExtraMetricHotpotQaWithQF1._count_actually_correct(
                     sliced_predicted_indices,

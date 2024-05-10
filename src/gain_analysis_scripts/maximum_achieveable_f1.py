@@ -10,28 +10,27 @@ from tqdm import tqdm
 from training_pipeline import TrainingPipeline
 
 
-def main(config, seed, split, limit, q_d_tradeoff_lambda):
+def main(config, seed, split, limit, should_load_checkpoint):
     dotenv.load_dotenv()
 
     # We want to see the full sweep, so no early stopping
-    config.architecture.subset_selection_strategy.gain_cutoff = 0.0
-
-    # Sweep to find optimal tradeoff lambda
-    config.offline_validation.q_d_tradeoff_lambda = q_d_tradeoff_lambda
+    config.architecture.subset_selection_strategy.gain_cutoff = None
+    config.architecture.subset_selection_strategy.k = None
 
     # Load pipeline
     pipeline = TrainingPipeline(config)
     pipeline.set_seed(seed)
 
-    base_path = (
-        Path(pipeline.artifacts_dir) / "f1_experiments" / str(q_d_tradeoff_lambda)
-    )
+    base_path = Path(pipeline.artifacts_dir) / "f1_experiments"
     base_path.mkdir(exist_ok=True, parents=True)
+
     if os.path.exists(base_path / "done"):
         print(f"Already done {base_path}")
         return
 
-    pipeline.checkpoint_manager.try_load_checkpoint()
+    if should_load_checkpoint:
+        pipeline.checkpoint_manager.load_checkpoint()
+
     extra_metric = ExtraMetricHotpotQaWithQF1(pipeline)
 
     dataloader = pipeline.wrapped_train_dataset.get_loader(split)
@@ -68,12 +67,12 @@ if __name__ == "__main__":
         "--split", type=str, help="train or validation", default="validation"
     )
     parser.add_argument("--limit", type=int, help="Subsample size", default=256)
-    parser.add_argument("--q_d_tradeoff_lambda", type=float, help="QD-Tradeoff")
+    parser.add_argument("--should_load_checkpoint", action="store_true")
     args = parser.parse_args()
     split = args.split
     limit = args.limit
-    q_d_tradeoff_lambda = args.q_d_tradeoff_lambda
+    should_load_checkpoint = args.should_load_checkpoint
     config = Config.from_file(args.config)
 
     for seed in config.training.seeds:
-        main(config, seed, split, limit, q_d_tradeoff_lambda)
+        main(config, seed, split, limit, should_load_checkpoint)
