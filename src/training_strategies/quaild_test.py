@@ -97,12 +97,17 @@ class TestQuaildStrategy(unittest.TestCase):
         set_seed(42)
 
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
-        config.architecture.subset_selection_strategy.gain_cutoff = 0
+        config.architecture.subset_selection_strategy.gain_cutoff = None
+        config.architecture.subset_selection_strategy.gain_cutoff = -1e-5
+        config.architecture.subset_selection_strategy.k = None
         # config.training.loss.type = "mean_squared_error"
-        config.training.loss.lambd = 1.0
-        config.training.loss.type = "facility_location"
+
+        config.training.loss.lambd = 0.5
+        config.training.loss.type = "graph_cut"
+        # config.training.loss.lambd = 1.0
+        # config.training.loss.type = "facility_location"
+
         config.training.q_d_tradeoff_lambda = 0.5
-        config.offline_validation.q_d_tradeoff_lambda = 1e-2
         # config.architecture.subset_selection_strategy.type = "flat_cutoff"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
