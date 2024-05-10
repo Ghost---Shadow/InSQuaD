@@ -83,10 +83,60 @@ class TestExtraMetricHotpotQaWithQF1(unittest.TestCase):
         metrics = extra_metric.generate_metric(batch)
 
         assert metrics == {
-            "precision": 1.0,
-            "recall": 0.125,
-            "f1_score": 0.2222222222222222,
+            "precision": 0.16666666666666666,
+            "recall": 0.75,
+            "f1_score": 0.27272727272727276,
         }, metrics
+
+    # python -m unittest extra_metrics.hotpotqa_with_q_f1_test.TestExtraMetricHotpotQaWithQF1.test_sweeping_pr_curve -v
+    def test_sweeping_pr_curve(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        pipeline = TrainingPipeline(config)
+
+        train_loader = pipeline.wrapped_train_dataset.get_loader("train")
+        batch = next(iter(train_loader))
+
+        extra_metric = ExtraMetricHotpotQaWithQF1(pipeline)
+        sweep_f1s = extra_metric.sweeping_pr_curve(batch, resolution=100)
+
+        assert sweep_f1s == {
+            53: [0.04545454545454545, 0.04545454545454545, 0.04545454545454545],
+            52: [0.04545454545454545],
+            51: [
+                0.04545454545454545,
+                0.04545454545454545,
+                0.0909090909090909,
+                0.0909090909090909,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+            ],
+            50: [
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.13636363636363638,
+                0.1818181818181818,
+                0.1818181818181818,
+                0.1818181818181818,
+                0.1818181818181818,
+                0.1818181818181818,
+                0.1818181818181818,
+                0.2272727272727273,
+                0.27272727272727276,
+                0.27272727272727276,
+                0.27272727272727276,
+                0.27272727272727276,
+                0.27272727272727276,
+                0.27272727272727276,
+                0.27272727272727276,
+                0.27272727272727276,
+            ],
+        }, sweep_f1s
 
 
 if __name__ == "__main__":

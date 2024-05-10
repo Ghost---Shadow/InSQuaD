@@ -1,3 +1,4 @@
+from collections import defaultdict
 from extra_metrics.base import ExtraMetricsBase
 from extra_metrics.utils import compute_pr_metrics, get_color, pretty_print
 import torch
@@ -8,7 +9,10 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
 
     @staticmethod
     def _count_actually_correct(
-        predicted_indices, no_paraphrase_idxs, paraphrase_lut, scores
+        predicted_indices,
+        no_paraphrase_idxs,
+        paraphrase_lut,
+        scores=None,
     ):
         """
         If the model and selection picks both the correct answer
@@ -32,7 +36,53 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
 
         return len(set(flipped_predicted_indices).intersection(set(no_paraphrase_idxs)))
 
-    @torch.no_grad
+    @torch.no_grad()
+    def sweeping_pr_curve(self, batch, resolution=100):
+        result_score = defaultdict(list)
+        result_k = defaultdict(list)
+        for question, documents, no_paraphrase_idxs, paraphrase_lut in zip(
+            batch["question"],
+            batch["documents"],
+            batch["relevant_indexes"],
+            batch["paraphrase_lut"],
+        ):
+            all_text = [question, *documents]
+            all_embeddings = self.pipeline.semantic_search_model.embed(all_text)
+            question_embedding = all_embeddings[0]
+            document_embeddings = all_embeddings[1:]
+
+            predicted_indices, scores = (
+                self.pipeline.subset_selection_strategy.subset_select(
+                    question_embedding, document_embeddings
+                )
+            )
+            predicted_indices = predicted_indices.tolist()
+
+            for k in range(1, len(scores) - 1):
+                sliced_scores = scores[:k]
+                sliced_predicted_indices = predicted_indices[:k]
+                next_score = scores[k]
+                next_score = int((next_score * resolution * resolution)) // resolution
+
+                num_correct = ExtraMetricHotpotQaWithQF1._count_actually_correct(
+                    sliced_predicted_indices,
+                    no_paraphrase_idxs,
+                    paraphrase_lut,
+                    sliced_scores,
+                )
+                num_shortlisted = len(predicted_indices)
+                max_correct = len(no_paraphrase_idxs)
+
+                _, _, f1_score = compute_pr_metrics(
+                    num_correct, num_shortlisted, max_correct
+                )
+
+                result_score[next_score].append(f1_score)
+                result_k[k].append(f1_score)
+
+        return dict(result_score), dict(result_k)
+
+    @torch.no_grad()
     def generate_metric(self, batch):
         batch_precision = []
         batch_recall = []
