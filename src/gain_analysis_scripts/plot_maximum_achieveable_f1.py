@@ -79,7 +79,8 @@ def plot_graph(plot_name, key_name):
             verticalalignment="bottom",
         )
 
-    path = f"./artifacts/{plot_name}.png"
+    Path("./artifacts/diagrams/").mkdir(parents=True, exist_ok=True)
+    path = f"./artifacts/diagrams/{plot_name}.png"
     plt.savefig(path, dpi=300)
     plt.clf()
     print(path)

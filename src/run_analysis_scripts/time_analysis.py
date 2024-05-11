@@ -70,7 +70,8 @@ def plot_data(data):
     plt.title("Elapsed Time for Experiments (Log Scale)")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig("./artifacts/experiment_times_log_scale.png")
+    Path("./artifacts/diagrams/").mkdir(parents=True, exist_ok=True)
+    plt.savefig("./artifacts/diagrams/time_comparisons.png")
 
 
 if __name__ == "__main__":
