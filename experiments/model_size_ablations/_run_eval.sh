@@ -1,3 +1,9 @@
+python src/offline_eval.py --config=experiments/model_size_ablations/oracle_mpnet_davinci2.yaml
+source devops/upload_artifacts.sh
+
+python src/offline_eval.py --config=experiments/model_size_ablations/oracle_mpnet_llama7b.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/model_size_ablations/quaild_gain_fl_mpnet_davinci2.yaml
 source devops/upload_artifacts.sh
 
