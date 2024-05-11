@@ -80,8 +80,9 @@ def get_column_spec(groups, extra_column_name):
 
 def generate_latex_rows(df, method_lut, num_columns, extra_column_lut):
     latex_rows = ""
+    df["method"] = df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
     for method, method_print_name in method_lut.items():
-        row = df[df["method"].str.startswith(method)]
+        row = df[df["method"] == method]
         method_column = [method_print_name]
         extra_column = []
         if extra_column_lut is not None:
@@ -390,6 +391,7 @@ if __name__ == "__main__":
     BASE_PATH.mkdir(parents=True, exist_ok=True)
 
     df = excelify()
+    df.to_csv(BASE_PATH / "all.csv")
 
     for file_name, fn in tqdm(TABLES_TO_GENERATE.items()):
         with open(BASE_PATH / f"{file_name}.tex", "w") as f:
