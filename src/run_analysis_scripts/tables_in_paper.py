@@ -202,6 +202,7 @@ def generate_annotation_budget_ablations(df):
     label = "budget_ablations"
     method_lut = {
         "zeroshot_mpnet_stablelm": "Zeroshot",
+        "oracle_mpnet_stablelm": "Oracle",
         # budget 18
         "random_mpnet_stablelm": "Random",
         "votek_mpnet_stablelm": "Vote-K",
@@ -218,6 +219,7 @@ def generate_annotation_budget_ablations(df):
     extra_column_lut = {
         # Zeroshot
         "zeroshot_mpnet_stablelm": "",
+        "oracle_mpnet_stablelm": "",
         # budget 18
         "random_mpnet_stablelm": "18",
         "votek_mpnet_stablelm": "18",
