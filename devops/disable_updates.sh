@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# sudo bash devops/disable_updates.sh
+
 # Disables automatic updates on a Debian-based system
 
 # Check if the script is run as root
