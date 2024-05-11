@@ -360,6 +360,7 @@ def generate_main_table(df):
     method_lut = {
         "zeroshot_mpnet_stablelm": "Zeroshot",
         "random_mpnet_stablelm": "Random",
+        "oracle_mpnet_stablelm": "Oracle",
         "leastconfidence_mpnet_stablelm": "Least Confidence",
         "gc_mpnet_stablelm": "GC",
         "mfl_mpnet_stablelm": "MFL",
@@ -368,7 +369,6 @@ def generate_main_table(df):
         "ideal_mpnet_stablelm": "IDEAL",
         "quaild_nt_fl_mpnet_stablelm": "QuailD-FL (NT)",
         "quaild_nt_gc_mpnet_stablelm": "QuailD-GC (NT)",
-        "oracle_mpnet_stablelm": "Oracle",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
     }
