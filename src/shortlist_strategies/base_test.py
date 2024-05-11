@@ -18,11 +18,11 @@ class TestBaseStrategy(unittest.TestCase):
 
         shortlist_strategy = BaseStrategy(config, pipeline)
 
-        pipeline.set_seed(42)
+        # pipeline.set_seed(42) # Should set its own seed
         subsampled_train_idxs_42_1, _iterator = shortlist_strategy.subsample_dataset(
             wrapped_dataset, "train", 3000
         )
-        pipeline.set_seed(42)
+        # pipeline.set_seed(42) # Should set its own seed
         subsampled_train_idxs_42_2, _iterator = shortlist_strategy.subsample_dataset(
             wrapped_dataset, "train", 3000
         )
@@ -34,14 +34,15 @@ class TestBaseStrategy(unittest.TestCase):
         )
 
         pipeline.set_seed(43)
+        # pipeline.set_seed(43)  # Should set its own seed
         subsampled_train_idxs_43_1, _iterator = shortlist_strategy.subsample_dataset(
             wrapped_dataset, "train", 3000
         )
-        pipeline.set_seed(43)
+        # pipeline.set_seed(43)  # Should set its own seed
         subsampled_train_idxs_43_2, _iterator = shortlist_strategy.subsample_dataset(
             wrapped_dataset, "train", 3000
         )
-
+        #
         # Seed stability for 42
         assert subsampled_train_idxs_43_1 == subsampled_train_idxs_43_2, (
             subsampled_train_idxs_43_1,
