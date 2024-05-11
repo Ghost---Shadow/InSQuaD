@@ -53,7 +53,7 @@ def plot_data(data):
     df_sorted = df.sort_values("Elapsed Time (ms)", ascending=False)
 
     # Set up the matplotlib figure to control size, aspect ratio
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(8, 5))
     sns.set_theme("paper")
 
     # Create a color palette and plot
