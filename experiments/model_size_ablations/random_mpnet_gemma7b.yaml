@@ -47,7 +47,7 @@ offline_validation:
   type: random
   generative_model:
     type: 'automodel'
-    checkpoint: 'google/gemma-2b'
+    checkpoint: 'google/gemma-7b'
     device: "cuda:0"
   datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag']
   seeds: [42]
