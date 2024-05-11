@@ -48,6 +48,7 @@ class WrappedAutoModel:
 
         # [sequence_length, batch_size, vocab_size] to [sequence_length, vocab_size]
         scores = torch.stack(outputs.scores).squeeze(1)
+        assert scores.ndim == 2, scores.ndim
 
         # Softmax to convert logits to probabilities
         probabilities = F.softmax(scores, dim=-1)
@@ -81,14 +82,17 @@ class WrappedAutoModel:
             options_sequence_probability
         )
 
+        nothing_is_nan = not torch.any(torch.isnan(options_sequence_probability)).item()
         predicted_option = torch.argmax(options_sequence_probability)
         option_probabilities = {}
         for option, probability in zip(options, options_sequence_probability):
             option_probabilities[option] = probability.item()
 
+        correct_option_chosen = (predicted_option == correct_option_index).item()
+
         return {
             "option_probabilities": option_probabilities,
-            "correct": (predicted_option == correct_option_index).item(),
+            "correct": correct_option_chosen and nothing_is_nan,
         }
 
     def evaluate(self, prompt, target_answer):
