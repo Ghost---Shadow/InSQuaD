@@ -45,7 +45,7 @@ training:
     lambd: 1
 
 offline_validation:
-  type: shortlist_then_top_k
+  type: quaild_similar
   generative_model:
     type: 'automodel'
     checkpoint: 'stabilityai/stablelm-2-1_6b'
