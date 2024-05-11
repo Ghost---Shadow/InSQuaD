@@ -17,7 +17,7 @@ def generate_shell_scripts(root_dir):
             with open(train_script_path, "w") as train_script, open(
                 eval_script_path, "w"
             ) as eval_script:
-                for yaml_file in yaml_files:
+                for yaml_file in sorted(yaml_files):
                     config_path = os.path.join(dirpath, yaml_file)
                     # Make config_path relative to root_dir and replace backslashes if on a non-Unix system
                     config_path = os.path.relpath(config_path, start="./").replace(

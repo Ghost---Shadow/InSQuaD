@@ -1,6 +1,6 @@
 wandb:
   project: "quaild"
-  name: "quaild_gain_gc_mpnet_llama7b"
+  name: "quaild_gain_gc_mpnet_gemma7b"
   # entity: "carml"
 
 architecture:
