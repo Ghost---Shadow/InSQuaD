@@ -167,6 +167,7 @@ def generate_retrieval_method_ablations(df):
     method_lut = {
         "zeroshot_mpnet_stablelm": "Zeroshot",
         "random_mpnet_stablelm": "Random",
+        "oracle_mpnet_stablelm": "Oracle",
         "quaild_random_fl_mpnet_stablelm": "QuailD-FL",
         "quaild_random_gc_mpnet_stablelm": "QuailD-GC",
         "quaild_similar_fl_mpnet_stablelm": "QuailD-FL",
@@ -177,6 +178,7 @@ def generate_retrieval_method_ablations(df):
     extra_column_lut = {
         "zeroshot_mpnet_stablelm": "",
         "random_mpnet_stablelm": "",
+        "oracle_mpnet_stablelm": "",
         "quaild_random_fl_mpnet_stablelm": "Random",
         "quaild_random_gc_mpnet_stablelm": "Random",
         "quaild_similar_fl_mpnet_stablelm": "Similar",
@@ -252,6 +254,7 @@ def generate_qd_tradeoff_ablations(df):
     method_lut = {
         "zeroshot_mpnet_stablelm": "Zeroshot",
         "random_mpnet_stablelm": "Random",
+        "oracle_mpnet_stablelm": "Oracle",
         "quaild_gain_fl_mpnet_stablelm_lambda_0": "QuailD-FL",
         "quaild_gain_gc_mpnet_stablelm_lambda_0": "QuailD-GC",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
@@ -262,6 +265,7 @@ def generate_qd_tradeoff_ablations(df):
     extra_column_lut = {
         "zeroshot_mpnet_stablelm": "",
         "random_mpnet_stablelm": "",
+        "oracle_mpnet_stablelm": "",
         "quaild_gain_fl_mpnet_stablelm_lambda_0": "0",
         "quaild_gain_gc_mpnet_stablelm_lambda_0": "0",
         "quaild_gain_fl_mpnet_stablelm": "0.5",
