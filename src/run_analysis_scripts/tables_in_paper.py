@@ -1,3 +1,4 @@
+from pathlib import Path
 from dataloaders.dbpedia import DBPedia
 from dataloaders.dummy import DummyDataset
 from dataloaders.dummy_hotpot_qa_with_q_loader import DummyHotpotQaWithQDataset
@@ -14,6 +15,8 @@ from dataloaders.wiki_multihop_qa_with_q_loader import WikiMultihopQaWithQDatase
 from dataloaders.xsum import XsumDataset
 import pandas as pd
 import numpy as np
+from run_analysis_scripts.excelify import excelify
+from tqdm import tqdm
 
 DATASET_NAME_KEYS = {
     DBPedia.NAME: "DBpedia",
@@ -88,7 +91,7 @@ def generate_latex_rows(df, method_lut, num_columns, extra_column_lut):
             cells = (
                 method_column
                 + extra_column
-                + [f"{x:.1f}" if pd.notna(x) else "??.?" for x in row[1:]]
+                + [f"{x*100:.1f}" if pd.notna(x) else "??.?" for x in row[1:]]
             )
         else:
             cells = method_column + extra_column + ["??.?"] * num_columns
@@ -347,6 +350,7 @@ def generate_main_table(df):
         "leastconfidence_mpnet_stablelm": "Least Confidence",
         "dpp_stablelm": "DPP",
         "lens_stablelm": "LENS",
+        "mfl_mpnet_stablelm": "MFL",
         "fastvotek_mpnet_stablelm": "Fast-Vote-K",
         "votek_mpnet_stablelm": "Vote-K",
         "ideal_mpnet_stablelm": "IDEAL",
@@ -367,3 +371,21 @@ def generate_main_table(df):
     )
 
     return result
+
+
+if __name__ == "__main__":
+    TABLES_TO_GENERATE = {
+        "main_table": generate_main_table,
+        "model_size_effect": generate_model_size_ablations,
+        "qd_tradeoff": generate_qd_tradeoff_ablations,
+        "annotation_budget_effect": generate_annotation_budget_ablations,
+        "retrieval_method_effect": generate_retrieval_method_ablations,
+    }
+    BASE_PATH = Path("./artifacts/tables")
+    BASE_PATH.mkdir(parents=True, exist_ok=True)
+
+    df = excelify()
+
+    for file_name, fn in tqdm(TABLES_TO_GENERATE.items()):
+        with open(BASE_PATH / f"{file_name}.tex", "w") as f:
+            f.write(fn(df))
