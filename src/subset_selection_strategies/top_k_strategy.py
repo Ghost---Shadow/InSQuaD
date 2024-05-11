@@ -5,8 +5,9 @@ import torch
 class TopKStrategy(BaseSubsetSelectionStrategy):
     NAME = "top_k"
 
-    def __init__(self, config):
+    def __init__(self, config, pipeline):
         self.config = config
+        self.pipeline = pipeline
         self.k = config.architecture.subset_selection_strategy.k
 
     def get_indexes_from_qd(self, quality_vector, diversity_matrix):

@@ -5,8 +5,9 @@ import torch
 class NoOperationSubsetSelectionStrategy(BaseSubsetSelectionStrategy):
     NAME = "noop"
 
-    def __init__(self, config):
+    def __init__(self, config, pipeline):
         self.config = config
+        self.pipeline = pipeline
 
     def subset_select(
         self, query_embedding: torch.Tensor, shortlist_embeddings: torch.Tensor
