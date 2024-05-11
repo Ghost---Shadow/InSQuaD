@@ -4,6 +4,7 @@ from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
 from run_analysis_scripts.excelify import excelify_for_discord
+from training_strategies.no_operation import NoOperation
 
 
 def main(config: RootConfig, dataset_name: str, seed: int):
@@ -22,7 +23,9 @@ def main(config: RootConfig, dataset_name: str, seed: int):
         pipeline.cleanup()
         return
 
-    pipeline.checkpoint_manager.try_load_checkpoint(for_eval=True)
+    if config.training.type != NoOperation.NAME:
+        # Checkpoint must exist or it should crash and exit
+        pipeline.checkpoint_manager.load_checkpoint(for_eval=True)
 
     try:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
