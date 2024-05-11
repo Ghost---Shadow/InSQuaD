@@ -60,7 +60,11 @@ class BaseStrategy:
 
         # Don't try to sample larger than population
         subsample_size = min(subsample_size, dataset_length)
-        subsampled_indices = np.random.choice(
+
+        # Use the local generator to sample indices
+        assert self.pipeline.current_seed is not None
+        rng = np.random.default_rng(seed=self.pipeline.current_seed)
+        subsampled_indices = rng.choice(
             dataset_length, subsample_size, replace=False
         ).tolist()
 
