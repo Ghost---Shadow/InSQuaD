@@ -286,6 +286,7 @@ def generate_model_size_ablations(df):
         # stablelm
         "zeroshot_mpnet_stablelm": "Zeroshot",
         "random_mpnet_stablelm": "Random",
+        "oracle_mpnet_stablelm": "Oracle",
         "votek_mpnet_stablelm": "Vote-K",
         "ideal_mpnet_stablelm": "IDEAL",
         "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
@@ -293,6 +294,7 @@ def generate_model_size_ablations(df):
         # llama7b
         "zeroshot_mpnet_llama7b": "Zeroshot",
         "random_mpnet_llama7b": "Random",
+        "oracle_mpnet_llama7b": "Oracle",
         "vote_k_llama7b": "Vote-K",
         "ideal_llama7b": "IDEAL",
         "quaild_gain_fl_mpnet_llama7b": "QuailD-FL",
@@ -300,6 +302,7 @@ def generate_model_size_ablations(df):
         # davinci2
         "zeroshot_mpnet_davinci2": "Zeroshot",
         "random_mpnet_davinci2": "Random",
+        "oracle_mpnet_davinci2": "Oracle",
         "vote_k_davinci2": "Vote-K",
         "ideal_davinci2": "IDEAL",
         "quaild_gain_fl_mpnet_davinci2": "QuailD-FL",
@@ -309,6 +312,7 @@ def generate_model_size_ablations(df):
         # stablelm
         "zeroshot_mpnet_stablelm": "StableLM1.6B",
         "random_mpnet_stablelm": "StableLM1.6B",
+        "oracle_mpnet_stablelm": "StableLM1.6B",
         "votek_mpnet_stablelm": "StableLM1.6B",
         "ideal_mpnet_stablelm": "StableLM1.6B",
         "quaild_gain_fl_mpnet_stablelm": "StableLM1.6B",
@@ -316,6 +320,7 @@ def generate_model_size_ablations(df):
         # llama7b
         "zeroshot_mpnet_llama7b": "llama7b",
         "random_mpnet_llama7b": "llama7b",
+        "oracle_mpnet_llama7b": "llama7b",
         "vote_k_llama7b": "llama7b",
         "ideal_llama7b": "llama7b",
         "quaild_gain_fl_mpnet_llama7b": "llama7b",
@@ -323,6 +328,7 @@ def generate_model_size_ablations(df):
         # davinci2
         "zeroshot_mpnet_davinci2": "davinci2-175b",
         "random_mpnet_davinci2": "davinci2-175b",
+        "oracle_mpnet_davinci2": "davinci2-175b",
         "vote_k_davinci2": "davinci2-175b",
         "ideal_davinci2": "davinci2-175b",
         "quaild_gain_fl_mpnet_davinci2": "davinci2-175b",
