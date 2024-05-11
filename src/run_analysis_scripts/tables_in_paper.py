@@ -342,8 +342,8 @@ def generate_model_size_ablations(df):
 
 
 def generate_main_table(df):
-    caption = "Effects of $\\lambda$ on StableLM (1.6B) (Quality-Diversity tradeoff)"
-    label = "qd_tradeoff"
+    caption = "Downstream evaluation on StableLM (1.6B)"
+    label = "stablelm_results"
     method_lut = {
         "zeroshot_mpnet_stablelm": "Zeroshot",
         "random_mpnet_stablelm": "Random",
