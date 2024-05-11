@@ -29,12 +29,14 @@ class OfflineEvaluationPipeline:
         self._load_parts(config)
 
     def cleanup(self):
-        self.semantic_search_model.model.cpu()
+        # self.semantic_search_model.model.cpu()
+        del self.semantic_search_model.model
         del self.semantic_search_model
         self.semantic_search_model = None
         gc.collect()
 
-        self.generative_model.model.cpu()
+        # self.generative_model.model.cpu()
+        del self.generative_model.model
         del self.generative_model
         self.generative_model = None
         gc.collect()
