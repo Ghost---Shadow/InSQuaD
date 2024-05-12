@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch.nn.functional as F
+from rouge_score import rouge_scorer
 
 
 class WrappedAutoModel:
@@ -20,6 +21,40 @@ class WrappedAutoModel:
             device_map=device,
             torch_dtype="auto",
         )
+        self.rouge_scorer = rouge_scorer.RougeScorer(
+            ["rouge1", "rouge2", "rougeL"], use_stemmer=True
+        )
+
+        # https://stackoverflow.com/a/77286207/1217998
+        # https://stackoverflow.com/a/77327248/1217998
+        if self.model.config.max_position_embeddings:
+            self.tokenizer.model_max_length = min(
+                self.model.config.max_position_embeddings,
+                self.tokenizer.model_max_length,
+            )
+        if self.tokenizer.max_model_input_sizes.values():
+            max_model_input_size = min(self.tokenizer.max_model_input_sizes.values())
+            self.tokenizer.model_max_length = min(
+                max_model_input_size, self.tokenizer.model_max_length
+            )
+        override_max_sequence_length = (
+            self.config.offline_validation.generative_model.override_max_sequence_length
+        )
+        if override_max_sequence_length is not None:
+            self.tokenizer.model_max_length = override_max_sequence_length
+        assert self.tokenizer.model_max_length
+
+    def _compute_rouge(self, target, predicted):
+        scores = self.rouge_scorer.score(target, predicted)
+        rouge_result = {
+            metric: {
+                "precision": score.precision,
+                "recall": score.recall,
+                "fmeasure": score.fmeasure,
+            }
+            for metric, score in scores.items()
+        }
+        return rouge_result
 
     def evaluate_with_options(self, prompt, correct_option_index, options):
         # Tokenize input
@@ -148,10 +183,12 @@ class WrappedAutoModel:
             target_answer_ids, skip_special_tokens=True
         )
         predicted = self.tokenizer.decode(output_tokens, skip_special_tokens=True)
+        rouge_result = self._compute_rouge(redecoded_target, predicted)
 
         return {
             "target_sequence_probability": target_sequence_probability,
             "predicted_sequence_probability": predicted_sequence_probability,
             "target": redecoded_target,
             "predicted": predicted,
+            "rouge": rouge_result,
         }

@@ -50,6 +50,7 @@ offline_validation:
     type: 'automodel'
     checkpoint: 'EleutherAI/gpt-neo-125m'
     device: "cuda:0"
+    # override_max_sequence_length: 512
   datasets: ['mrpc']
   seeds: [42]
   num_shots: 5

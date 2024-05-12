@@ -67,3 +67,37 @@ class TestQAWithNewLine(unittest.TestCase):
         actual = formatter.generate_prompt(tokenizer, batch, few_shots)
 
         assert actual == expected, json.dumps(actual)
+
+    # python -m unittest prompt_formatting_strategies.q_a_with_new_line_test.TestQAWithNewLine.test_insufficient_context_length_for_prompt -v
+    def test_insufficient_context_length_for_prompt(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        tokenizer = pipeline.generative_model.tokenizer
+        formatter = pipeline.prompt_formatting_strategy
+
+        batch = {
+            "prompts": "What is Alice's favourite fruit?",
+            "labels": "apple",
+        }
+
+        few_shots = {
+            "prompts": [
+                "What is Bob's favourite fruit?",
+                "What is Charlie's favourite fruit?",
+            ],
+            "labels": ["banana", "coconut"],
+            "distances": [0.5622506737709045, 0.5896707773208618],
+        }
+
+        formatter = QAWithNewLine(config)
+
+        tokenizer.model_max_length = 3  # Decrease max length
+        expected = ""
+        actual = formatter.generate_prompt(tokenizer, batch, few_shots)
+        assert actual == expected, json.dumps(actual)
+
+        tokenizer.model_max_length = 8  # Decrease max length
+        expected = "Q: What\nA: "
+        actual = formatter.generate_prompt(tokenizer, batch, few_shots)
+        assert actual == expected, json.dumps(actual)

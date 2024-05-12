@@ -4,7 +4,7 @@ from dataloaders.base import BaseDataset
 
 
 def get_options_if_possible(wrapped_dataset: BaseDataset):
-    if hasattr(wrapped_dataset, "LABELS"):
+    if hasattr(wrapped_dataset, "LABELS") and wrapped_dataset.LABELS is not None:
         options = list(wrapped_dataset.LABELS.values())
     else:
         options = None

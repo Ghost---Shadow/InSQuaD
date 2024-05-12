@@ -16,6 +16,15 @@ class QAWithNewLine:
         final_qa_tokens = tokenizer(final_qa, add_special_tokens=False)["input_ids"]
         available_tokens = model_max_length - len(final_qa_tokens)
 
+        if available_tokens < 0:
+            query_tokens = tokenizer(query)["input_ids"][:available_tokens]
+            query = tokenizer.decode(query_tokens)
+            final_q = f"Q: {query}\nA: "
+            if len(tokenizer(final_q)["input_ids"]) < model_max_length:
+                return final_q
+            else:
+                return ""  # There is nothing we can do
+
         few_shot_prompt = ""
         for prompt, label in zip(few_shots["prompts"], few_shots["labels"]):
             current_qa = f"Q: {prompt}\nA: {label}\n\n"

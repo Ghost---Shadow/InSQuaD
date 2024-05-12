@@ -39,6 +39,7 @@ class GenerativeModelConfig(BaseModel):
     # TODO: NoOp does not need checkpoint
     checkpoint: str
     device: str
+    override_max_sequence_length: int = None
 
     _validate_type = validator("type", allow_reuse=True)(
         type_validator(GENERATIVE_MODELS_LUT)

@@ -173,8 +173,15 @@ class OfflineEvaluationPipeline:
     @torch.no_grad()
     def run_inference(self, skip_if_done=True):
         if os.path.exists(self.inference_result_jsonl_path) and skip_if_done:
-            print("Inference already done")
-            return
+            # TODO: Edge cases
+            expected_lines = self.config.offline_validation.subsample_for_eval_size
+            lines = 0
+            with open(self.inference_result_jsonl_path) as f:
+                for _ in f:
+                    lines += 1
+            if lines >= expected_lines:
+                print("Inference already done")
+                return
 
         wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
         options = get_options_if_possible(wrapped_dataset)
@@ -195,11 +202,13 @@ class OfflineEvaluationPipeline:
 
     def analyze_inference_outputs(self):
         wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
-        is_mcq = hasattr(wrapped_dataset, "LABELS")
+        is_mcq = (
+            hasattr(wrapped_dataset, "LABELS") and wrapped_dataset.LABELS is not None
+        )
         if is_mcq:
             self.analyze_inference_outputs_mcq()
         else:
-            self.analyze_inference_outputs_freeform()
+            self.analyze_inference_outputs_rouge()
 
     def analyze_inference_outputs_mcq(self):
         correct_count = 0
@@ -225,6 +234,26 @@ class OfflineEvaluationPipeline:
                 {
                     "accuracy": accuracy,
                     "avg_correct_probability": avg_correct_probability,
+                },
+                f,
+                indent=2,
+            )
+
+    def analyze_inference_outputs_rouge(self):
+        scores = 0
+        lines = 0
+        with open(self.inference_result_jsonl_path, "r") as file:
+            for line in file:
+                data = json.loads(line)
+                scores += data["rouge"]["rouge1"]["fmeasure"]
+                lines += 1
+
+        # Write the results to an output file
+        with open(self.final_result_json_path, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "accuracy": scores / lines,
+                    "avg_correct_probability": None,
                 },
                 f,
                 indent=2,

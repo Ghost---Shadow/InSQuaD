@@ -26,6 +26,11 @@ class TestWrappedAutoModel(unittest.TestCase):
             "predicted_sequence_probability": 0.03734087198972702,
             "target": " dog",
             "predicted": " problem",
+            "rouge": {
+                "rouge1": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rouge2": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rougeL": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+            },
         }, result
 
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_stablelm -v
@@ -38,6 +43,18 @@ class TestWrappedAutoModel(unittest.TestCase):
             config, config.offline_validation.generative_model
         )
 
+        assert min(wrapped_model.tokenizer.max_model_input_sizes.values()) == 1024, min(
+            wrapped_model.tokenizer.max_model_input_sizes.values()
+        )
+
+        assert (
+            wrapped_model.model.config.max_position_embeddings == 4096
+        ), wrapped_model.model.config.max_position_embeddings
+
+        assert (
+            wrapped_model.tokenizer.model_max_length == 1024
+        ), wrapped_model.tokenizer.model_max_length
+
         prompt = "The quick brown fox"
         label1 = " jumps over the lazy dog"
         label2 = " brick dig hat mat late"
@@ -45,20 +62,28 @@ class TestWrappedAutoModel(unittest.TestCase):
         result1 = wrapped_model.evaluate(prompt, label1)
         result2 = wrapped_model.evaluate(prompt, label2)
 
-        # Result 1
-        assert (
-            result1["target_sequence_probability"]
-            == result1["predicted_sequence_probability"]
-        )
-        assert result1["predicted"] == result1["target"]
-        assert result1["predicted"] == " jumps over the lazy dog", (
-            "(" + result1["predicted"] + ")"
-        )
-
-        # Result 2
-        assert result2["predicted"] == " jumps over the lazy dog", (
-            "(" + result2["predicted"] + ")"
-        )
+        assert result1 == {
+            "target_sequence_probability": 0.34326171875,
+            "predicted_sequence_probability": 0.34326171875,
+            "target": " jumps over the lazy dog",
+            "predicted": " jumps over the lazy dog",
+            "rouge": {
+                "rouge1": {"precision": 1.0, "recall": 1.0, "fmeasure": 1.0},
+                "rouge2": {"precision": 1.0, "recall": 1.0, "fmeasure": 1.0},
+                "rougeL": {"precision": 1.0, "recall": 1.0, "fmeasure": 1.0},
+            },
+        }, result1
+        assert result2 == {
+            "target_sequence_probability": 0.0,
+            "predicted_sequence_probability": 0.34326171875,
+            "target": " brick dig hat mat late",
+            "predicted": " jumps over the lazy dog",
+            "rouge": {
+                "rouge1": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rouge2": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rougeL": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+            },
+        }, result2
 
         # Interaction
         assert (
@@ -77,6 +102,18 @@ class TestWrappedAutoModel(unittest.TestCase):
             config, config.offline_validation.generative_model
         )
 
+        assert (
+            list(wrapped_model.tokenizer.max_model_input_sizes.values()) == []
+        ), wrapped_model.tokenizer.max_model_input_sizes.values()
+
+        assert (
+            wrapped_model.model.config.max_position_embeddings == 8192
+        ), wrapped_model.model.config.max_position_embeddings
+
+        assert (
+            wrapped_model.tokenizer.model_max_length == 8192
+        ), wrapped_model.tokenizer.model_max_length
+
         prompt = "The quick brown fox"
         label1 = " jumps over the lazy dog"
         label2 = " brick dig hat mat late"
@@ -84,20 +121,28 @@ class TestWrappedAutoModel(unittest.TestCase):
         result1 = wrapped_model.evaluate(prompt, label1)
         result2 = wrapped_model.evaluate(prompt, label2)
 
-        # Result 1
-        assert (
-            result1["target_sequence_probability"]
-            == result1["predicted_sequence_probability"]
-        )
-        assert result1["predicted"] == result1["target"]
-        assert result1["predicted"] == " jumps over the lazy dog", (
-            "(" + result1["predicted"] + ")"
-        )
-
-        # Result 2
-        assert result2["predicted"] == " jumps over the lazy dog", (
-            "(" + result2["predicted"] + ")"
-        )
+        assert result1 == {
+            "target_sequence_probability": 0.5524634718894958,
+            "predicted_sequence_probability": 0.5524634718894958,
+            "target": " jumps over the lazy dog",
+            "predicted": " jumps over the lazy dog",
+            "rouge": {
+                "rouge1": {"precision": 1.0, "recall": 1.0, "fmeasure": 1.0},
+                "rouge2": {"precision": 1.0, "recall": 1.0, "fmeasure": 1.0},
+                "rougeL": {"precision": 1.0, "recall": 1.0, "fmeasure": 1.0},
+            },
+        }, result1
+        assert result2 == {
+            "target_sequence_probability": 2.5972147278655194e-33,
+            "predicted_sequence_probability": 0.5524634718894958,
+            "target": " brick dig hat mat late",
+            "predicted": " jumps over the lazy dog",
+            "rouge": {
+                "rouge1": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rouge2": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rougeL": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+            },
+        }, result2
 
         # Interaction
         assert (
@@ -118,42 +163,17 @@ class TestWrappedAutoModel(unittest.TestCase):
             config, config.offline_validation.generative_model
         )
 
-        prompt = "The quick brown fox"
-        label1 = " jumps over the lazy dog"
-        label2 = " brick dig hat mat late"
-
-        result1 = wrapped_model.evaluate(prompt, label1)
-        result2 = wrapped_model.evaluate(prompt, label2)
-
-        # print(result1)
-        # print(result2)
-
-        # Result 1
-        assert result1["predicted"] == "es are a great way", (
-            "(" + result1["predicted"] + ")"
+        assert min(wrapped_model.tokenizer.max_model_input_sizes.values()) == 1024, min(
+            wrapped_model.tokenizer.max_model_input_sizes.values()
         )
 
-        # Result 2
-        assert result2["predicted"] == "es are a great way", (
-            "(" + result2["predicted"] + ")"
-        )
-
-        # Interaction
         assert (
-            result1["target_sequence_probability"]
-            > result2["target_sequence_probability"]
-        ), (
-            result1["target_sequence_probability"],
-            result2["target_sequence_probability"],
-        )
+            wrapped_model.model.config.max_position_embeddings == 2048
+        ), wrapped_model.model.config.max_position_embeddings
 
-    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_gpt2 -v
-    def test_evaluate_gpt2(self):
-        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
-        config.offline_validation.generative_model.checkpoint = "openai-community/gpt2"
-        wrapped_model = WrappedAutoModel(
-            config, config.offline_validation.generative_model
-        )
+        assert (
+            wrapped_model.tokenizer.model_max_length == 1024
+        ), wrapped_model.tokenizer.model_max_length
 
         prompt = "The quick brown fox"
         label1 = " jumps over the lazy dog"
@@ -162,18 +182,28 @@ class TestWrappedAutoModel(unittest.TestCase):
         result1 = wrapped_model.evaluate(prompt, label1)
         result2 = wrapped_model.evaluate(prompt, label2)
 
-        # print(result1)
-        # print(result2)
-
-        # Result 1
-        assert result1["predicted"] == "es are a great way", (
-            "(" + result1["predicted"] + ")"
-        )
-
-        # Result 2
-        assert result2["predicted"] == "es are a great way", (
-            "(" + result2["predicted"] + ")"
-        )
+        assert result1 == {
+            "target_sequence_probability": 4.3222193944585097e-13,
+            "predicted_sequence_probability": 5.4240999816101976e-06,
+            "target": " jumps over the lazy dog",
+            "predicted": "es are a great way",
+            "rouge": {
+                "rouge1": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rouge2": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rougeL": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+            },
+        }, result1
+        assert result2 == {
+            "target_sequence_probability": 6.99859156647953e-23,
+            "predicted_sequence_probability": 5.4240999816101976e-06,
+            "target": " brick dig hat mat late",
+            "predicted": "es are a great way",
+            "rouge": {
+                "rouge1": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rouge2": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+                "rougeL": {"precision": 0.0, "recall": 0.0, "fmeasure": 0.0},
+            },
+        }, result2
 
         # Interaction
         assert (

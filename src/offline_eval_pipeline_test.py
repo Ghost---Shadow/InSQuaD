@@ -20,6 +20,22 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.run_inference(skip_if_done=True)
         pipeline.analyze_inference_outputs()
 
+    # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_quaild_flow_xsum -v
+    def test_quaild_flow_xsum(self):
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
+
+        config = Config.from_file(config_path)
+        config.offline_validation.datasets = ["xsum"]
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "xsum"
+
+        # Should not crash
+        pipeline.shortlist(skip_if_done=True)
+        pipeline.generate_few_shots(skip_if_done=True)
+        pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
+
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_random_flow -v
     def test_random_flow(self):
         config_path = "experiments/tests/random_test_experiment.yaml"

@@ -2,7 +2,7 @@ from dataloaders.base import BaseDataset
 
 
 class XsumDataset(BaseDataset):
-    LABELS = {}
+    LABELS = None
 
     NAME = "xsum"
 

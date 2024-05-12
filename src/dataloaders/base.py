@@ -5,6 +5,8 @@ from datasets import load_dataset, load_from_disk
 
 
 class BaseDataset(Dataset):
+    LABELS = None
+
     def __init__(self, config):
         self.config = config
         self.batch_size = config.training.batch_size
