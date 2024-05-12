@@ -5,6 +5,30 @@ from openai import OpenAI
 import tiktoken
 
 
+class WrappedTokenizer:
+    def __init__(self, model_name):
+        self.openai_tokenizer = tiktoken.encoding_for_model(model_name)
+
+        attributes_to_copy = [
+            attr
+            for attr in dir(self.openai_tokenizer)
+            if callable(getattr(self.openai_tokenizer, attr))
+            and not attr.startswith("__")
+        ]
+
+        for attribute in attributes_to_copy:
+            setattr(self, attribute, getattr(self.openai_tokenizer, attribute))
+
+        # https://community.openai.com/t/does-the-text-davinci-003-model-support-4000-or-4096-tokens/89507
+        self.model_max_length = 4000
+
+    def __call__(self, *args, **kwargs):
+        del kwargs["add_special_tokens"]
+        return {
+            "input_ids": self.encode(*args, **kwargs),
+        }
+
+
 class WrappedOpenAiPretrained:
     NAME = "openai_pretrained"
 
@@ -13,7 +37,8 @@ class WrappedOpenAiPretrained:
         self.generative_model_config = generative_model_config
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.model_name = generative_model_config.checkpoint
-        self.tokenizer = tiktoken.encoding_for_model(self.model_name)
+        self.tokenizer = WrappedTokenizer(self.model_name)
+        self.model = None  # Dont remove
 
     def evaluate_with_options(self, prompt, correct_option_index, options):
         # Construct the prompt with enumerated options
