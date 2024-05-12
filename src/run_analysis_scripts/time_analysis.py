@@ -5,9 +5,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 EXPERIMENT_NAME_LUT = {
-    "dpp_stablelm": "DPP",
-    "lens_stablelm": "LENS",
-    "fastvotek_mpnet_stablelm": "Fast-Vote-K",
     "votek_mpnet_stablelm": "Vote-K",
     "ideal_mpnet_stablelm": "IDEAL",
     "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
