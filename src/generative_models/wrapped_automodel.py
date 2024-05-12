@@ -161,6 +161,11 @@ class WrappedAutoModel:
         # [sequence_length, batch_size, vocab_size] to [sequence_length, vocab_size]
         scores = torch.stack(outputs.scores).squeeze(1)
 
+        # There may not be enough tokens
+        min_length = min(target_answer_ids.shape[0], scores.shape[0])
+        target_answer_ids = target_answer_ids[:min_length]
+        scores = scores[:min_length]
+
         # Softmax to convert logits to probabilities
         probabilities = F.softmax(scores, dim=-1)
 
