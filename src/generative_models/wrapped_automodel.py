@@ -24,19 +24,25 @@ class WrappedAutoModel:
         self.rouge_scorer = rouge_scorer.RougeScorer(
             ["rouge1", "rouge2", "rougeL"], use_stemmer=True
         )
+        self._resolve_max_context_length()
 
+    def _resolve_max_context_length(self):
         # https://stackoverflow.com/a/77286207/1217998
         # https://stackoverflow.com/a/77327248/1217998
-        if self.model.config.max_position_embeddings:
-            self.tokenizer.model_max_length = min(
-                self.model.config.max_position_embeddings,
-                self.tokenizer.model_max_length,
-            )
-        if self.tokenizer.max_model_input_sizes.values():
-            max_model_input_size = min(self.tokenizer.max_model_input_sizes.values())
-            self.tokenizer.model_max_length = min(
-                max_model_input_size, self.tokenizer.model_max_length
-            )
+        if hasattr(self.model.config, "max_position_embeddings"):
+            if self.model.config.max_position_embeddings:
+                self.tokenizer.model_max_length = min(
+                    self.model.config.max_position_embeddings,
+                    self.tokenizer.model_max_length,
+                )
+        if hasattr(self.tokenizer, "max_model_input_sizes"):
+            if self.tokenizer.max_model_input_sizes.values():
+                max_model_input_size = min(
+                    self.tokenizer.max_model_input_sizes.values()
+                )
+                self.tokenizer.model_max_length = min(
+                    max_model_input_size, self.tokenizer.model_max_length
+                )
         override_max_sequence_length = (
             self.config.offline_validation.generative_model.override_max_sequence_length
         )

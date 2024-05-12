@@ -49,8 +49,6 @@ class OfflineEvaluationPipeline:
     def is_done(self):
         if self.current_dataset_name is None:
             return False
-        if self.current_dataset_name is None:
-            return False
         return os.path.exists(self.final_result_json_path)
 
     def _load_parts(self, config: RootConfig):
@@ -134,7 +132,7 @@ class OfflineEvaluationPipeline:
 
     @torch.no_grad()
     def generate_few_shots(self, skip_if_done=True):
-        if os.path.exists(self.few_shot_data_jsonl_path) and skip_if_done:
+        if os.path.exists(self.few_shot_done_path) and skip_if_done:
             print("few shots already computed, skipping")
             return
 
@@ -155,6 +153,8 @@ class OfflineEvaluationPipeline:
 
         self.generate_few_shot_data_sanity()
 
+        open(self.few_shot_done_path, "w").close()
+
     def generate_few_shot_data_sanity(self):
         s = ""
         hr = "\n" + ("-" * 80) + "\n"
@@ -172,16 +172,8 @@ class OfflineEvaluationPipeline:
 
     @torch.no_grad()
     def run_inference(self, skip_if_done=True):
-        if os.path.exists(self.inference_result_jsonl_path) and skip_if_done:
-            # TODO: Edge cases
-            expected_lines = self.config.offline_validation.subsample_for_eval_size
-            lines = 0
-            with open(self.inference_result_jsonl_path) as f:
-                for _ in f:
-                    lines += 1
-            if lines >= expected_lines:
-                print("Inference already done")
-                return
+        if os.path.exists(self.inference_done_path) and skip_if_done:
+            print("Inference already done")
 
         wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
         options = get_options_if_possible(wrapped_dataset)
@@ -199,6 +191,8 @@ class OfflineEvaluationPipeline:
 
                     f_out.write(json.dumps({**row, **result}))
                     f_out.write("\n")
+
+        open(self.inference_done_path, "w").close()
 
     def analyze_inference_outputs(self):
         wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
@@ -378,8 +372,18 @@ class OfflineEvaluationPipeline:
         return path
 
     @property
+    def few_shot_done_path(self):
+        path = Path(self.artifacts_dir) / "few_shot.done"
+        return path
+
+    @property
     def inference_result_jsonl_path(self):
         path = Path(self.artifacts_dir) / "inference_result.jsonl"
+        return path
+
+    @property
+    def inference_done_path(self):
+        path = Path(self.artifacts_dir) / "inference.done"
         return path
 
     @property
