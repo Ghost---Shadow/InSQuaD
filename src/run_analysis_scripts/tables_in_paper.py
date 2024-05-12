@@ -354,7 +354,7 @@ def generate_model_size_ablations(df):
     return result
 
 
-def generate_main_table(df):
+def generate_main_table_stablelm(df):
     caption = "Downstream evaluation on StableLM (1.6B)"
     label = "stablelm_results"
     method_lut = {
@@ -386,9 +386,42 @@ def generate_main_table(df):
     return result
 
 
+def generate_main_table_gemma(df):
+    caption = "Downstream evaluation on Gemma (2B)"
+    label = "gemma_results"
+    method_lut = {
+        "zeroshot_mpnet_gemma": "Zeroshot",
+        "random_mpnet_gemma": "Random",
+        "oracle_mpnet_gemma": "Oracle",
+        "leastconfidence_mpnet_gemma": "Least Confidence",
+        "mfl_mpnet_gemma": "MFL",
+        "gc_mpnet_gemma": "GC",
+        "fastvotek_mpnet_gemma": "Fast-Vote-K",
+        "votek_mpnet_gemma": "Vote-K",
+        "ideal_mpnet_gemma": "IDEAL",
+        "quaild_nt_fl_mpnet_gemma": "QuailD-FL (NT)",
+        "quaild_nt_gc_mpnet_gemma": "QuailD-GC (NT)",
+        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+    }
+    extra_column_lut = None
+    extra_column_name = None
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
+
+
 if __name__ == "__main__":
     TABLES_TO_GENERATE = {
-        "main_table": generate_main_table,
+        "main_table_stablelm": generate_main_table_stablelm,
+        "main_table_gemma": generate_main_table_gemma,
         "model_size_effect": generate_model_size_ablations,
         "qd_tradeoff": generate_qd_tradeoff_ablations,
         "annotation_budget_effect": generate_annotation_budget_ablations,
