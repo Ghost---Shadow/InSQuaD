@@ -1,14 +1,13 @@
 import argparse
 import json
-from config import Config, RootConfig
+from config import Config
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
 from run_analysis_scripts.excelify import excelify_for_discord
 from training_strategies.no_operation import NoOperation
 
 
-def main(config: RootConfig, dataset_name: str, seed: int):
-    pipeline = OfflineEvaluationPipeline(config)
+def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
     pipeline.set_seed(seed)
     pipeline.current_dataset_name = dataset_name
 
@@ -20,7 +19,6 @@ def main(config: RootConfig, dataset_name: str, seed: int):
 
     if pipeline.is_done():
         print("Already done")
-        pipeline.cleanup()
         return
 
     if config.training.type != NoOperation.NAME:
@@ -53,8 +51,6 @@ def main(config: RootConfig, dataset_name: str, seed: int):
     except Exception as e:
         send_discord_notification(f"Eval for {EXPERIMENT_NAME}/{dataset_name} crashed!")
         raise e
-    finally:
-        pipeline.cleanup()
 
 
 if __name__ == "__main__":
@@ -65,7 +61,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = Config.from_file(args.config)
+    pipeline = OfflineEvaluationPipeline(config)
 
     for seed in config.offline_validation.seeds:
         for dataset_name in config.offline_validation.datasets:
-            main(config, dataset_name, seed)
+            main(pipeline, dataset_name, seed)
