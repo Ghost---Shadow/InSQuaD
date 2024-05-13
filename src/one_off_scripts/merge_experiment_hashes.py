@@ -4,7 +4,19 @@ from glob import glob
 from config import Config
 
 
-def merge_directories(source_dir, dest_dir):
+def move(s_path, d_path, dry_run):
+    print(f"Move {s_path} to {d_path}")
+    if not dry_run:
+        shutil.move(s_path, d_path)
+
+
+def rmtree(source_dir, dry_run):
+    print(f"Removing {source_dir}")
+    if not dry_run:
+        shutil.rmtree(source_dir)
+
+
+def merge_directories(source_dir, dest_dir, dry_run):
     """Merge all files and folders from source_dir to dest_dir, handling conflicts."""
     conflicts = []
     if not os.path.exists(dest_dir):
@@ -14,16 +26,16 @@ def merge_directories(source_dir, dest_dir):
         d_path = os.path.join(dest_dir, item)
         if os.path.isdir(s_path):
             if not os.path.exists(d_path):
-                shutil.move(s_path, d_path)
+                move(s_path, d_path, dry_run)
             else:
                 # For directories, recursively merge them
-                conflicts.extend(merge_directories(s_path, d_path))
+                conflicts.extend(merge_directories(s_path, d_path, dry_run))
         else:
             # If it's a file and already exists, note a conflict
             if os.path.exists(d_path):
                 conflicts.append(item)
             else:
-                shutil.move(s_path, d_path)
+                move(s_path, d_path, dry_run)
     return conflicts
 
 
@@ -31,7 +43,7 @@ def unshashify(name):
     return "_".join(name.split("_")[:-1])
 
 
-def merge_experiment_hashes(base_path):
+def merge_experiment_hashes(base_path, dry_run):
     """Merge all experiment data from various hash directories into the current hash directory."""
     yaml_files = glob("./experiments/**/*.yaml")
     configs = [Config.from_file(f) for f in yaml_files]
@@ -53,7 +65,7 @@ def merge_experiment_hashes(base_path):
         # Merge other directories into the current one
         for source_dir in other_dirs:
             if os.path.exists(source_dir):
-                conflicts = merge_directories(source_dir, current_dir)
+                conflicts = merge_directories(source_dir, current_dir, dry_run)
                 if conflicts:
                     # {', '.join(conflicts)}
                     print(
@@ -61,7 +73,7 @@ def merge_experiment_hashes(base_path):
                     )
                 # Optionally delete the old directory if no conflicts
                 if not conflicts:
-                    shutil.rmtree(source_dir)
+                    rmtree(source_dir, dry_run)
 
 
 def remove_empty_dirs(path):
@@ -76,7 +88,6 @@ def remove_empty_dirs(path):
 
 if __name__ == "__main__":
     # Use script with caution, hash is a safety measure
-    merge_experiment_hashes("artifacts")
-    merge_experiment_hashes("checkpoints")
+    merge_experiment_hashes("artifacts", dry_run=False)
     remove_empty_dirs("./artifacts")
     remove_empty_dirs("./checkpoints")

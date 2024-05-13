@@ -32,8 +32,11 @@ class OracleStrategy(BaseStrategy):
             num_shots = self.config.offline_validation.num_shots - 1
             num_shots = min(num_shots, len(shortlist))
             few_shots = np.random.choice(shortlist, size=num_shots, replace=False)
-            few_shots = [*few_shots, row]  # Add the answer with n-1 distractors
             np.random.shuffle(few_shots)
+
+            # Add the answer with n-1 distractors
+            # Gold (row) is always first, so that it (hopefully) does not get truncated by context size
+            few_shots = [row, *few_shots]
 
             collated_few_shots = {"prompts": [], "labels": []}
             for few_shot in few_shots:
