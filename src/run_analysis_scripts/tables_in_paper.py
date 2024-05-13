@@ -80,39 +80,54 @@ def get_column_spec(groups, extra_column_name):
     return column_spec, multicolumn_line
 
 
-def generate_latex_rows(df, method_lut, num_columns, extra_column_lut):
+def dictify(tuple_of_tuples):
+    result = {}
+    for left, right in tuple_of_tuples:
+        result[left] = right
+
+    return result
+
+
+def generate_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
     latex_rows = ""
     df["method"] = df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
-    for method, method_print_name in method_lut.items():
-        row = df[df["method"] == method]
-        method_column = [method_print_name]
-        extra_column = []
-        if extra_column_lut is not None:
-            extra_column = [extra_column_lut[method]]
-        if len(row) == 1:
-            row = row.values.tolist()[0]
-            cells = (
-                method_column
-                + extra_column
-                + [f"{x*100:.1f}" if pd.notna(x) else "??.?" for x in row[1:]]
-            )
+    for method, method_print_name in method_tuples:
+        if method == "hline":
+            latex_row = "\hline"
         else:
-            if len(row) > 1:
-                print("REJECTED", row)
-            cells = method_column + extra_column + ["??.?"] * num_columns
-        latex_row = " & ".join(cells)
-        latex_rows += latex_row + " \\\\\n"
+            row = df[df["method"] == method]
+            method_column = [method_print_name]
+            extra_column = []
+            if extra_column_tuples is not None:
+                extra_column_lut = dictify(extra_column_tuples)
+                extra_column = [extra_column_lut[method]]
+            if len(row) == 1:
+                row = row.values.tolist()[0]
+                cells = (
+                    method_column
+                    + extra_column
+                    + [f"{x*100:.1f}" if pd.notna(x) else "??.?" for x in row[1:]]
+                )
+            else:
+                if len(row) > 1:
+                    print("REJECTED", row)
+                cells = method_column + extra_column + ["??.?"] * num_columns
+            latex_row = " & ".join(cells) + " \\\\"
+        latex_rows += latex_row + "\n"
     return latex_rows
 
 
 def generate_latex_table(
-    df, caption, label, method_lut, extra_column_name=None, extra_column_lut=None
+    df, caption, label, method_tuples, extra_column_name=None, extra_column_tuples=None
 ):
     # Reset the index to make 'method' a regular column
     df = df.reset_index()
 
-    if extra_column_lut is not None:
-        assert set(extra_column_lut.keys()) == set(method_lut.keys())
+    if extra_column_tuples is not None:
+        get_key = lambda x: x[0]
+        assert set(map(get_key, extra_column_tuples)) == set(
+            map(get_key, method_tuples)
+        )
         assert extra_column_name is not None
 
     # Ensure all required columns are present in the DataFrame
@@ -126,7 +141,9 @@ def generate_latex_table(
     df = df[column_order]
 
     num_columns = len(expected_columns)
-    latex_rows = generate_latex_rows(df, method_lut, num_columns, extra_column_lut)
+    latex_rows = generate_latex_rows(
+        df, method_tuples, num_columns, extra_column_tuples
+    )
     column_spec, multicolumn_line = get_column_spec(GROUPS, extra_column_name)
 
     header_line = "& " + " & ".join(
@@ -168,36 +185,42 @@ def generate_latex_table(
 def generate_retrieval_method_ablations_gemma(df):
     caption = "Effect of retrieval methods Gemma (2B)"
     label = "retrieval_method_ablations"
-    method_lut = {
-        "zeroshot_mpnet_gemma": "Zeroshot",
-        "random_mpnet_gemma": "Random",
-        "oracle_mpnet_gemma": "Oracle",
-        "quaild_random_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_random_gc_mpnet_gemma": "QuailD-GC",
-        "quaild_similar_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_similar_gc_mpnet_gemma": "QuailD-GC",
-        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
-    }
-    extra_column_lut = {
-        "zeroshot_mpnet_gemma": "",
-        "random_mpnet_gemma": "",
-        "oracle_mpnet_gemma": "",
-        "quaild_random_fl_mpnet_gemma": "Random",
-        "quaild_random_gc_mpnet_gemma": "Random",
-        "quaild_similar_fl_mpnet_gemma": "Similar",
-        "quaild_similar_gc_mpnet_gemma": "Similar",
-        "quaild_gain_fl_mpnet_gemma": "Submodular",
-        "quaild_gain_gc_mpnet_gemma": "Submodular",
-    }
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("hline", "hline"),
+        ("quaild_random_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_random_gc_mpnet_gemma", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_similar_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_similar_gc_mpnet_gemma", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+    )
+    extra_column_tuples = (
+        ("zeroshot_mpnet_gemma", ""),
+        ("random_mpnet_gemma", ""),
+        ("oracle_mpnet_gemma", ""),
+        ("hline", "hline"),
+        ("quaild_random_fl_mpnet_gemma", "Random"),
+        ("quaild_random_gc_mpnet_gemma", "Random"),
+        ("hline", "hline"),
+        ("quaild_similar_fl_mpnet_gemma", "Similar"),
+        ("quaild_similar_gc_mpnet_gemma", "Similar"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma", "Submodular"),
+        ("quaild_gain_gc_mpnet_gemma", "Submodular"),
+    )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -206,36 +229,42 @@ def generate_retrieval_method_ablations_gemma(df):
 def generate_retrieval_method_ablations_stablelm(df):
     caption = "Effect of retrieval methods StableLM (1.6B)"
     label = "retrieval_method_ablations"
-    method_lut = {
-        "zeroshot_mpnet_stablelm": "Zeroshot",
-        "random_mpnet_stablelm": "Random",
-        "oracle_mpnet_stablelm": "Oracle",
-        "quaild_random_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_random_gc_mpnet_stablelm": "QuailD-GC",
-        "quaild_similar_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_similar_gc_mpnet_stablelm": "QuailD-GC",
-        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
-    }
-    extra_column_lut = {
-        "zeroshot_mpnet_stablelm": "",
-        "random_mpnet_stablelm": "",
-        "oracle_mpnet_stablelm": "",
-        "quaild_random_fl_mpnet_stablelm": "Random",
-        "quaild_random_gc_mpnet_stablelm": "Random",
-        "quaild_similar_fl_mpnet_stablelm": "Similar",
-        "quaild_similar_gc_mpnet_stablelm": "Similar",
-        "quaild_gain_fl_mpnet_stablelm": "Submodular",
-        "quaild_gain_gc_mpnet_stablelm": "Submodular",
-    }
+    method_tuples = (
+        ("zeroshot_mpnet_stablelm", "Zeroshot"),
+        ("random_mpnet_stablelm", "Random"),
+        ("oracle_mpnet_stablelm", "Oracle"),
+        ("hline", "hline"),
+        ("quaild_random_fl_mpnet_stablelm", "QuailD-FL"),
+        ("quaild_random_gc_mpnet_stablelm", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_similar_fl_mpnet_stablelm", "QuailD-FL"),
+        ("quaild_similar_gc_mpnet_stablelm", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
+    )
+    extra_column_tuples = (
+        ("zeroshot_mpnet_stablelm", ""),
+        ("random_mpnet_stablelm", ""),
+        ("oracle_mpnet_stablelm", ""),
+        ("hline", "hline"),
+        ("quaild_random_fl_mpnet_stablelm", "Random"),
+        ("quaild_random_gc_mpnet_stablelm", "Random"),
+        ("hline", "hline"),
+        ("quaild_similar_fl_mpnet_stablelm", "Similar"),
+        ("quaild_similar_gc_mpnet_stablelm", "Similar"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm", "Submodular"),
+        ("quaild_gain_gc_mpnet_stablelm", "Submodular"),
+    )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -244,47 +273,51 @@ def generate_retrieval_method_ablations_stablelm(df):
 def generate_annotation_budget_ablations_stablelm(df):
     caption = "Effects of annotation budget StableLM (1.6B)"
     label = "budget_ablations"
-    method_lut = {
-        "zeroshot_mpnet_stablelm": "Zeroshot",
-        "oracle_mpnet_stablelm": "Oracle",
+    method_tuples = (
+        ("zeroshot_mpnet_stablelm", "Zeroshot"),
+        ("oracle_mpnet_stablelm", "Oracle"),
         # budget 18
-        "random_mpnet_stablelm": "Random",
-        # "votek_mpnet_stablelm": "Vote-K",
-        # "ideal_mpnet_stablelm": "IDEAL",
-        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+        ("hline", "hline"),
+        ("random_mpnet_stablelm", "Random"),
+        # ("votek_mpnet_stablelm", "Vote-K"),
+        # ("ideal_mpnet_stablelm", "IDEAL"),
+        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
         # budget 100
-        "random_mpnet_stablelm_100": "Random",
-        # "votek_mpnet_stablelm_100": "Vote-K",
-        # "ideal_mpnet_stablelm_100": "IDEAL",
-        "quaild_gain_fl_mpnet_stablelm_100": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm_100": "QuailD-GC",
-    }
-    extra_column_lut = {
+        ("hline", "hline"),
+        ("random_mpnet_stablelm_100", "Random"),
+        # ("votek_mpnet_stablelm_100", "Vote-K"),
+        # ("ideal_mpnet_stablelm_100", "IDEAL"),
+        ("quaild_gain_fl_mpnet_stablelm_100", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm_100", "QuailD-GC"),
+    )
+    extra_column_tuples = {
         # Zeroshot
-        "zeroshot_mpnet_stablelm": "",
-        "oracle_mpnet_stablelm": "",
+        ("zeroshot_mpnet_stablelm", ""),
+        ("oracle_mpnet_stablelm", ""),
         # budget 18
-        "random_mpnet_stablelm": "18",
-        # "votek_mpnet_stablelm": "18",
-        # "ideal_mpnet_stablelm": "18",
-        "quaild_gain_fl_mpnet_stablelm": "18",
-        "quaild_gain_gc_mpnet_stablelm": "18",
+        ("hline", "hline"),
+        ("random_mpnet_stablelm", "18"),
+        # ("votek_mpnet_stablelm", "18"),
+        # ("ideal_mpnet_stablelm", "18"),
+        ("quaild_gain_fl_mpnet_stablelm", "18"),
+        ("quaild_gain_gc_mpnet_stablelm", "18"),
         # budget 100
-        "random_mpnet_stablelm_100": "100",
-        # "votek_mpnet_stablelm_100": "100",
-        # "ideal_mpnet_stablelm_100": "100",
-        "quaild_gain_fl_mpnet_stablelm_100": "100",
-        "quaild_gain_gc_mpnet_stablelm_100": "100",
+        ("hline", "hline"),
+        ("random_mpnet_stablelm_100", "100"),
+        # ("votek_mpnet_stablelm_100", "100"),
+        # ("ideal_mpnet_stablelm_100", "100"),
+        ("quaild_gain_fl_mpnet_stablelm_100", "100"),
+        ("quaild_gain_gc_mpnet_stablelm_100", "100"),
     }
     extra_column_name = "Budget"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -293,47 +326,54 @@ def generate_annotation_budget_ablations_stablelm(df):
 def generate_annotation_budget_ablations_gemma(df):
     caption = "Effects of annotation budget Gemma (2B)"
     label = "budget_ablations"
-    method_lut = {
-        "zeroshot_mpnet_gemma": "Zeroshot",
-        "oracle_mpnet_gemma": "Oracle",
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("oracle_mpnet_gemma", "Oracle"),
         # budget 18
-        "random_mpnet_gemma": "Random",
-        # "votek_mpnet_gemma": "Vote-K",
-        # "ideal_mpnet_gemma": "IDEAL",
-        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+        ("hline", "hline"),
+        ("random_mpnet_gemma", "Random"),
+        # ("votek_mpnet_gemma", "Vote-K"),
+        # ("ideal_mpnet_gemma", "IDEAL"),
+        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
         # budget 100
-        "random_mpnet_gemma_100": "Random",
-        # "votek_mpnet_gemma_100": "Vote-K",
-        # "ideal_mpnet_gemma_100": "IDEAL",
-        "quaild_gain_fl_mpnet_gemma_100": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma_100": "QuailD-GC",
-    }
-    extra_column_lut = {
+        ("hline", "hline"),
+        ("random_mpnet_gemma_100", "Random"),
+        # ("votek_mpnet_gemma_100", "Vote-K"),
+        # ("ideal_mpnet_gemma_100", "IDEAL"),
+        ("quaild_gain_fl_mpnet_gemma_100", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_100", "QuailD-GC"),
+    )
+
+    extra_column_tuples = (
         # Zeroshot
-        "zeroshot_mpnet_gemma": "",
-        "oracle_mpnet_gemma": "",
+        ("zeroshot_mpnet_gemma", ""),
+        ("oracle_mpnet_gemma", ""),
         # budget 18
-        "random_mpnet_gemma": "18",
-        # "votek_mpnet_gemma": "18",
-        # "ideal_mpnet_gemma": "18",
-        "quaild_gain_fl_mpnet_gemma": "18",
-        "quaild_gain_gc_mpnet_gemma": "18",
+        ("hline", "hline"),
+        ("random_mpnet_gemma", "18"),
+        # ("votek_mpnet_gemma", "18"),
+        # ("ideal_mpnet_gemma", "18"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma", "18"),
+        ("quaild_gain_gc_mpnet_gemma", "18"),
         # budget 100
-        "random_mpnet_gemma_100": "100",
-        # "votek_mpnet_gemma_100": "100",
-        # "ideal_mpnet_gemma_100": "100",
-        "quaild_gain_fl_mpnet_gemma_100": "100",
-        "quaild_gain_gc_mpnet_gemma_100": "100",
-    }
+        ("hline", "hline"),
+        ("random_mpnet_gemma_100", "100"),
+        # ("votek_mpnet_gemma_100", "100"),
+        # ("ideal_mpnet_gemma_100", "100"),
+        ("quaild_gain_fl_mpnet_gemma_100", "100"),
+        ("quaild_gain_gc_mpnet_gemma_100", "100"),
+    )
+
     extra_column_name = "Budget"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -342,36 +382,44 @@ def generate_annotation_budget_ablations_gemma(df):
 def generate_qd_tradeoff_ablations_stablelm(df):
     caption = "Effects of $\\lambda$ on StableLM (1.6B) (Quality-Diversity tradeoff)"
     label = "qd_tradeoff"
-    method_lut = {
-        "zeroshot_mpnet_stablelm": "Zeroshot",
-        "random_mpnet_stablelm": "Random",
-        "oracle_mpnet_stablelm": "Oracle",
-        "quaild_gain_fl_mpnet_stablelm_lambda_0": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm_lambda_0": "QuailD-GC",
-        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
-        "quaild_gain_fl_mpnet_stablelm_lambda_1": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm_lambda_1": "QuailD-GC",
-    }
-    extra_column_lut = {
-        "zeroshot_mpnet_stablelm": "",
-        "random_mpnet_stablelm": "",
-        "oracle_mpnet_stablelm": "",
-        "quaild_gain_fl_mpnet_stablelm_lambda_0": "0",
-        "quaild_gain_gc_mpnet_stablelm_lambda_0": "0",
-        "quaild_gain_fl_mpnet_stablelm": "0.5",
-        "quaild_gain_gc_mpnet_stablelm": "0.5",
-        "quaild_gain_fl_mpnet_stablelm_lambda_1": "1",
-        "quaild_gain_gc_mpnet_stablelm_lambda_1": "1",
-    }
+    method_tuples = (
+        ("zeroshot_mpnet_stablelm", "Zeroshot"),
+        ("random_mpnet_stablelm", "Random"),
+        ("oracle_mpnet_stablelm", "Oracle"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm_lambda_0", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm_lambda_0", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm_lambda_1", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm_lambda_1", "QuailD-GC"),
+    )
+
+    extra_column_tuples = (
+        ("zeroshot_mpnet_stablelm", ""),
+        ("random_mpnet_stablelm", ""),
+        ("oracle_mpnet_stablelm", ""),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm_lambda_0", "0"),
+        ("quaild_gain_gc_mpnet_stablelm_lambda_0", "0"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm", "0.5"),
+        ("quaild_gain_gc_mpnet_stablelm", "0.5"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm_lambda_1", "1"),
+        ("quaild_gain_gc_mpnet_stablelm_lambda_1", "1"),
+    )
+
     extra_column_name = "$\\lambda$"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -380,36 +428,43 @@ def generate_qd_tradeoff_ablations_stablelm(df):
 def generate_qd_tradeoff_ablations_gemma(df):
     caption = "Effects of $\\lambda$ on Gemma (2B) (Quality-Diversity tradeoff)"
     label = "qd_tradeoff"
-    method_lut = {
-        "zeroshot_mpnet_gemma": "Zeroshot",
-        "random_mpnet_gemma": "Random",
-        "oracle_mpnet_gemma": "Oracle",
-        "quaild_gain_fl_mpnet_gemma_lambda_0": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma_lambda_0": "QuailD-GC",
-        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
-        "quaild_gain_fl_mpnet_gemma_lambda_1": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma_lambda_1": "QuailD-GC",
-    }
-    extra_column_lut = {
-        "zeroshot_mpnet_gemma": "",
-        "random_mpnet_gemma": "",
-        "oracle_mpnet_gemma": "",
-        "quaild_gain_fl_mpnet_gemma_lambda_0": "0",
-        "quaild_gain_gc_mpnet_gemma_lambda_0": "0",
-        "quaild_gain_fl_mpnet_gemma": "0.5",
-        "quaild_gain_gc_mpnet_gemma": "0.5",
-        "quaild_gain_fl_mpnet_gemma_lambda_1": "1",
-        "quaild_gain_gc_mpnet_gemma_lambda_1": "1",
-    }
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_lambda_0", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_lambda_0", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_lambda_1", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_lambda_1", "QuailD-GC"),
+    )
+    extra_column_tuples = (
+        ("zeroshot_mpnet_gemma", ""),
+        ("random_mpnet_gemma", ""),
+        ("oracle_mpnet_gemma", ""),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_lambda_0", "0"),
+        ("quaild_gain_gc_mpnet_gemma_lambda_0", "0"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma", "0.5"),
+        ("quaild_gain_gc_mpnet_gemma", "0.5"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_lambda_1", "1"),
+        ("quaild_gain_gc_mpnet_gemma_lambda_1", "1"),
+    )
+
     extra_column_name = "$\\lambda$"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -418,66 +473,59 @@ def generate_qd_tradeoff_ablations_gemma(df):
 def generate_model_size_ablations(df):
     caption = "Effects of model size"
     label = "model_size"
-    method_lut = {
+    method_tuples = (
         # gemma
-        "zeroshot_mpnet_gemma": "Zeroshot",
-        "random_mpnet_gemma": "Random",
-        "oracle_mpnet_gemma": "Oracle",
-        # "votek_mpnet_gemma": "Vote-K",
-        # "ideal_mpnet_gemma": "IDEAL",
-        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
         # gemma7b
-        "zeroshot_mpnet_gemma7b": "Zeroshot",
-        "random_mpnet_gemma7b": "Random",
-        "oracle_mpnet_gemma7b": "Oracle",
-        # "vote_k_gemma7b": "Vote-K",
-        # "ideal_gemma7b": "IDEAL",
-        "quaild_gain_fl_mpnet_gemma7b": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma7b": "QuailD-GC",
+        ("hline", "hline"),
+        ("zeroshot_mpnet_gemma7b", "Zeroshot"),
+        ("random_mpnet_gemma7b", "Random"),
+        ("oracle_mpnet_gemma7b", "Oracle"),
+        ("quaild_gain_fl_mpnet_gemma7b", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma7b", "QuailD-GC"),
         # davinci2
-        "zeroshot_mpnet_davinci2": "Zeroshot",
-        "random_mpnet_davinci2": "Random",
-        "oracle_mpnet_davinci2": "Oracle",
-        # "vote_k_davinci2": "Vote-K",
-        # "ideal_davinci2": "IDEAL",
-        "quaild_gain_fl_mpnet_davinci2": "QuailD-FL",
-        "quaild_gain_gc_mpnet_davinci2": "QuailD-GC",
-    }
-    extra_column_lut = {
+        ("hline", "hline"),
+        ("zeroshot_mpnet_davinci2", "Zeroshot"),
+        ("random_mpnet_davinci2", "Random"),
+        ("oracle_mpnet_davinci2", "Oracle"),
+        ("quaild_gain_fl_mpnet_davinci2", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_davinci2", "QuailD-GC"),
+    )
+    extra_column_tuples = (
         # gemma
-        "zeroshot_mpnet_gemma": "gemma2b",
-        "random_mpnet_gemma": "gemma2b",
-        "oracle_mpnet_gemma": "gemma2b",
-        # "votek_mpnet_gemma": "gemma2b",
-        # "ideal_mpnet_gemma": "gemma2b",
-        "quaild_gain_fl_mpnet_gemma": "gemma2b",
-        "quaild_gain_gc_mpnet_gemma": "gemma2b",
+        ("zeroshot_mpnet_gemma", "gemma2b"),
+        ("random_mpnet_gemma", "gemma2b"),
+        ("oracle_mpnet_gemma", "gemma2b"),
+        ("quaild_gain_fl_mpnet_gemma", "gemma2b"),
+        ("quaild_gain_gc_mpnet_gemma", "gemma2b"),
         # gemma7b
-        "zeroshot_mpnet_gemma7b": "gemma7b",
-        "random_mpnet_gemma7b": "gemma7b",
-        "oracle_mpnet_gemma7b": "gemma7b",
-        # "vote_k_gemma7b": "gemma7b",
-        # "ideal_gemma7b": "gemma7b",
-        "quaild_gain_fl_mpnet_gemma7b": "gemma7b",
-        "quaild_gain_gc_mpnet_gemma7b": "gemma7b",
+        ("hline", "hline"),
+        ("zeroshot_mpnet_gemma7b", "gemma7b"),
+        ("random_mpnet_gemma7b", "gemma7b"),
+        ("oracle_mpnet_gemma7b", "gemma7b"),
+        ("quaild_gain_fl_mpnet_gemma7b", "gemma7b"),
+        ("quaild_gain_gc_mpnet_gemma7b", "gemma7b"),
         # davinci2
-        "zeroshot_mpnet_davinci2": "davinci2-175b",
-        "random_mpnet_davinci2": "davinci2-175b",
-        "oracle_mpnet_davinci2": "davinci2-175b",
-        # "vote_k_davinci2": "davinci2-175b",
-        # "ideal_davinci2": "davinci2-175b",
-        "quaild_gain_fl_mpnet_davinci2": "davinci2-175b",
-        "quaild_gain_gc_mpnet_davinci2": "davinci2-175b",
-    }
+        ("hline", "hline"),
+        ("zeroshot_mpnet_davinci2", "davinci2-175b"),
+        ("random_mpnet_davinci2", "davinci2-175b"),
+        ("oracle_mpnet_davinci2", "davinci2-175b"),
+        ("quaild_gain_fl_mpnet_davinci2", "davinci2-175b"),
+        ("quaild_gain_gc_mpnet_davinci2", "davinci2-175b"),
+    )
+
     extra_column_name = "Model"
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -486,29 +534,30 @@ def generate_model_size_ablations(df):
 def generate_main_table_stablelm(df):
     caption = "Downstream evaluation on StableLM (1.6B)"
     label = "stablelm_results"
-    method_lut = {
-        "zeroshot_mpnet_stablelm": "Zeroshot",
-        "random_mpnet_stablelm": "Random",
-        "oracle_mpnet_stablelm": "Oracle",
-        "leastconfidence_mpnet_stablelm": "Least Confidence",
-        "mfl_mpnet_stablelm": "MFL",
-        "gc_mpnet_stablelm": "GC",
-        "votek_mpnet_stablelm": "Vote-K",
-        "ideal_mpnet_stablelm": "IDEAL",
-        "quaild_nt_fl_mpnet_stablelm": "QuailD-FL (NT)",
-        "quaild_nt_gc_mpnet_stablelm": "QuailD-GC (NT)",
-        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
-    }
-    extra_column_lut = None
+    method_tuples = (
+        ("zeroshot_mpnet_stablelm", "Zeroshot"),
+        ("random_mpnet_stablelm", "Random"),
+        ("oracle_mpnet_stablelm", "Oracle"),
+        ("leastconfidence_mpnet_stablelm", "Least Confidence"),
+        ("mfl_mpnet_stablelm", "MFL"),
+        ("gc_mpnet_stablelm", "GC"),
+        ("votek_mpnet_stablelm", "Vote-K"),
+        ("ideal_mpnet_stablelm", "IDEAL"),
+        ("quaild_nt_fl_mpnet_stablelm", "QuailD-FL (NT)"),
+        ("quaild_nt_gc_mpnet_stablelm", "QuailD-GC (NT)"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
+    )
+    extra_column_tuples = None
     extra_column_name = None
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -517,29 +566,31 @@ def generate_main_table_stablelm(df):
 def generate_main_table_gemma(df):
     caption = "Downstream evaluation on Gemma (2B)"
     label = "gemma_results"
-    method_lut = {
-        "zeroshot_mpnet_gemma": "Zeroshot",
-        "random_mpnet_gemma": "Random",
-        "oracle_mpnet_gemma": "Oracle",
-        "leastconfidence_mpnet_gemma": "Least Confidence",
-        "mfl_mpnet_gemma": "MFL",
-        "gc_mpnet_gemma": "GC",
-        "votek_mpnet_gemma": "Vote-K",
-        "ideal_mpnet_gemma": "IDEAL",
-        "quaild_nt_fl_mpnet_gemma": "QuailD-FL (NT)",
-        "quaild_nt_gc_mpnet_gemma": "QuailD-GC (NT)",
-        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
-    }
-    extra_column_lut = None
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("leastconfidence_mpnet_gemma", "Least Confidence"),
+        ("mfl_mpnet_gemma", "MFL"),
+        ("gc_mpnet_gemma", "GC"),
+        ("votek_mpnet_gemma", "Vote-K"),
+        ("ideal_mpnet_gemma", "IDEAL"),
+        ("quaild_nt_fl_mpnet_gemma", "QuailD-FL (NT)"),
+        ("quaild_nt_gc_mpnet_gemma", "QuailD-GC (NT)"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+    )
+
+    extra_column_tuples = None
     extra_column_name = None
     result = generate_latex_table(
         df,
         caption,
         label,
-        method_lut,
+        method_tuples,
         extra_column_name,
-        extra_column_lut,
+        extra_column_tuples,
     )
 
     return result
@@ -547,14 +598,14 @@ def generate_main_table_gemma(df):
 
 if __name__ == "__main__":
     TABLES_TO_GENERATE = {
-        "main_table_stablelm": generate_main_table_stablelm,
+        # "main_table_stablelm": generate_main_table_stablelm,
         "main_table_gemma": generate_main_table_gemma,
         "model_size_effect": generate_model_size_ablations,
-        "qd_tradeoff_stablelm": generate_qd_tradeoff_ablations_stablelm,
+        # # "qd_tradeoff_stablelm": generate_qd_tradeoff_ablations_stablelm,
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
-        "annotation_budget_effect_stablelm": generate_annotation_budget_ablations_stablelm,
+        # # "annotation_budget_effect_stablelm": generate_annotation_budget_ablations_stablelm,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
-        "retrieval_method_effect_stablelm": generate_retrieval_method_ablations_stablelm,
+        # # "retrieval_method_effect_stablelm": generate_retrieval_method_ablations_stablelm,
         "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
     }
     BASE_PATH = Path("./artifacts/tables")
