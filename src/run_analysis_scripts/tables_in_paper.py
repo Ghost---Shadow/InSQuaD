@@ -42,7 +42,7 @@ DATASET_NAME_KEYS = {
 GROUPS = {
     "Classification": [MRPC.NAME, SST5.NAME, MNLI.NAME, DBPedia.NAME, RTE.NAME],
     "Multi-Choice": [Hellaswag.NAME],
-    "Dialogue": ["mwoz"],
+    "Dialogue": [MwozDataset.NAME],
     "Generation": ["geoq", XsumDataset.NAME],
 }
 
@@ -164,7 +164,45 @@ def generate_latex_table(
     return latex_template
 
 
-def generate_retrieval_method_ablations(df):
+def generate_retrieval_method_ablations_gemma(df):
+    caption = "Effect of retrieval methods Gemma (2B)"
+    label = "retrieval_method_ablations"
+    method_lut = {
+        "zeroshot_mpnet_gemma": "Zeroshot",
+        "random_mpnet_gemma": "Random",
+        "oracle_mpnet_gemma": "Oracle",
+        "quaild_random_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_random_gc_mpnet_gemma": "QuailD-GC",
+        "quaild_similar_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_similar_gc_mpnet_gemma": "QuailD-GC",
+        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+    }
+    extra_column_lut = {
+        "zeroshot_mpnet_gemma": "",
+        "random_mpnet_gemma": "",
+        "oracle_mpnet_gemma": "",
+        "quaild_random_fl_mpnet_gemma": "Random",
+        "quaild_random_gc_mpnet_gemma": "Random",
+        "quaild_similar_fl_mpnet_gemma": "Similar",
+        "quaild_similar_gc_mpnet_gemma": "Similar",
+        "quaild_gain_fl_mpnet_gemma": "Submodular",
+        "quaild_gain_gc_mpnet_gemma": "Submodular",
+    }
+    extra_column_name = "Retrieval"
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
+
+
+def generate_retrieval_method_ablations_stablelm(df):
     caption = "Effect of retrieval methods StableLM (1.6B)"
     label = "retrieval_method_ablations"
     method_lut = {
@@ -202,7 +240,7 @@ def generate_retrieval_method_ablations(df):
     return result
 
 
-def generate_annotation_budget_ablations(df):
+def generate_annotation_budget_ablations_stablelm(df):
     caption = "Effects of annotation budget StableLM (1.6B)"
     label = "budget_ablations"
     method_lut = {
@@ -251,7 +289,56 @@ def generate_annotation_budget_ablations(df):
     return result
 
 
-def generate_qd_tradeoff_ablations(df):
+def generate_annotation_budget_ablations_gemma(df):
+    caption = "Effects of annotation budget Gemma (2B)"
+    label = "budget_ablations"
+    method_lut = {
+        "zeroshot_mpnet_gemma": "Zeroshot",
+        "oracle_mpnet_gemma": "Oracle",
+        # budget 18
+        "random_mpnet_gemma": "Random",
+        # "votek_mpnet_gemma": "Vote-K",
+        # "ideal_mpnet_gemma": "IDEAL",
+        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+        # budget 100
+        "random_mpnet_gemma_100": "Random",
+        # "votek_mpnet_gemma_100": "Vote-K",
+        # "ideal_mpnet_gemma_100": "IDEAL",
+        "quaild_gain_fl_mpnet_gemma_100": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma_100": "QuailD-GC",
+    }
+    extra_column_lut = {
+        # Zeroshot
+        "zeroshot_mpnet_gemma": "",
+        "oracle_mpnet_gemma": "",
+        # budget 18
+        "random_mpnet_gemma": "18",
+        # "votek_mpnet_gemma": "18",
+        # "ideal_mpnet_gemma": "18",
+        "quaild_gain_fl_mpnet_gemma": "18",
+        "quaild_gain_gc_mpnet_gemma": "18",
+        # budget 100
+        "random_mpnet_gemma_100": "100",
+        # "votek_mpnet_gemma_100": "100",
+        # "ideal_mpnet_gemma_100": "100",
+        "quaild_gain_fl_mpnet_gemma_100": "100",
+        "quaild_gain_gc_mpnet_gemma_100": "100",
+    }
+    extra_column_name = "Budget"
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
+
+
+def generate_qd_tradeoff_ablations_stablelm(df):
     caption = "Effects of $\\lambda$ on StableLM (1.6B) (Quality-Diversity tradeoff)"
     label = "qd_tradeoff"
     method_lut = {
@@ -275,6 +362,44 @@ def generate_qd_tradeoff_ablations(df):
         "quaild_gain_gc_mpnet_stablelm": "0.5",
         "quaild_gain_fl_mpnet_stablelm_lambda_1": "1",
         "quaild_gain_gc_mpnet_stablelm_lambda_1": "1",
+    }
+    extra_column_name = "$\\lambda$"
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_lut,
+        extra_column_name,
+        extra_column_lut,
+    )
+
+    return result
+
+
+def generate_qd_tradeoff_ablations_gemma(df):
+    caption = "Effects of $\\lambda$ on Gemma (2B) (Quality-Diversity tradeoff)"
+    label = "qd_tradeoff"
+    method_lut = {
+        "zeroshot_mpnet_gemma": "Zeroshot",
+        "random_mpnet_gemma": "Random",
+        "oracle_mpnet_gemma": "Oracle",
+        "quaild_gain_fl_mpnet_gemma_lambda_0": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma_lambda_0": "QuailD-GC",
+        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+        "quaild_gain_fl_mpnet_gemma_lambda_1": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma_lambda_1": "QuailD-GC",
+    }
+    extra_column_lut = {
+        "zeroshot_mpnet_gemma": "",
+        "random_mpnet_gemma": "",
+        "oracle_mpnet_gemma": "",
+        "quaild_gain_fl_mpnet_gemma_lambda_0": "0",
+        "quaild_gain_gc_mpnet_gemma_lambda_0": "0",
+        "quaild_gain_fl_mpnet_gemma": "0.5",
+        "quaild_gain_gc_mpnet_gemma": "0.5",
+        "quaild_gain_fl_mpnet_gemma_lambda_1": "1",
+        "quaild_gain_gc_mpnet_gemma_lambda_1": "1",
     }
     extra_column_name = "$\\lambda$"
     result = generate_latex_table(
@@ -424,9 +549,12 @@ if __name__ == "__main__":
         "main_table_stablelm": generate_main_table_stablelm,
         "main_table_gemma": generate_main_table_gemma,
         "model_size_effect": generate_model_size_ablations,
-        "qd_tradeoff": generate_qd_tradeoff_ablations,
-        "annotation_budget_effect": generate_annotation_budget_ablations,
-        "retrieval_method_effect": generate_retrieval_method_ablations,
+        "qd_tradeoff_stablelm": generate_qd_tradeoff_ablations_stablelm,
+        "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
+        "annotation_budget_effect_stablelm": generate_annotation_budget_ablations_stablelm,
+        "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
+        "retrieval_method_effect_stablelm": generate_retrieval_method_ablations_stablelm,
+        "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
     }
     BASE_PATH = Path("./artifacts/tables")
     BASE_PATH.mkdir(parents=True, exist_ok=True)
