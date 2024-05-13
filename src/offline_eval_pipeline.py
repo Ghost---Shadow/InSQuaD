@@ -136,12 +136,23 @@ class OfflineEvaluationPipeline:
             print("few shots already computed, skipping")
             return
 
+        prompt_formatting_strategy = self.prompt_formatting_strategy
+        if hasattr(
+            self.offline_dataset_lut[self.current_dataset_name],
+            "OVERRIDE_PROMPT_FORMATTING_STRATEGY",
+        ):
+            wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
+            new_strategy_name = wrapped_dataset.OVERRIDE_PROMPT_FORMATTING_STRATEGY
+            prompt_formatting_strategy = PROMPT_FORMATTING_STRATEGIES_LUT[
+                new_strategy_name
+            ](self.config)
+
         try:
             with open(self.few_shot_data_jsonl_path, "w", encoding="utf-8") as f:
                 for row, few_shot in self.shortlist_strategy.assemble_few_shot(
                     self.current_dataset_name
                 ):
-                    prompt = self.prompt_formatting_strategy.generate_prompt(
+                    prompt = prompt_formatting_strategy.generate_prompt(
                         self.generative_model.tokenizer, row, few_shot
                     )
                     label = row["labels"]

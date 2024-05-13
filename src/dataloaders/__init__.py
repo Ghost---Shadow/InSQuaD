@@ -6,6 +6,7 @@ from dataloaders.hotpot_qa_loader import HotpotQaDataset
 from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
 from dataloaders.mnli import MNLI
 from dataloaders.mrpc import MRPC
+from dataloaders.mwoz import MwozDataset
 from dataloaders.rte import RTE
 from dataloaders.sst2 import SST2
 from dataloaders.sst5 import SST5
@@ -29,4 +30,5 @@ DATALOADERS_LUT = {
     WikiMultihopQaDataset.NAME: WikiMultihopQaDataset,
     WikiMultihopQaWithQDataset.NAME: WikiMultihopQaWithQDataset,
     XsumDataset.NAME: XsumDataset,
+    MwozDataset.NAME: MwozDataset,
 }
