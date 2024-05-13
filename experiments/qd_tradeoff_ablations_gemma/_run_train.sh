@@ -1,13 +1,13 @@
-python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_stablelm_lambda_0.yaml
+python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_gemma_lambda_0.yaml
 source devops/upload_all_checkpoints.sh
 
-python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_stablelm_lambda_1.yaml
+python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_gemma_lambda_1.yaml
 source devops/upload_all_checkpoints.sh
 
-python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_stablelm_lambda_0.yaml
+python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_gemma_lambda_0.yaml
 source devops/upload_all_checkpoints.sh
 
-python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_stablelm_lambda_1.yaml
+python src/train.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_gemma_lambda_1.yaml
 source devops/upload_all_checkpoints.sh
 
 
