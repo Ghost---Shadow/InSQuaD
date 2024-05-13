@@ -106,7 +106,7 @@ def generate_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
                 cells = (
                     method_column
                     + extra_column
-                    + [f"{x*100:.1f}" if pd.notna(x) else "??.?" for x in row[1:]]
+                    + [f"{x*100:.1f}" if pd.notna(x) else "\\textcolor{red}{??.?}" for x in row[1:]]
                 )
             else:
                 if len(row) > 1:
