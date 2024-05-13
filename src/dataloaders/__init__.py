@@ -1,6 +1,7 @@
 from dataloaders.dbpedia import DBPedia
 from dataloaders.dummy import DummyDataset
 from dataloaders.dummy_hotpot_qa_with_q_loader import DummyHotpotQaWithQDataset
+from dataloaders.geoq import GeoQDataset
 from dataloaders.hellaswag import Hellaswag
 from dataloaders.hotpot_qa_loader import HotpotQaDataset
 from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
@@ -19,16 +20,17 @@ DATALOADERS_LUT = {
     DBPedia.NAME: DBPedia,
     DummyDataset.NAME: DummyDataset,
     DummyHotpotQaWithQDataset.NAME: DummyHotpotQaWithQDataset,
+    GeoQDataset.NAME: GeoQDataset,
     Hellaswag.NAME: Hellaswag,
     HotpotQaDataset.NAME: HotpotQaDataset,
     HotpotQaWithQDataset.NAME: HotpotQaWithQDataset,
     MNLI.NAME: MNLI,
     MRPC.NAME: MRPC,
+    MwozDataset.NAME: MwozDataset,
     RTE.NAME: RTE,
     SST2.NAME: SST2,
     SST5.NAME: SST5,
     WikiMultihopQaDataset.NAME: WikiMultihopQaDataset,
     WikiMultihopQaWithQDataset.NAME: WikiMultihopQaWithQDataset,
     XsumDataset.NAME: XsumDataset,
-    MwozDataset.NAME: MwozDataset,
 }

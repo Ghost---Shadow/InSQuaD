@@ -25,6 +25,10 @@ class BaseDataset(Dataset):
             self.dataset = load_dataset(*source)
             self.dataset.save_to_disk(cache_path)
 
+    def get_length(self, split):
+        split = self.split_lut[split]
+        return len(self.dataset[split])
+
     @staticmethod
     def collate_fn(batch):
         keys = list(batch[0].keys())

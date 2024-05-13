@@ -53,7 +53,7 @@ class MwozDataset(BaseDataset):
             )
             slot_values = MwozDataset.accumulate_slot_values(frames)
 
-            prompts.append(prompt + "Answer: ")
+            prompts.append("\n" + prompt + "Answer: ")
             label = json.dumps(slot_values)
             for bad_stuff in ['"', "'", "-", "{", "}"]:
                 label = label.replace(bad_stuff, "")

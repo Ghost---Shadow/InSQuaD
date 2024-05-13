@@ -49,7 +49,7 @@ offline_validation:
     type: 'openai_pretrained'
     checkpoint: 'davinci-002'
     device: "none"
-  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz']
+  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz','geoq']
   seeds: [42]
   num_shots: 5
   annotation_budget: 18

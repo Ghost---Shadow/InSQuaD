@@ -50,7 +50,7 @@ offline_validation:
     type: 'automodel'
     checkpoint: google/gemma-2b
     device: "cuda:0"
-  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz']
+  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz','geoq']
   seeds: [42]
   num_shots: 5
   annotation_budget: 100
