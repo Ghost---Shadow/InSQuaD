@@ -51,7 +51,7 @@ offline_validation:
     checkpoint: 'davinci-002'
     device: "none"
   q_d_tradeoff_lambda: 1e-2
-  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum']
+  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz']
   seeds: [42]
   num_shots: 5
   annotation_budget: 18
