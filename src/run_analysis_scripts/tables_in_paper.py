@@ -111,7 +111,7 @@ def generate_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
             else:
                 if len(row) > 1:
                     print("REJECTED", row)
-                cells = method_column + extra_column + ["??.?"] * num_columns
+                cells = method_column + extra_column + ["\\textcolor{red}{??.?}"] * num_columns
             latex_row = " & ".join(cells) + " \\\\"
         latex_rows += latex_row + "\n"
     return latex_rows
