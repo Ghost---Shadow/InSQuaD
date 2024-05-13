@@ -3,6 +3,6 @@ from learning_rate_schedulers.warmup_linear_scheduler import WarmupLinearSchedul
 
 
 LEARNING_RATE_SCHEDULERS_LUT = {
-    WarmupLinearScheduler.NAME: WarmupLinearScheduler,
     NoOpLRScheduler.NAME: NoOpLRScheduler,
+    WarmupLinearScheduler.NAME: WarmupLinearScheduler,
 }

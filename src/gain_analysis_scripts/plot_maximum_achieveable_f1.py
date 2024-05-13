@@ -86,8 +86,9 @@ def plot_graph(plot_name, key_name):
     print(path)
 
 
-plot_names = ["sweep_results_gain", "sweep_results_k"]
-key_names = ["gain", "k"]
+if __name__ == "__main__":
+    plot_names = ["sweep_results_gain", "sweep_results_k"]
+    key_names = ["gain", "k"]
 
-for plot_name, key_name in zip(plot_names, key_names):
-    plot_graph(plot_name, key_name)
+    for plot_name, key_name in zip(plot_names, key_names):
+        plot_graph(plot_name, key_name)

@@ -11,8 +11,8 @@ SUBSET_SELECTION_STRATEGIES_LUT = {
     FastVoteKSubsetStrategy.NAME: FastVoteKSubsetStrategy,
     FlatCutoffStrategy.NAME: FlatCutoffStrategy,
     IdealSubsetStrategy.NAME: IdealSubsetStrategy,
+    NoOperationSubsetSelectionStrategy.NAME: NoOperationSubsetSelectionStrategy,
     QuaildSubmodularStrategy.NAME: QuaildSubmodularStrategy,
     RandomSubsetStrategy.NAME: RandomSubsetStrategy,
     TopKStrategy.NAME: TopKStrategy,
-    NoOperationSubsetSelectionStrategy.NAME: NoOperationSubsetSelectionStrategy,
 }
