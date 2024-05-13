@@ -51,7 +51,9 @@ class CheckpointManager:
             file for file in os.listdir(self.checkpoint_dir) if file.endswith(".pth")
         ]
         if not checkpoint_files:
-            raise FileNotFoundError("No checkpoints found in the directory.")
+            raise FileNotFoundError(
+                f"No checkpoints found in the directory {self.checkpoint_dir}."
+            )
 
         if epoch is None:
             checkpoint_path = self.get_latest_checkpoint(checkpoint_files)
