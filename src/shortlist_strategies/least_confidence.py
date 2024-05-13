@@ -1,7 +1,9 @@
 import json
+import traceback
 from config import RootConfig
 from eval_utils import evaluate_with_options_if_possible, get_options_if_possible
 from shortlist_strategies.base import BaseStrategy
+import torch
 from tqdm import tqdm
 
 
@@ -22,14 +24,19 @@ class LeastConfidenceStrategy(BaseStrategy):
         for row in tqdm(longlist_rows, desc="Computing confidences"):
             prompt, true_answer = row["prompts"], row["labels"]
 
-            result = evaluate_with_options_if_possible(
-                self.pipeline.generative_model, options, prompt, true_answer
-            )
+            try:
+                result = evaluate_with_options_if_possible(
+                    self.pipeline.generative_model, options, prompt, true_answer
+                )
 
-            if options is None:
-                confidence = result["target_sequence_probability"]
-            else:
-                confidence = result["option_probabilities"][true_answer]
+                if options is None:
+                    confidence = result["target_sequence_probability"]
+                else:
+                    confidence = result["option_probabilities"][true_answer]
+            except Exception as e:
+                print(traceback.format_exc())
+                confidence = 1.0  # Dont select this
+                torch.cuda.empty_cache()
 
             all_confidences.append(confidence)
 

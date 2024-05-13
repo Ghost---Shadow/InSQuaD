@@ -27,6 +27,10 @@ def merge_directories(source_dir, dest_dir):
     return conflicts
 
 
+def unshashify(name):
+    return "_".join(name.split("_")[:-1])
+
+
 def merge_experiment_hashes(base_path):
     """Merge all experiment data from various hash directories into the current hash directory."""
     yaml_files = glob("./experiments/**/*.yaml")
@@ -43,7 +47,7 @@ def merge_experiment_hashes(base_path):
         other_dirs = [
             f"./{base_path}/{f}"
             for f in os.listdir(f"./{base_path}")
-            if f.startswith(config.name + "_") and f != current_name_hash
+            if unshashify(f) == config.name and f != current_name_hash
         ]
 
         # Merge other directories into the current one
@@ -51,8 +55,9 @@ def merge_experiment_hashes(base_path):
             if os.path.exists(source_dir):
                 conflicts = merge_directories(source_dir, current_dir)
                 if conflicts:
+                    # {', '.join(conflicts)}
                     print(
-                        f"Conflicts encountered while merging {source_dir} into {current_name_hash} in {base_path}: {', '.join(conflicts)}. Some files were not moved."
+                        f"Conflicts encountered while merging {source_dir} into {current_name_hash} in {base_path}:\n"
                     )
                 # Optionally delete the old directory if no conflicts
                 if not conflicts:
