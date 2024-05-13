@@ -1,8 +1,10 @@
 import json
 import os
 import math
+from generative_models.base import BaseGenerativeModel
 from openai import OpenAI
 import tiktoken
+from rouge_score import rouge_scorer
 
 
 class WrappedTokenizer:
@@ -29,7 +31,7 @@ class WrappedTokenizer:
         }
 
 
-class WrappedOpenAiPretrained:
+class WrappedOpenAiPretrained(BaseGenerativeModel):
     NAME = "openai_pretrained"
 
     def __init__(self, config, generative_model_config):
@@ -39,6 +41,9 @@ class WrappedOpenAiPretrained:
         self.model_name = generative_model_config.checkpoint
         self.tokenizer = WrappedTokenizer(self.model_name)
         self.model = None  # Dont remove
+        self.rouge_scorer = rouge_scorer.RougeScorer(
+            ["rouge1", "rouge2", "rougeL"], use_stemmer=True
+        )
 
     def evaluate_with_options(self, prompt, correct_option_index, options):
         # Construct the prompt with enumerated options
@@ -132,9 +137,12 @@ class WrappedOpenAiPretrained:
         )
         predicted_sequence_probability = math.exp(log_predicted_sequence_probability)
 
+        rouge_result = self._compute_rouge(redecoded_target, predicted)
+
         return {
             "target_sequence_probability": -1,  # Not possible with API
             "predicted_sequence_probability": predicted_sequence_probability,
             "target": redecoded_target,
             "predicted": predicted,
+            "rouge": rouge_result,
         }

@@ -1,10 +1,11 @@
+from generative_models.base import BaseGenerativeModel
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch.nn.functional as F
 from rouge_score import rouge_scorer
 
 
-class WrappedAutoModel:
+class WrappedAutoModel(BaseGenerativeModel):
     NAME = "automodel"
 
     def __init__(self, config, generative_model_config):
@@ -49,18 +50,6 @@ class WrappedAutoModel:
         if override_max_sequence_length is not None:
             self.tokenizer.model_max_length = override_max_sequence_length
         assert self.tokenizer.model_max_length
-
-    def _compute_rouge(self, target, predicted):
-        scores = self.rouge_scorer.score(target, predicted)
-        rouge_result = {
-            metric: {
-                "precision": score.precision,
-                "recall": score.recall,
-                "fmeasure": score.fmeasure,
-            }
-            for metric, score in scores.items()
-        }
-        return rouge_result
 
     def evaluate_with_options(self, prompt, correct_option_index, options):
         # Tokenize input
