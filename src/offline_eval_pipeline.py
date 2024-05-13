@@ -185,6 +185,7 @@ class OfflineEvaluationPipeline:
     def run_inference(self, skip_if_done=True):
         if os.path.exists(self.inference_done_path) and skip_if_done:
             print("Inference already done")
+            return
 
         wrapped_dataset = self.offline_dataset_lut[self.current_dataset_name]
         options = get_options_if_possible(wrapped_dataset)
