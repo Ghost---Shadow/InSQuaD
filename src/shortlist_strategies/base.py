@@ -22,11 +22,13 @@ class BaseStrategy:
         wrapped_dataset = self.pipeline.offline_dataset_lut[
             self.pipeline.current_dataset_name
         ]
+        subsample_size = min(wrapped_dataset.get_length("train"), subsample_size)
 
         self.subsampled_train_idxs, _iterator = self.subsample_dataset(
             wrapped_dataset, "train", subsample_size
         )
         rows = list(_iterator)  # TODO: Optimize
+        assert subsample_size == len(rows), len(rows)
         with open(self.pipeline.longlisted_data_path, "w") as f:
             # For inspection only
             json.dump(rows, f, indent=2)
@@ -44,6 +46,7 @@ class BaseStrategy:
         wrapped_dataset = self.pipeline.offline_dataset_lut[
             self.pipeline.current_dataset_name
         ]
+        subsample_size = min(wrapped_dataset.get_length("validation"), subsample_size)
         self.subsampled_eval_idxs, _iterator = self.subsample_dataset(
             wrapped_dataset, "validation", subsample_size
         )
