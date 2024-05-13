@@ -96,6 +96,8 @@ def generate_latex_rows(df, method_lut, num_columns, extra_column_lut):
                 + [f"{x*100:.1f}" if pd.notna(x) else "??.?" for x in row[1:]]
             )
         else:
+            if len(row) > 1:
+                print("REJECTED", row)
             cells = method_column + extra_column + ["??.?"] * num_columns
         latex_row = " & ".join(cells)
         latex_rows += latex_row + " \\\\\n"
