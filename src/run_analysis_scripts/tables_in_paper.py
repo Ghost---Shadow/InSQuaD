@@ -418,14 +418,14 @@ def generate_model_size_ablations(df):
     caption = "Effects of model size"
     label = "model_size"
     method_lut = {
-        # stablelm
-        "zeroshot_mpnet_stablelm": "Zeroshot",
-        "random_mpnet_stablelm": "Random",
-        "oracle_mpnet_stablelm": "Oracle",
-        # "votek_mpnet_stablelm": "Vote-K",
-        # "ideal_mpnet_stablelm": "IDEAL",
-        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+        # gemma
+        "zeroshot_mpnet_gemma": "Zeroshot",
+        "random_mpnet_gemma": "Random",
+        "oracle_mpnet_gemma": "Oracle",
+        # "votek_mpnet_gemma": "Vote-K",
+        # "ideal_mpnet_gemma": "IDEAL",
+        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
         # gemma7b
         "zeroshot_mpnet_gemma7b": "Zeroshot",
         "random_mpnet_gemma7b": "Random",
@@ -444,14 +444,14 @@ def generate_model_size_ablations(df):
         "quaild_gain_gc_mpnet_davinci2": "QuailD-GC",
     }
     extra_column_lut = {
-        # stablelm
-        "zeroshot_mpnet_stablelm": "StableLM1.6B",
-        "random_mpnet_stablelm": "StableLM1.6B",
-        "oracle_mpnet_stablelm": "StableLM1.6B",
-        # "votek_mpnet_stablelm": "StableLM1.6B",
-        # "ideal_mpnet_stablelm": "StableLM1.6B",
-        "quaild_gain_fl_mpnet_stablelm": "StableLM1.6B",
-        "quaild_gain_gc_mpnet_stablelm": "StableLM1.6B",
+        # gemma
+        "zeroshot_mpnet_gemma": "gemma2b",
+        "random_mpnet_gemma": "gemma2b",
+        "oracle_mpnet_gemma": "gemma2b",
+        # "votek_mpnet_gemma": "gemma2b",
+        # "ideal_mpnet_gemma": "gemma2b",
+        "quaild_gain_fl_mpnet_gemma": "gemma2b",
+        "quaild_gain_gc_mpnet_gemma": "gemma2b",
         # gemma7b
         "zeroshot_mpnet_gemma7b": "gemma7b",
         "random_mpnet_gemma7b": "gemma7b",
