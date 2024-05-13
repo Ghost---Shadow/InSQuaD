@@ -2,6 +2,7 @@ from pathlib import Path
 from dataloaders.dbpedia import DBPedia
 from dataloaders.dummy import DummyDataset
 from dataloaders.dummy_hotpot_qa_with_q_loader import DummyHotpotQaWithQDataset
+from dataloaders.geoq import GeoQDataset
 from dataloaders.hellaswag import Hellaswag
 from dataloaders.hotpot_qa_loader import HotpotQaDataset
 from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
@@ -35,7 +36,7 @@ DATASET_NAME_KEYS = {
     WikiMultihopQaWithQDataset.NAME: "WikiMultihopQaWithQDataset",
     XsumDataset.NAME: "Xsum",
     MwozDataset.NAME: "MWoZ",
-    "geoq": "GeoQ",  # TODO
+    GeoQDataset.NAME: "GeoQ",
 }
 
 
@@ -43,7 +44,7 @@ GROUPS = {
     "Classification": [MRPC.NAME, SST5.NAME, MNLI.NAME, DBPedia.NAME, RTE.NAME],
     "Multi-Choice": [Hellaswag.NAME],
     "Dialogue": [MwozDataset.NAME],
-    "Generation": ["geoq", XsumDataset.NAME],
+    "Generation": [GeoQDataset.NAME, XsumDataset.NAME],
 }
 
 
