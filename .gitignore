@@ -172,6 +172,7 @@ experiments/gain_histogram/compute_gain_histogram.sh
 devops/upload_checkpoints.sh
 install_gpu_driver.py
 *TestWarmupLinearScheduler.png
+experiments/all.sh
 
 # custom
 scratch
