@@ -10,8 +10,8 @@ python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/
 python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_nt_gc_mpnet_gemma.yaml --limit=1000
 
 python src/gain_analysis_scripts/plot_maximum_achieveable_f1.py
-python src/notifications/discord_wrapper.py --image_path=artifacts/sweep_results_gain.png
-python src/notifications/discord_wrapper.py --image_path=artifacts/sweep_results_k.png
+python src/notifications/discord_wrapper.py --image_path=artifacts/diagrams/sweep_results_gain.png
+python src/notifications/discord_wrapper.py --image_path=artifacts/diagrams/sweep_results_k.png
 
 source devops/upload_artifacts.sh
 source devops/stop_current_gcp_instance.sh
