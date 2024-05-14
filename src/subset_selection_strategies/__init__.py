@@ -1,3 +1,4 @@
+from subset_selection_strategies.diversity import DiversitySubsetSelectionStrategy
 from subset_selection_strategies.fast_vote_k_subset import FastVoteKSubsetStrategy
 from subset_selection_strategies.flat_cutoff import FlatCutoffStrategy
 from subset_selection_strategies.graph_cut import GraphCutSubsetStrategy
@@ -21,4 +22,5 @@ SUBSET_SELECTION_STRATEGIES_LUT = {
     TopKStrategy.NAME: TopKStrategy,
     MaximumFacilityLocationSubsetStrategy.NAME: MaximumFacilityLocationSubsetStrategy,
     GraphCutSubsetStrategy.NAME: GraphCutSubsetStrategy,
+    DiversitySubsetSelectionStrategy.NAME: DiversitySubsetSelectionStrategy,
 }
