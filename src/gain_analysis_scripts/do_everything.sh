@@ -1,7 +1,13 @@
-python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_gain_fl_mpnet_stablelm.yaml  --should_load_checkpoint --limit=1000
-python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_gain_gc_mpnet_stablelm.yaml --should_load_checkpoint --limit=1000
-python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_nt_fl_mpnet_stablelm.yaml --limit=1000
-python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_nt_gc_mpnet_stablelm.yaml --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_gemma_lambda_025.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_gemma_lambda_025.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_gemma_lambda_0.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_gemma_lambda_0.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_fl_mpnet_gemma_lambda_1.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/qd_tradeoff_ablations_gemma/quaild_gain_gc_mpnet_gemma_lambda_1.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_gain_fl_mpnet_gemma.yaml  --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_gain_gc_mpnet_gemma.yaml --should_load_checkpoint --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_nt_fl_mpnet_gemma.yaml --limit=1000
+python src/gain_analysis_scripts/maximum_achieveable_f1.py --config=experiments/main_table/quaild_nt_gc_mpnet_gemma.yaml --limit=1000
 
 python src/gain_analysis_scripts/plot_maximum_achieveable_f1.py
 python src/notifications/discord_wrapper.py --image_path=artifacts/sweep_results_gain.png
