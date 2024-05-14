@@ -1,6 +1,9 @@
 python src/offline_eval.py --config=experiments/tests/fastvotek_test_experiment.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/tests/gc_test_experiment.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/tests/ideal_test_experiment.yaml
 source devops/upload_artifacts.sh
 
