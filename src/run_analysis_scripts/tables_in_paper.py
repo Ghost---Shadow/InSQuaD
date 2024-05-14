@@ -216,8 +216,8 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_similar_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_similar_gc_mpnet_gemma", "QuailD-GC"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
     )
     extra_column_tuples = (
         ("zeroshot_mpnet_gemma", ""),
@@ -230,8 +230,8 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_gemma", "Submodular"),
-        ("quaild_gain_gc_mpnet_gemma", "Submodular"),
+        ("quaild_gain_fl_mpnet_gemma_best", "Submodular"),
+        ("quaild_gain_gc_mpnet_gemma_best", "Submodular"),
     )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
@@ -260,8 +260,8 @@ def generate_retrieval_method_ablations_stablelm(df):
         ("quaild_similar_fl_mpnet_stablelm", "QuailD-FL"),
         ("quaild_similar_gc_mpnet_stablelm", "QuailD-GC"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
+        ("quaild_gain_fl_mpnet_stablelm_best", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm_best", "QuailD-GC"),
     )
     extra_column_tuples = (
         ("zeroshot_mpnet_stablelm", ""),
@@ -274,8 +274,8 @@ def generate_retrieval_method_ablations_stablelm(df):
         ("quaild_similar_fl_mpnet_stablelm", "Similar"),
         ("quaild_similar_gc_mpnet_stablelm", "Similar"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm", "Submodular"),
-        ("quaild_gain_gc_mpnet_stablelm", "Submodular"),
+        ("quaild_gain_fl_mpnet_stablelm_best", "Submodular"),
+        ("quaild_gain_gc_mpnet_stablelm_best", "Submodular"),
     )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
@@ -456,9 +456,9 @@ def generate_qd_tradeoff_ablations_gemma(df):
         ("quaild_gain_fl_mpnet_gemma_lambda_0", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_lambda_0", "QuailD-GC"),
         ("hline", "hline"),
-        # ("quaild_gain_fl_mpnet_gemma_lambda_025", "QuailD-FL"),
-        # ("quaild_gain_gc_mpnet_gemma_lambda_025", "QuailD-GC"),
-        # ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_lambda_025", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_lambda_025", "QuailD-GC"),
+        ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
         ("hline", "hline"),
@@ -473,9 +473,9 @@ def generate_qd_tradeoff_ablations_gemma(df):
         ("quaild_gain_fl_mpnet_gemma_lambda_0", "0"),
         ("quaild_gain_gc_mpnet_gemma_lambda_0", "0"),
         ("hline", "hline"),
-        # ("quaild_gain_fl_mpnet_gemma_lambda_025", "0.25"),
-        # ("quaild_gain_gc_mpnet_gemma_lambda_025", "0.25"),
-        # ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_gain_gc_mpnet_gemma_lambda_025", "0.25"),
+        ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma", "0.5"),
         ("quaild_gain_gc_mpnet_gemma", "0.5"),
         ("hline", "hline"),
@@ -572,8 +572,8 @@ def generate_main_table_stablelm(df):
         ("quaild_nt_fl_mpnet_stablelm", "QuailD-FL (NT)"),
         ("quaild_nt_gc_mpnet_stablelm", "QuailD-GC (NT)"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
+        ("quaild_gain_fl_mpnet_stablelm_best", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_stablelm_best", "QuailD-GC"),
     )
     extra_column_tuples = None
     extra_column_name = None
@@ -604,8 +604,8 @@ def generate_main_table_gemma(df):
         ("quaild_nt_fl_mpnet_gemma", "QuailD-FL (NT)"),
         ("quaild_nt_gc_mpnet_gemma", "QuailD-GC (NT)"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
     )
 
     extra_column_tuples = None
@@ -620,6 +620,36 @@ def generate_main_table_gemma(df):
     )
 
     return result
+
+
+def generate_best_row(df):
+    methods_fl = [
+        "quaild_gain_fl_mpnet_gemma_lambda_0",
+        "quaild_gain_fl_mpnet_gemma_lambda_025",
+        "quaild_gain_fl_mpnet_gemma",
+        "quaild_gain_fl_mpnet_gemma_lambda_1",
+    ]
+    methods_gc = [
+        "quaild_gain_gc_mpnet_gemma_lambda_0",
+        "quaild_gain_gc_mpnet_gemma_lambda_025",
+        "quaild_gain_gc_mpnet_gemma",
+        "quaild_gain_gc_mpnet_gemma_lambda_1",
+    ]
+
+    ddf = df.copy()
+    ddf["method"] = ddf["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
+
+    fl_max_values = ddf[ddf["method"].isin(methods_fl)].max()
+    fl_max_values["method"] = "quaild_gain_fl_mpnet_gemma_best_00000"
+
+    gc_max_values = ddf[ddf["method"].isin(methods_gc)].max()
+    gc_max_values["method"] = "quaild_gain_gc_mpnet_gemma_best_00000"
+
+    df = pd.concat(
+        [df, pd.DataFrame([fl_max_values, gc_max_values])], ignore_index=True
+    )
+
+    return df
 
 
 if __name__ == "__main__":
@@ -638,6 +668,8 @@ if __name__ == "__main__":
     BASE_PATH.mkdir(parents=True, exist_ok=True)
 
     df = excelify()
+    df = df.reset_index()
+    df = generate_best_row(df)
     df.to_csv(BASE_PATH / "all.csv")
 
     for file_name, fn in tqdm(TABLES_TO_GENERATE.items()):
