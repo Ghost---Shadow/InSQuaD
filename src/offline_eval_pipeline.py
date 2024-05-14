@@ -123,9 +123,12 @@ class OfflineEvaluationPipeline:
 
         shortlisted_rows = []
         for idx, confidence in zip(indexes, confidences):
-            row = longlist_rows[idx]
-            row["confidence"] = confidence
-            shortlisted_rows.append(row)
+            try:
+                row = longlist_rows[idx]
+                row["confidence"] = confidence
+                shortlisted_rows.append(row)
+            except IndexError as e:
+                raise IndexError(f"{str(e)} - Additional Info: {len(longlist_rows)}, {idx}") from e
 
         with open(self.shortlisted_data_path, "w", encoding="utf-8") as f:
             json.dump(shortlisted_rows, f, indent=2)
