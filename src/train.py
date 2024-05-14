@@ -1,4 +1,6 @@
 import argparse
+from datetime import datetime
+import traceback
 from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
 import torch
@@ -50,7 +52,19 @@ def main(config: RootConfig, seed: int):
             torch.cuda.empty_cache()
         send_discord_notification(f"Experiment {EXPERIMENT_NAME} finished!")
     except Exception as e:
-        send_discord_notification(f"Experiment {EXPERIMENT_NAME} crashed!")
+        # Format the traceback
+        error_trace = traceback.format_exc()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Write the traceback to a file
+        file_path = f"./artifacts/crashes/{EXPERIMENT_NAME}_train_{timestamp}.txt"
+        with open(file_path, "w") as file:
+            file.write(error_trace)
+
+        # Send a notification to Discord
+        send_discord_notification(
+            f"Experiment {EXPERIMENT_NAME} crashed!\n\n{error_trace}"
+        )
         raise e
 
 

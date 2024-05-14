@@ -1,5 +1,7 @@
 import argparse
+from datetime import datetime
 import json
+import traceback
 from config import Config
 from notifications.discord_wrapper import send_discord_notification
 from offline_eval_pipeline import OfflineEvaluationPipeline
@@ -49,7 +51,21 @@ def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
 
         send_discord_notification(finish_message + table_message)
     except Exception as e:
-        send_discord_notification(f"Eval for {EXPERIMENT_NAME}/{dataset_name} crashed!")
+        # Format the traceback
+        error_trace = traceback.format_exc()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Write the traceback to a file
+        file_path = (
+            f"./artifacts/crashes/{EXPERIMENT_NAME}_{dataset_name}_{timestamp}.txt"
+        )
+        with open(file_path, "w") as file:
+            file.write(error_trace)
+
+        # Send a notification to Discord
+        send_discord_notification(
+            f"Eval for {EXPERIMENT_NAME}/{dataset_name} crashed!\n\n{error_trace}"
+        )
         raise e
 
 
