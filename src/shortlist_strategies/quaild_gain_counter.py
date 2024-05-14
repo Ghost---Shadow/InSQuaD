@@ -46,12 +46,13 @@ class QuaildGainCounterStrategy(BaseStrategy):
             )
 
             voted_global_indices = shortlist_indices[local_shortlist_indices].tolist()
-            assert max(voted_global_indices) <= len(
-                longlist_rows
-            ), f"{max(voted_global_indices)} {len(longlist_rows)}"
 
             if not isinstance(voted_global_indices, list):
                 voted_global_indices = [voted_global_indices]
+
+            assert max(voted_global_indices) <= len(
+                longlist_rows
+            ), f"{max(voted_global_indices)} {len(longlist_rows)}"
 
             for idx in list(voted_global_indices):
                 counter[idx] += 1
