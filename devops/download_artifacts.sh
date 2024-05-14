@@ -1,1 +1,1 @@
-gsutil -m cp -r gs://quaild-icl-bucket/artifacts/* ./artifacts
+gsutil -m cp -n -r gs://quaild-icl-bucket/artifacts/* ./artifacts
