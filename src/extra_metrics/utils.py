@@ -102,6 +102,10 @@ def plot_to_disk(all_scores, correct_masks):
 
     df = pd.DataFrame(data)
 
+    # Enable LaTeX typesetting
+    # plt.rc("text", usetex=True)
+    # plt.rc("font", family="serif")
+
     sns.set_theme("paper")
     plt.figure(figsize=(10, 6))
     sns.scatterplot(

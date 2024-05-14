@@ -49,6 +49,10 @@ def plot_data(data):
     # Sort data by elapsed time
     df_sorted = df.sort_values("Elapsed Time (ms)", ascending=False)
 
+    # Enable LaTeX typesetting
+    # plt.rc("text", usetex=True)
+    # plt.rc("font", family="serif")
+
     # Set up the matplotlib figure to control size, aspect ratio
     plt.figure(figsize=(8, 5))
     sns.set_theme("paper")

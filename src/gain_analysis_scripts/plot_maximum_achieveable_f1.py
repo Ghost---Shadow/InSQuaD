@@ -18,6 +18,9 @@ def format_experiment_name(experiment_name):
 
 
 def plot_graph(plot_name, key_name):
+    # Enable LaTeX typesetting
+    # plt.rc("text", usetex=True)
+    # plt.rc("font", family="serif")
     sns.set_theme("paper")
     plt.tight_layout()
     plt.figure(figsize=(10, 10))

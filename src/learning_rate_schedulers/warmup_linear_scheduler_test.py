@@ -32,6 +32,9 @@ class TestWarmupLinearScheduler(unittest.TestCase):
                 scheduler.step()
                 lrs.append(optimizer.param_groups[0]["lr"])
 
+        # Enable LaTeX typesetting
+        # plt.rc("text", usetex=True)
+        # plt.rc("font", family="serif")
         plt.figure(figsize=(10, 4))
         plt.plot(lrs, label="Learning Rate")
         plt.xlabel("Training Steps")
