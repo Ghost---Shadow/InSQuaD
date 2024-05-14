@@ -95,6 +95,13 @@ def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples
     relevant_methods = list(map(lambda x: x[0], method_tuples))
     df = full_df[full_df["method"].isin(relevant_methods)]
 
+    # Set all values to -inf where the method contains 'oracle'
+    df_copy = df.copy()
+    for i in range(1, num_columns + 1):
+        mask = df_copy["method"].str.contains("oracle")
+        df_copy.loc[mask, df_copy.columns[i]] = 0.0
+    max_values = [df_copy.iloc[:, i].max() for i in range(1, num_columns + 1)]
+
     for method, method_print_name in method_tuples:
         if method == "hline":
             latex_row = "\hline"
@@ -107,14 +114,16 @@ def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples
                 extra_column = [extra_column_lut[method]]
             if len(row) == 1:
                 row = row.values.tolist()[0]
-                cells = (
-                    method_column
-                    + extra_column
-                    + [
-                        f"{x*100:.1f}" if pd.notna(x) else "\\textcolor{red}{??.?}"
-                        for x in row[1:]
-                    ]
-                )
+                cells = method_column + extra_column
+                for idx, x in enumerate(row[1:]):
+                    # Format the cell and check if it is the max value for boldfacing
+                    if pd.notna(x) and x == max_values[idx]:
+                        cell = f"\\textbf{{{x*100:.1f}}}"
+                    elif pd.notna(x):
+                        cell = f"{x*100:.1f}"
+                    else:
+                        cell = "\\textcolor{red}{??.?}"
+                    cells.append(cell)
             else:
                 if len(row) > 1:
                     print("REJECTED", row)
