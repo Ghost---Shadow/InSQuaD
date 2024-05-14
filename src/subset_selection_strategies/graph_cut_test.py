@@ -1,18 +1,18 @@
 import torch
 from config import Config
 from training_pipeline import TrainingPipeline
-from subset_selection_strategies.maximum_facility_location import (
-    MaximumFacilityLocationSubsetStrategy,
+from subset_selection_strategies.graph_cut import (
+    GraphCutSubsetStrategy,
 )
 import unittest
 import torch.nn.functional as F
 
 
-# python -m unittest subset_selection_strategies.maximum_facility_location_test.TestMaximumFacilityLocationSubsetStrategy -v
-class TestMaximumFacilityLocationSubsetStrategy(unittest.TestCase):
-    # python -m unittest subset_selection_strategies.maximum_facility_location_test.TestMaximumFacilityLocationSubsetStrategy.test_subset_select -v
+# python -m unittest subset_selection_strategies.graph_cut_test.TestGraphCutSubsetStrategy -v
+class TestGraphCutSubsetStrategy(unittest.TestCase):
+    # python -m unittest subset_selection_strategies.graph_cut_test.TestGraphCutSubsetStrategy.test_subset_select -v
     def test_subset_select(self):
-        config = Config.from_file("experiments/tests/mfl_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/gc_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"
         config.architecture.dense_index.type = "in_memory"
         config.offline_validation.datasets = []  # Save time
@@ -40,21 +40,21 @@ class TestMaximumFacilityLocationSubsetStrategy(unittest.TestCase):
             shortlist_embeddings
         )
 
-        expected_output = [1, 2, 4, 0, 3]
+        expected_output = [0, 4, 1, 2, 3]
         expected_scores = [
-            1.7071069478988647,
-            3.7071070671081543,
-            4.707107067108154,
-            5.0,
-            5.0,
+            0.0,
+            1.7071068286895752,
+            0.8786797523498535,
+            0.9999998807907104,
+            1.2928930521011353,
         ]
 
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()
 
-    # python -m unittest subset_selection_strategies.maximum_facility_location_test.TestMaximumFacilityLocationSubsetStrategy.test_real_data -v
+    # python -m unittest subset_selection_strategies.graph_cut_test.TestGraphCutSubsetStrategy.test_real_data -v
     def test_real_data(self):
-        config = Config.from_file("experiments/tests/mfl_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/gc_test_experiment.yaml")
         pipeline = TrainingPipeline(config)
         train_loader = pipeline.wrapped_train_dataset.get_loader("train")
         batch = next(iter(train_loader))
@@ -68,21 +68,21 @@ class TestMaximumFacilityLocationSubsetStrategy(unittest.TestCase):
         # }, metrics
 
         assert metrics == {
-            "precision": 0.15,
-            "recall": 0.375,
-            "f1_score": 0.21428571428571425,
+            "precision": 0.1,
+            "recall": 0.25,
+            "f1_score": 0.14285714285714288,
         }, metrics
 
-    # python -m unittest subset_selection_strategies.maximum_facility_location_test.TestMaximumFacilityLocationSubsetStrategy.test_shorter_than_budget -v
+    # python -m unittest subset_selection_strategies.graph_cut_test.TestGraphCutSubsetStrategy.test_shorter_than_budget -v
     def test_shorter_than_budget(self):
-        config = Config.from_file("experiments/tests/mfl_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/gc_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"  # Save time
         config.architecture.dense_index.type = "in_memory"  # Save time
         config.offline_validation.datasets = []  # Save time
         pipeline = TrainingPipeline(config)
 
         # Create an instance of the strategy
-        strategy = MaximumFacilityLocationSubsetStrategy(config, pipeline)
+        strategy = GraphCutSubsetStrategy(config, pipeline)
 
         query_embedding = None
         shortlist_embeddings = torch.tensor(
@@ -98,18 +98,18 @@ class TestMaximumFacilityLocationSubsetStrategy(unittest.TestCase):
         result, scores = strategy.subset_select(query_embedding, shortlist_embeddings)
 
         expected_output = [0, 2, 1]
-        expected_scores = [2.0, 3.0, 3.0]
+        expected_scores = [0.0, 1.0, 1.0]
 
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()
 
-    # python -m unittest subset_selection_strategies.maximum_facility_location_test.TestMaximumFacilityLocationSubsetStrategy.test_empty_shortlist -v
+    # python -m unittest subset_selection_strategies.graph_cut_test.TestGraphCutSubsetStrategy.test_empty_shortlist -v
     def test_empty_shortlist(self):
-        config = Config.from_file("experiments/tests/mfl_test_experiment.yaml")
+        config = Config.from_file("experiments/tests/gc_test_experiment.yaml")
         config.offline_validation.datasets = []
         pipeline = TrainingPipeline(config)
 
-        strategy = MaximumFacilityLocationSubsetStrategy(config, pipeline)
+        strategy = GraphCutSubsetStrategy(config, pipeline)
 
         query_embedding = None
         shortlist_embeddings = torch.tensor([], dtype=torch.float32).reshape(0, 3)

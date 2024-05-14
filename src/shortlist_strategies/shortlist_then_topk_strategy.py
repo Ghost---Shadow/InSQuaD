@@ -42,6 +42,11 @@ class ShortlistThenTopK(BaseStrategy):
             embedding_matrix
         )
 
+        if type(indexes) == torch.Tensor:
+            indexes = indexes.tolist()
+        if type(confidences) == torch.Tensor:
+            confidences = confidences.tolist()
+
         return indexes, confidences
 
     def assemble_few_shot(self, use_cache=True):

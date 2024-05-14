@@ -173,6 +173,36 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.run_inference(skip_if_done=True)
         pipeline.analyze_inference_outputs()
 
+    # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_mfl_flow -v
+    def test_mfl_flow(self):
+        config_path = "experiments/tests/mfl_test_experiment.yaml"
+
+        config = Config.from_file(config_path)
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        # Should not crash
+        pipeline.shortlist(skip_if_done=True)
+        pipeline.generate_few_shots(skip_if_done=True)
+        pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
+
+    # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_gc_flow -v
+    def test_gc_flow(self):
+        config_path = "experiments/tests/gc_test_experiment.yaml"
+
+        config = Config.from_file(config_path)
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        # Should not crash
+        pipeline.shortlist(skip_if_done=True)
+        pipeline.generate_few_shots(skip_if_done=True)
+        pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
+
 
 if __name__ == "__main__":
     unittest.main()

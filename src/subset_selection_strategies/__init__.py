@@ -1,5 +1,6 @@
 from subset_selection_strategies.fast_vote_k_subset import FastVoteKSubsetStrategy
 from subset_selection_strategies.flat_cutoff import FlatCutoffStrategy
+from subset_selection_strategies.graph_cut import GraphCutSubsetStrategy
 from subset_selection_strategies.ideal_subset import IdealSubsetStrategy
 from subset_selection_strategies.maximum_facility_location import (
     MaximumFacilityLocationSubsetStrategy,
@@ -19,4 +20,5 @@ SUBSET_SELECTION_STRATEGIES_LUT = {
     RandomSubsetStrategy.NAME: RandomSubsetStrategy,
     TopKStrategy.NAME: TopKStrategy,
     MaximumFacilityLocationSubsetStrategy.NAME: MaximumFacilityLocationSubsetStrategy,
+    GraphCutSubsetStrategy.NAME: GraphCutSubsetStrategy,
 }

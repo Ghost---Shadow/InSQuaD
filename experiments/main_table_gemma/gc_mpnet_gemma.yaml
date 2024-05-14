@@ -1,0 +1,58 @@
+wandb:
+  project: "quaild"
+  name: "gc_mpnet_gemma"
+  # entity: "carml"
+
+architecture:
+  generative_model:
+    type: 'noop'
+    checkpoint: 'none'
+    device: 'none'
+  
+  semantic_search_model:
+    type: 'mpnet'
+    checkpoint: 'sentence-transformers/all-mpnet-base-v2'
+    device: "cuda:0"
+
+  subset_selection_strategy:
+    type: 'graph_cut'
+    k: 18 # Annotation budget
+
+  dense_index:
+    type: 'faiss'
+    index_class: 'IndexFlatL2'
+    repopulate_every: 'epoch'
+    k_for_rerank: 10
+
+  prompt_formatting_strategy:
+    type: 'q_a_with_new_line'
+
+# https://arxiv.org/pdf/2004.09297.pdf - Page 12
+training:
+  type: 'noop'
+  dataset: 'hotpot_qa_with_q'
+  q_d_tradeoff_lambda: 0.5
+  extra_metrics: ['hotpot_qa_with_q_f1']
+  epochs: 7
+  batch_size: 1 # 32 (Paper uses 32 with pretraining objective, our effective size is dynamic and larger)
+  learning_rate: 1e-5
+  weight_decay: 0.01
+  learning_rate_decay_strategy: 'linear'
+  warmup_ratio: 0.06
+  seeds: [42]
+  loss:
+    type: 'facility_location'
+    lambd: 1
+
+offline_validation:
+  type: shortlist_then_top_k
+  generative_model:
+    type: 'automodel'
+    checkpoint: google/gemma-2b
+    device: "cuda:0"
+  datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz','geoq']
+  seeds: [42]
+  num_shots: 5
+  annotation_budget: 18
+  subsample_for_train_size: 3000
+  subsample_for_eval_size: 256
