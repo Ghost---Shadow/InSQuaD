@@ -29,6 +29,10 @@ class QuaildGainCounterStrategy(BaseStrategy):
             shortlist_indices = np.array(batch[0]["global_indices"])
             shortlist_prompts = batch[0]["prompts"]
 
+            assert max(shortlist_indices) <= len(
+                longlist_rows
+            ), f"{max(shortlist_indices)} {len(longlist_rows)}"
+
             # TODO: Optimization: Recover embeddings from faiss instead of recomputing
             # but this is better anyways so maybe not?
             shortlist_embeddings = self.pipeline.semantic_search_model.embed(
@@ -42,6 +46,9 @@ class QuaildGainCounterStrategy(BaseStrategy):
             )
 
             voted_global_indices = shortlist_indices[local_shortlist_indices].tolist()
+            assert max(voted_global_indices) <= len(
+                longlist_rows
+            ), f"{max(voted_global_indices)} {len(longlist_rows)}"
 
             if not isinstance(voted_global_indices, list):
                 voted_global_indices = [voted_global_indices]
@@ -53,6 +60,9 @@ class QuaildGainCounterStrategy(BaseStrategy):
         indexes = [item[0] for item in counter_result]
         confidences = [item[1] for item in counter_result]
         confidences = (np.array(confidences) / max(confidences)).tolist()
+        assert max(indexes) <= len(
+            longlist_rows
+        ), f"{max(indexes)} {len(longlist_rows)}"
         return indexes, confidences
 
     def assemble_few_shot(self, use_cache=True):
