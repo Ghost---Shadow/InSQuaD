@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import json
+from pathlib import Path
 import traceback
 from config import Config
 from notifications.discord_wrapper import send_discord_notification
@@ -56,6 +57,7 @@ def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Write the traceback to a file
+        Path("./artifacts/crashes/").mkdir(exist_ok=True, parents=True)
         file_path = (
             f"./artifacts/crashes/{EXPERIMENT_NAME}_{dataset_name}_{timestamp}.txt"
         )

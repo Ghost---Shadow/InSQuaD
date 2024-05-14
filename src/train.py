@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime
+from pathlib import Path
 import traceback
 from config import Config, RootConfig
 from notifications.discord_wrapper import send_discord_notification
@@ -57,6 +58,7 @@ def main(config: RootConfig, seed: int):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Write the traceback to a file
+        Path("./artifacts/crashes/").mkdir(exist_ok=True, parents=True)
         file_path = f"./artifacts/crashes/{EXPERIMENT_NAME}_train_{timestamp}.txt"
         with open(file_path, "w") as file:
             file.write(error_trace)
