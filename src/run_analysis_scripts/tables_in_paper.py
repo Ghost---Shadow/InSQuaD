@@ -88,9 +88,13 @@ def dictify(tuple_of_tuples):
     return result
 
 
-def generate_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
+def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples):
     latex_rows = ""
-    df["method"] = df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
+    full_df["method"] = full_df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
+
+    relevant_methods = list(map(lambda x: x[0], method_tuples))
+    df = full_df[full_df["method"].isin(relevant_methods)]
+
     for method, method_print_name in method_tuples:
         if method == "hline":
             latex_row = "\hline"
@@ -106,12 +110,19 @@ def generate_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
                 cells = (
                     method_column
                     + extra_column
-                    + [f"{x*100:.1f}" if pd.notna(x) else "\\textcolor{red}{??.?}" for x in row[1:]]
+                    + [
+                        f"{x*100:.1f}" if pd.notna(x) else "\\textcolor{red}{??.?}"
+                        for x in row[1:]
+                    ]
                 )
             else:
                 if len(row) > 1:
                     print("REJECTED", row)
-                cells = method_column + extra_column + ["\\textcolor{red}{??.?}"] * num_columns
+                cells = (
+                    method_column
+                    + extra_column
+                    + ["\\textcolor{red}{??.?}"] * num_columns
+                )
             latex_row = " & ".join(cells) + " \\\\"
         latex_rows += latex_row + "\n"
     return latex_rows
