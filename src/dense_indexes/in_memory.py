@@ -12,5 +12,5 @@ class InMemory:
     def repopulate_index(self, wrapped_dataset: BaseDataset, embedding_model):
         raise NotImplementedError("TODO")
 
-    def retrieve(self, query_embeddings: torch.Tensor):
+    def retrieve(self, query_embeddings: torch.Tensor, omit_self: bool):
         raise NotImplementedError("TODO")

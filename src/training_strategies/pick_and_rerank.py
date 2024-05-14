@@ -21,7 +21,9 @@ class PickAndRerankStrategy:
 
         # Search FAISS for similar questions
         question_embeddings = self.pipeline.semantic_search_model.embed(questions)
-        retrieved_documents = self.pipeline.dense_index.retrieve(question_embeddings)
+        retrieved_documents = self.pipeline.dense_index.retrieve(
+            question_embeddings, omit_self=True
+        )
 
         # Compute the quality diversity terms
         (

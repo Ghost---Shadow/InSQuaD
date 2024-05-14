@@ -60,19 +60,20 @@ class WrappedFaiss:
                     embedding = embedding_model.embed(prompt).cpu().numpy()
                 self.index.add(embedding)
 
-    def retrieve(self, query_embeddings: torch.Tensor):
+    def retrieve(self, query_embeddings: torch.Tensor, omit_self: bool):
         assert self.wrapped_dataset is not None
         assert self.index.is_trained
 
-        k = self.k + 1  # Adjusting k to account for self-match
+        offset = {True: 1, False: 0}[omit_self]  # Fancy ternary
+        k = self.k + offset  # Adjusting k to account for self-match
         query_embeddings = query_embeddings.detach().cpu().numpy()
         distances, indices = self.index.search(query_embeddings, k)
 
         batch_results = []
         for query_idx in range(distances.shape[0]):
             # Exclude the most similar result (assuming it's self) for each query
-            query_distances = distances[query_idx, 1:]
-            query_indices = indices[query_idx, 1:].tolist()
+            query_distances = distances[query_idx, offset:]
+            query_indices = indices[query_idx, offset:].tolist()
 
             batch = self.wrapped_dataset.random_access(query_indices)
             batch["distances"] = []

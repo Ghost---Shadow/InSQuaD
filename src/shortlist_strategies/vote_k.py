@@ -72,7 +72,7 @@ class VoteKStrategy(BaseStrategy):
             batch_query_prompts
         )
         batched_similar_result = self.pipeline.dense_index.retrieve(
-            batch_prompt_embeddings
+            batch_prompt_embeddings, omit_self=True
         )
         batch_results = flatten_batch_of_batches(batched_similar_result)
         batch_results = self.drop_exact_duplicates(batch_results, batch_query_prompts)
@@ -114,7 +114,9 @@ class VoteKStrategy(BaseStrategy):
         for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
-            candidate_fewshot = self.pipeline.dense_index.retrieve(prompt_embedding)
+            candidate_fewshot = self.pipeline.dense_index.retrieve(
+                prompt_embedding, omit_self=False
+            )
             candidate_fewshot = candidate_fewshot[0]  # batch size 1
 
             num_shots = self.config.offline_validation.num_shots

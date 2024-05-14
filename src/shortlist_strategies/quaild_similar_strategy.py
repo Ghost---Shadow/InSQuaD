@@ -25,7 +25,7 @@ class QuaildSimilarStrategy(BaseStrategy):
         for row in tqdm(longlist_rows, desc="Counting votes"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
-            batch = self.pipeline.dense_index.retrieve(prompt_embedding)
+            batch = self.pipeline.dense_index.retrieve(prompt_embedding, omit_self=True)
             shortlist_indices = np.array(batch[0]["global_indices"])
             shortlist_prompts = batch[0]["prompts"]
 
@@ -69,7 +69,9 @@ class QuaildSimilarStrategy(BaseStrategy):
         for row in tqdm(eval_list_rows, desc="Assembling few shot"):
             prompt = [row["prompts"]]
             prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
-            candidate_fewshot = self.pipeline.dense_index.retrieve(prompt_embedding)
+            candidate_fewshot = self.pipeline.dense_index.retrieve(
+                prompt_embedding, omit_self=False
+            )
             candidate_fewshot = candidate_fewshot[0]  # batch size 1
 
             num_shots = self.config.offline_validation.num_shots
