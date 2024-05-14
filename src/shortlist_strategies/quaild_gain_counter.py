@@ -12,9 +12,9 @@ class QuaildGainCounterStrategy(BaseStrategy):
 
     def __init__(self, config: RootConfig, pipeline):
         super().__init__(config, pipeline)
-        self.counter = Counter()
 
     def shortlist(self, use_cache=True):
+        counter = Counter()
         longlist_rows = self.subsample_dataset_for_train()
 
         cache_name = "long_list.index"
@@ -54,9 +54,9 @@ class QuaildGainCounterStrategy(BaseStrategy):
                 voted_global_indices = [voted_global_indices]
 
             for idx in list(voted_global_indices):
-                self.counter[idx] += 1
+                counter[idx] += 1
 
-        counter_result = self.counter.most_common(self.top_n)
+        counter_result = counter.most_common(self.top_n)
         indexes = [item[0] for item in counter_result]
         confidences = [item[1] for item in counter_result]
         confidences = (np.array(confidences) / max(confidences)).tolist()
