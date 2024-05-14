@@ -23,7 +23,7 @@ def plot_graph(plot_name, key_name):
     # plt.rc("font", family="serif")
     sns.set_theme("paper")
     plt.tight_layout()
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(8, 8))
 
     data_list = []
     root_dir = "./artifacts"
