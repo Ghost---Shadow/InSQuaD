@@ -7,6 +7,9 @@ source devops/upload_artifacts.sh
 python src/offline_eval.py --config=experiments/tests/leastconfidence_test_experiment.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/tests/mfl_test_experiment.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/tests/oracle_test_experiment.yaml
 source devops/upload_artifacts.sh
 

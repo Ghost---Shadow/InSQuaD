@@ -1,6 +1,9 @@
 python src/offline_eval.py --config=experiments/main_table_gemma/leastconfidence_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/main_table_gemma/mfl_mpnet_gemma.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/main_table_gemma/oracle_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
