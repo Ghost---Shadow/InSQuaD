@@ -105,7 +105,7 @@ def check_for_nan_then_dump(loss, batch):
         relevant_batch = {
             "question": batch["question"],
             "documents": batch["documents"],
-            "relevant_indexes": batch["relevant_indexes"].tolist(),
+            "relevant_indexes": batch["relevant_indexes"],
         }
 
         # Write the batch data to the file
