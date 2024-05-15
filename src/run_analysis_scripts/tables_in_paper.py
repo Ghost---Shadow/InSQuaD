@@ -230,8 +230,8 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
         ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_gemma_best", "Submodular"),
-        ("quaild_gain_gc_mpnet_gemma_best", "Submodular"),
+        ("quaild_gain_fl_mpnet_gemma_best", "Combinatorial"),
+        ("quaild_gain_gc_mpnet_gemma_best", "Combinatorial"),
     )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
