@@ -8,13 +8,16 @@ import os
 
 def format_experiment_name(experiment_name):
     EXPERIMENT_NAME_LUT = {
-        "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-        "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
-        "quaild_nt_fl_mpnet_stablelm": "QuailD-FL (NT)",
-        "quaild_nt_gc_mpnet_stablelm": "QuailD-GC (NT)",
+        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+        # "quaild_gain_fl_mpnet_gemma_lambda_025": "QuailD-FL 0.25",
+        # "quaild_gain_gc_mpnet_gemma_lambda_025": "QuailD-GC 0.25",
+        "quaild_nt_fl_mpnet_gemma": "QuailD-FL (NT)",
+        "quaild_nt_gc_mpnet_gemma": "QuailD-GC (NT)",
     }
     experiment_name = "_".join(experiment_name.split("_")[:-1])
-    return EXPERIMENT_NAME_LUT.get(experiment_name, experiment_name)
+    found = experiment_name in EXPERIMENT_NAME_LUT
+    return EXPERIMENT_NAME_LUT.get(experiment_name, experiment_name), found
 
 
 def plot_graph(plot_name, key_name):
@@ -23,7 +26,7 @@ def plot_graph(plot_name, key_name):
     # plt.rc("font", family="serif")
     sns.set_theme("paper")
     plt.tight_layout()
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(6, 6))
 
     data_list = []
     root_dir = "./artifacts"
@@ -43,12 +46,13 @@ def plot_graph(plot_name, key_name):
                             # key = float(f"{key:.2f}")  # larger buckets
                         else:
                             key = int(key)
-                        formatted_experiment_name = format_experiment_name(
+                        formatted_experiment_name, found = format_experiment_name(
                             f"{experiment_name}"
                         )
-                        data_list.append([formatted_experiment_name, key, f1])
+                        data_list.append([formatted_experiment_name, key, f1, found])
 
-    df = pd.DataFrame(data_list, columns=["Experiment", key_name, "F1"])
+    df = pd.DataFrame(data_list, columns=["Experiment", key_name, "F1", "should_plot"])
+    df = df[df["should_plot"]]
     df = df.sort_values(key_name, ascending=True)
     df = df[df[key_name] > -0.002]
     # df.to_csv(f"{key_name}.csv")
