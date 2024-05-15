@@ -344,7 +344,7 @@ def generate_annotation_budget_ablations_stablelm(df):
 
 
 def generate_annotation_budget_ablations_gemma(df):
-    caption = "Effects of annotation budget Gemma (2B)"
+    caption = "Effects of annotation budget Gemma (2B) $\\lambda = 0.5$"
     label = "budget_ablations"
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
@@ -504,8 +504,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
         ("oracle_mpnet_gemma", "Oracle"),
-        ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
         # gemma7b
         ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "Zeroshot"),
@@ -526,8 +526,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma", "gemma2b"),
         ("random_mpnet_gemma", "gemma2b"),
         ("oracle_mpnet_gemma", "gemma2b"),
-        ("quaild_gain_fl_mpnet_gemma", "gemma2b"),
-        ("quaild_gain_gc_mpnet_gemma", "gemma2b"),
+        ("quaild_gain_fl_mpnet_gemma_best", "gemma2b"),
+        ("quaild_gain_gc_mpnet_gemma_best", "gemma2b"),
         # gemma7b
         ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "gemma7b"),
