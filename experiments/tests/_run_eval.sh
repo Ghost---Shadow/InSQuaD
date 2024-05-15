@@ -1,13 +1,7 @@
 python src/offline_eval.py --config=experiments/tests/diversity_test_experiment.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/tests/fastvotek_test_experiment.yaml
-source devops/upload_artifacts.sh
-
 python src/offline_eval.py --config=experiments/tests/gc_test_experiment.yaml
-source devops/upload_artifacts.sh
-
-python src/offline_eval.py --config=experiments/tests/ideal_test_experiment.yaml
 source devops/upload_artifacts.sh
 
 python src/offline_eval.py --config=experiments/tests/leastconfidence_test_experiment.yaml
@@ -38,12 +32,6 @@ python src/offline_eval.py --config=experiments/tests/random_test_experiment.yam
 source devops/upload_artifacts.sh
 
 python src/offline_eval.py --config=experiments/tests/shortlistandtopk_test_experiment.yaml
-source devops/upload_artifacts.sh
-
-python src/offline_eval.py --config=experiments/tests/votek_mpnet_stablelm.yaml
-source devops/upload_artifacts.sh
-
-python src/offline_eval.py --config=experiments/tests/votek_test_experiment.yaml
 source devops/upload_artifacts.sh
 
 python src/offline_eval.py --config=experiments/tests/zeroshot_test_experiment.yaml

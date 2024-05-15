@@ -299,15 +299,11 @@ def generate_annotation_budget_ablations_stablelm(df):
         # budget 18
         ("hline", "hline"),
         ("random_mpnet_stablelm", "Random"),
-        # ("votek_mpnet_stablelm", "Vote-K"),
-        # ("ideal_mpnet_stablelm", "IDEAL"),
         ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
         # budget 100
         ("hline", "hline"),
         ("random_mpnet_stablelm_100", "Random"),
-        # ("votek_mpnet_stablelm_100", "Vote-K"),
-        # ("ideal_mpnet_stablelm_100", "IDEAL"),
         ("quaild_gain_fl_mpnet_stablelm_100", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_stablelm_100", "QuailD-GC"),
     )
@@ -318,15 +314,11 @@ def generate_annotation_budget_ablations_stablelm(df):
         # budget 18
         ("hline", "hline"),
         ("random_mpnet_stablelm", "18"),
-        # ("votek_mpnet_stablelm", "18"),
-        # ("ideal_mpnet_stablelm", "18"),
         ("quaild_gain_fl_mpnet_stablelm", "18"),
         ("quaild_gain_gc_mpnet_stablelm", "18"),
         # budget 100
         ("hline", "hline"),
         ("random_mpnet_stablelm_100", "100"),
-        # ("votek_mpnet_stablelm_100", "100"),
-        # ("ideal_mpnet_stablelm_100", "100"),
         ("quaild_gain_fl_mpnet_stablelm_100", "100"),
         ("quaild_gain_gc_mpnet_stablelm_100", "100"),
     }
@@ -352,15 +344,11 @@ def generate_annotation_budget_ablations_gemma(df):
         # budget 18
         ("hline", "hline"),
         ("random_mpnet_gemma", "Random"),
-        # ("votek_mpnet_gemma", "Vote-K"),
-        # ("ideal_mpnet_gemma", "IDEAL"),
         ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
         # budget 100
         ("hline", "hline"),
         ("random_mpnet_gemma_100", "Random"),
-        # ("votek_mpnet_gemma_100", "Vote-K"),
-        # ("ideal_mpnet_gemma_100", "IDEAL"),
         ("quaild_gain_fl_mpnet_gemma_100", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_100", "QuailD-GC"),
     )
@@ -372,16 +360,12 @@ def generate_annotation_budget_ablations_gemma(df):
         # budget 18
         ("hline", "hline"),
         ("random_mpnet_gemma", "18"),
-        # ("votek_mpnet_gemma", "18"),
-        # ("ideal_mpnet_gemma", "18"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma", "18"),
         ("quaild_gain_gc_mpnet_gemma", "18"),
         # budget 100
         ("hline", "hline"),
         ("random_mpnet_gemma_100", "100"),
-        # ("votek_mpnet_gemma_100", "100"),
-        # ("ideal_mpnet_gemma_100", "100"),
         ("quaild_gain_fl_mpnet_gemma_100", "100"),
         ("quaild_gain_gc_mpnet_gemma_100", "100"),
     )
