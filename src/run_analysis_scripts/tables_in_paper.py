@@ -596,6 +596,7 @@ def generate_main_table_gemma(df):
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
         ("oracle_mpnet_gemma", "Oracle"),
+        ("diversity_mpnet_gemma", "Diversity"),
         ("leastconfidence_mpnet_gemma", "Least Confidence"),
         ("mfl_mpnet_gemma", "MFL"),
         ("gc_mpnet_gemma", "GC"),
