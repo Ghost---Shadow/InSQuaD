@@ -5,10 +5,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 EXPERIMENT_NAME_LUT = {
-    "votek_mpnet_stablelm": "Vote-K",
-    "ideal_mpnet_stablelm": "IDEAL",
-    "quaild_gain_fl_mpnet_stablelm": "QuailD-FL",
-    "quaild_gain_gc_mpnet_stablelm": "QuailD-GC",
+    "votek_mpnet_gemma": "Vote-K",
+    "ideal_mpnet_gemma": "IDEAL",
+    "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
+    "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
 }
 
 
@@ -54,7 +54,7 @@ def plot_data(data):
     # plt.rc("font", family="serif")
 
     # Set up the matplotlib figure to control size, aspect ratio
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(7, 4))
     sns.set_theme("paper")
 
     # Create a color palette and plot
