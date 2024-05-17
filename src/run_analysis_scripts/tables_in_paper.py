@@ -15,10 +15,12 @@ from dataloaders.sst5 import SST5
 from dataloaders.wiki_multihop_qa_loader import WikiMultihopQaDataset
 from dataloaders.wiki_multihop_qa_with_q_loader import WikiMultihopQaWithQDataset
 from dataloaders.xsum import XsumDataset
+from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 from run_analysis_scripts.excelify import excelify
 from tqdm import tqdm
+import seaborn as sns
 
 DATASET_NAME_KEYS = {
     DBPedia.NAME: "DBpedia",
@@ -90,10 +92,7 @@ def dictify(tuple_of_tuples):
 
 def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples):
     latex_rows = ""
-    full_df["method"] = full_df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
-
-    relevant_methods = list(map(lambda x: x[0], method_tuples))
-    df = full_df[full_df["method"].isin(relevant_methods)]
+    df = extract_relevant_df(full_df, method_tuples)
 
     # Set all values to -inf where the method contains 'oracle'
     df_copy = df.copy()
@@ -135,6 +134,66 @@ def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples
             latex_row = " & ".join(cells) + " \\\\"
         latex_rows += latex_row + "\n"
     return latex_rows
+
+
+def extract_relevant_df(full_df, method_tuples):
+    full_df["method"] = full_df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
+
+    relevant_methods = list(map(lambda x: x[0], method_tuples))
+    df = full_df[full_df["method"].isin(relevant_methods)]
+    return df
+
+
+def generate_bar_plot(
+    df, caption, label, method_tuples, extra_column_name=None, extra_column_tuples=None
+):
+    df = extract_relevant_df(df.reset_index(), method_tuples)
+
+    # Convert tuples to dictionaries for easy lookup
+    method_lut = dict(method_tuples)
+    extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
+
+    # Apply lookup transformations
+    df["method_name"] = df["method"].map(method_lut)
+    if extra_column_name and extra_column_tuples:
+        df["extra_name"] = df["method"].map(extra_column_lut)
+        df["name"] = df["method_name"] + " " + df["extra_name"]
+    else:
+        df["name"] = df["method_name"]
+
+    # Set the Seaborn theme
+    sns.set_theme("paper")
+
+    # Create a figure with specific size
+    plt.figure(figsize=(6, 6))
+    plt.tight_layout()
+    plt.subplots_adjust(0.3)
+
+    # Sort the DataFrame for plotting
+    sorted_df = df.sort_values(by="Average", ascending=True)
+
+    # Create a bar plot
+    if extra_column_name is not None:
+        sns.barplot(x="Average", y="method_name", hue="extra_name", data=sorted_df)
+    else:
+        sns.barplot(x="Average", y="method_name", data=sorted_df)
+
+    plt.xlabel("Accuracy")
+    plt.ylabel("Method")
+    if extra_column_name is not None:
+        plt.legend(title=extra_column_name)
+
+    # Set the plot title
+    plt.title(caption)
+
+    # Determine the output path
+    output_path = Path("artifacts/diagrams")
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Save the plot
+    plt.savefig(output_path / f"{label}.png")
+    plt.close()
+    plt.clf()
 
 
 def generate_latex_table(
@@ -235,6 +294,15 @@ def generate_retrieval_method_ablations_gemma(df):
     )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+    )
+
+    generate_bar_plot(
         df,
         caption,
         label,
@@ -380,6 +448,15 @@ def generate_annotation_budget_ablations_gemma(df):
         extra_column_tuples,
     )
 
+    generate_bar_plot(
+        df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+    )
+
     return result
 
 
@@ -477,6 +554,15 @@ def generate_qd_tradeoff_ablations_gemma(df):
         extra_column_tuples,
     )
 
+    generate_bar_plot(
+        df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+    )
+
     return result
 
 
@@ -530,6 +616,15 @@ def generate_model_size_ablations(df):
 
     extra_column_name = "Model"
     result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+    )
+
+    generate_bar_plot(
         df,
         caption,
         label,
@@ -604,6 +699,15 @@ def generate_main_table_gemma(df):
         extra_column_tuples,
     )
 
+    generate_bar_plot(
+        df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+    )
+
     return result
 
 
@@ -642,11 +746,11 @@ if __name__ == "__main__":
         # "main_table_stablelm": generate_main_table_stablelm,
         "main_table_gemma": generate_main_table_gemma,
         "model_size_effect": generate_model_size_ablations,
-        # # "qd_tradeoff_stablelm": generate_qd_tradeoff_ablations_stablelm,
+        # "qd_tradeoff_stablelm": generate_qd_tradeoff_ablations_stablelm,
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
-        # # "annotation_budget_effect_stablelm": generate_annotation_budget_ablations_stablelm,
+        # "annotation_budget_effect_stablelm": generate_annotation_budget_ablations_stablelm,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
-        # # "retrieval_method_effect_stablelm": generate_retrieval_method_ablations_stablelm,
+        # "retrieval_method_effect_stablelm": generate_retrieval_method_ablations_stablelm,
         "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
     }
     BASE_PATH = Path("./artifacts/tables")
