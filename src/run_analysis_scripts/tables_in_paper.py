@@ -15,12 +15,11 @@ from dataloaders.sst5 import SST5
 from dataloaders.wiki_multihop_qa_loader import WikiMultihopQaDataset
 from dataloaders.wiki_multihop_qa_with_q_loader import WikiMultihopQaWithQDataset
 from dataloaders.xsum import XsumDataset
-from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 from run_analysis_scripts.excelify import excelify
+from run_analysis_scripts.utils import dictify, extract_relevant_df, generate_best_row
 from tqdm import tqdm
-import seaborn as sns
 
 DATASET_NAME_KEYS = {
     DBPedia.NAME: "DBpedia",
@@ -82,14 +81,6 @@ def get_column_spec(groups, extra_column_name):
     return column_spec, multicolumn_line
 
 
-def dictify(tuple_of_tuples):
-    result = {}
-    for left, right in tuple_of_tuples:
-        result[left] = right
-
-    return result
-
-
 def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples):
     latex_rows = ""
     df = extract_relevant_df(full_df, method_tuples)
@@ -134,66 +125,6 @@ def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples
             latex_row = " & ".join(cells) + " \\\\"
         latex_rows += latex_row + "\n"
     return latex_rows
-
-
-def extract_relevant_df(full_df, method_tuples):
-    full_df["method"] = full_df["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
-
-    relevant_methods = list(map(lambda x: x[0], method_tuples))
-    df = full_df[full_df["method"].isin(relevant_methods)]
-    return df
-
-
-def generate_bar_plot(
-    df, caption, label, method_tuples, extra_column_name=None, extra_column_tuples=None
-):
-    df = extract_relevant_df(df.reset_index(), method_tuples)
-
-    # Convert tuples to dictionaries for easy lookup
-    method_lut = dict(method_tuples)
-    extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
-
-    # Apply lookup transformations
-    df["method_name"] = df["method"].map(method_lut)
-    if extra_column_name and extra_column_tuples:
-        df["extra_name"] = df["method"].map(extra_column_lut)
-        df["name"] = df["method_name"] + " " + df["extra_name"]
-    else:
-        df["name"] = df["method_name"]
-
-    # Set the Seaborn theme
-    sns.set_theme("paper")
-
-    # Create a figure with specific size
-    plt.figure(figsize=(6, 6))
-    plt.tight_layout()
-    plt.subplots_adjust(0.3)
-
-    # Sort the DataFrame for plotting
-    sorted_df = df.sort_values(by="Average", ascending=True)
-
-    # Create a bar plot
-    if extra_column_name is not None:
-        sns.barplot(x="Average", y="method_name", hue="extra_name", data=sorted_df)
-    else:
-        sns.barplot(x="Average", y="method_name", data=sorted_df)
-
-    plt.xlabel("Accuracy")
-    plt.ylabel("Method")
-    if extra_column_name is not None:
-        plt.legend(title=extra_column_name)
-
-    # Set the plot title
-    plt.title(caption)
-
-    # Determine the output path
-    output_path = Path("artifacts/diagrams")
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    # Save the plot
-    plt.savefig(output_path / f"{label}.png")
-    plt.close()
-    plt.clf()
 
 
 def generate_latex_table(
@@ -302,104 +233,6 @@ def generate_retrieval_method_ablations_gemma(df):
         extra_column_tuples,
     )
 
-    generate_bar_plot(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
-    return result
-
-
-def generate_retrieval_method_ablations_stablelm(df):
-    caption = "Effect of retrieval methods StableLM (1.6B)"
-    label = "retrieval_method_ablations"
-    method_tuples = (
-        ("zeroshot_mpnet_stablelm", "Zeroshot"),
-        ("random_mpnet_stablelm", "Random"),
-        ("oracle_mpnet_stablelm", "Oracle"),
-        ("hline", "hline"),
-        ("quaild_random_fl_mpnet_stablelm", "QuailD-FL"),
-        ("quaild_random_gc_mpnet_stablelm", "QuailD-GC"),
-        ("hline", "hline"),
-        ("quaild_similar_fl_mpnet_stablelm", "QuailD-FL"),
-        ("quaild_similar_gc_mpnet_stablelm", "QuailD-GC"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_best", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm_best", "QuailD-GC"),
-    )
-    extra_column_tuples = (
-        ("zeroshot_mpnet_stablelm", ""),
-        ("random_mpnet_stablelm", ""),
-        ("oracle_mpnet_stablelm", ""),
-        ("hline", "hline"),
-        ("quaild_random_fl_mpnet_stablelm", "Random"),
-        ("quaild_random_gc_mpnet_stablelm", "Random"),
-        ("hline", "hline"),
-        ("quaild_similar_fl_mpnet_stablelm", "Similar"),
-        ("quaild_similar_gc_mpnet_stablelm", "Similar"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_best", "Submodular"),
-        ("quaild_gain_gc_mpnet_stablelm_best", "Submodular"),
-    )
-    extra_column_name = "Retrieval"
-    result = generate_latex_table(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
-    return result
-
-
-def generate_annotation_budget_ablations_stablelm(df):
-    caption = "Effects of annotation budget StableLM (1.6B)"
-    label = "budget_ablations"
-    method_tuples = (
-        ("zeroshot_mpnet_stablelm", "Zeroshot"),
-        ("oracle_mpnet_stablelm", "Oracle"),
-        # budget 18
-        ("hline", "hline"),
-        ("random_mpnet_stablelm", "Random"),
-        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
-        # budget 100
-        ("hline", "hline"),
-        ("random_mpnet_stablelm_100", "Random"),
-        ("quaild_gain_fl_mpnet_stablelm_100", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm_100", "QuailD-GC"),
-    )
-    extra_column_tuples = {
-        # Zeroshot
-        ("zeroshot_mpnet_stablelm", ""),
-        ("oracle_mpnet_stablelm", ""),
-        # budget 18
-        ("hline", "hline"),
-        ("random_mpnet_stablelm", "18"),
-        ("quaild_gain_fl_mpnet_stablelm", "18"),
-        ("quaild_gain_gc_mpnet_stablelm", "18"),
-        # budget 100
-        ("hline", "hline"),
-        ("random_mpnet_stablelm_100", "100"),
-        ("quaild_gain_fl_mpnet_stablelm_100", "100"),
-        ("quaild_gain_gc_mpnet_stablelm_100", "100"),
-    }
-    extra_column_name = "Budget"
-    result = generate_latex_table(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
     return result
 
 
@@ -439,61 +272,6 @@ def generate_annotation_budget_ablations_gemma(df):
     )
 
     extra_column_name = "Budget"
-    result = generate_latex_table(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
-    generate_bar_plot(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
-    return result
-
-
-def generate_qd_tradeoff_ablations_stablelm(df):
-    caption = "Effects of $\\lambda$ on StableLM (1.6B) (Quality-Diversity tradeoff)"
-    label = "qd_tradeoff"
-    method_tuples = (
-        ("zeroshot_mpnet_stablelm", "Zeroshot"),
-        ("random_mpnet_stablelm", "Random"),
-        ("oracle_mpnet_stablelm", "Oracle"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_lambda_0", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm_lambda_0", "QuailD-GC"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm", "QuailD-GC"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_lambda_1", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm_lambda_1", "QuailD-GC"),
-    )
-
-    extra_column_tuples = (
-        ("zeroshot_mpnet_stablelm", ""),
-        ("random_mpnet_stablelm", ""),
-        ("oracle_mpnet_stablelm", ""),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_lambda_0", "0"),
-        ("quaild_gain_gc_mpnet_stablelm_lambda_0", "0"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm", "0.5"),
-        ("quaild_gain_gc_mpnet_stablelm", "0.5"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_lambda_1", "1"),
-        ("quaild_gain_gc_mpnet_stablelm_lambda_1", "1"),
-    )
-
-    extra_column_name = "$\\lambda$"
     result = generate_latex_table(
         df,
         caption,
@@ -546,15 +324,6 @@ def generate_qd_tradeoff_ablations_gemma(df):
 
     extra_column_name = "$\\lambda$"
     result = generate_latex_table(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
-    generate_bar_plot(
         df,
         caption,
         label,
@@ -624,47 +393,6 @@ def generate_model_size_ablations(df):
         extra_column_tuples,
     )
 
-    generate_bar_plot(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
-    return result
-
-
-def generate_main_table_stablelm(df):
-    caption = "Downstream evaluation on StableLM (1.6B)"
-    label = "stablelm_results"
-    method_tuples = (
-        ("zeroshot_mpnet_stablelm", "Zeroshot"),
-        ("random_mpnet_stablelm", "Random"),
-        ("oracle_mpnet_stablelm", "Oracle"),
-        ("leastconfidence_mpnet_stablelm", "Least Confidence"),
-        ("mfl_mpnet_stablelm", "MFL"),
-        ("gc_mpnet_stablelm", "GC"),
-        ("votek_mpnet_stablelm", "Vote-K"),
-        ("ideal_mpnet_stablelm", "IDEAL"),
-        ("quaild_nt_fl_mpnet_stablelm", "QuailD-FL (NT)"),
-        ("quaild_nt_gc_mpnet_stablelm", "QuailD-GC (NT)"),
-        ("hline", "hline"),
-        ("quaild_gain_fl_mpnet_stablelm_best", "QuailD-FL"),
-        ("quaild_gain_gc_mpnet_stablelm_best", "QuailD-GC"),
-    )
-    extra_column_tuples = None
-    extra_column_name = None
-    result = generate_latex_table(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
     return result
 
 
@@ -699,58 +427,15 @@ def generate_main_table_gemma(df):
         extra_column_tuples,
     )
 
-    generate_bar_plot(
-        df,
-        caption,
-        label,
-        method_tuples,
-        extra_column_name,
-        extra_column_tuples,
-    )
-
     return result
-
-
-def generate_best_row(df):
-    methods_fl = [
-        "quaild_gain_fl_mpnet_gemma_lambda_0",
-        "quaild_gain_fl_mpnet_gemma_lambda_025",
-        "quaild_gain_fl_mpnet_gemma",
-        "quaild_gain_fl_mpnet_gemma_lambda_1",
-    ]
-    methods_gc = [
-        "quaild_gain_gc_mpnet_gemma_lambda_0",
-        "quaild_gain_gc_mpnet_gemma_lambda_025",
-        "quaild_gain_gc_mpnet_gemma",
-        "quaild_gain_gc_mpnet_gemma_lambda_1",
-    ]
-
-    ddf = df.copy()
-    ddf["method"] = ddf["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
-
-    fl_max_values = ddf[ddf["method"].isin(methods_fl)].max()
-    fl_max_values["method"] = "quaild_gain_fl_mpnet_gemma_best_00000"
-
-    gc_max_values = ddf[ddf["method"].isin(methods_gc)].max()
-    gc_max_values["method"] = "quaild_gain_gc_mpnet_gemma_best_00000"
-
-    df = pd.concat(
-        [df, pd.DataFrame([fl_max_values, gc_max_values])], ignore_index=True
-    )
-
-    return df
 
 
 if __name__ == "__main__":
     TABLES_TO_GENERATE = {
-        # "main_table_stablelm": generate_main_table_stablelm,
         "main_table_gemma": generate_main_table_gemma,
         "model_size_effect": generate_model_size_ablations,
-        # "qd_tradeoff_stablelm": generate_qd_tradeoff_ablations_stablelm,
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
-        # "annotation_budget_effect_stablelm": generate_annotation_budget_ablations_stablelm,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
-        # "retrieval_method_effect_stablelm": generate_retrieval_method_ablations_stablelm,
         "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
     }
     BASE_PATH = Path("./artifacts/tables")
