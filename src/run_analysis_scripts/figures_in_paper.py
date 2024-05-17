@@ -4,6 +4,7 @@ from run_analysis_scripts.utils import extract_relevant_df, generate_best_row
 import seaborn as sns
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+import pandas as pd
 
 
 def generate_bar_plot(
@@ -42,7 +43,7 @@ def generate_bar_plot(
 
     # Sort the DataFrame for plotting
     sorted_df = df.sort_values(by="Average", ascending=True)
-    print(sorted_df)
+    # print(sorted_df)
 
     # Create a bar plot
     if extra_column_name is not None:
@@ -58,6 +59,62 @@ def generate_bar_plot(
     plt.ylabel(y_label)
     if extra_column_name is not None:
         plt.legend(title=extra_column_name)
+
+    # Set the plot title
+    plt.title(caption)
+
+    # Determine the output path
+    output_path = Path("artifacts/diagrams")
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Save the plot
+    plt.savefig(output_path / f"{label}.png")
+    plt.close()
+    plt.clf()
+
+
+def generate_dataset_wise_bar_plot(
+    df,
+    caption,
+    label,
+    method_tuples,
+    extra_column_name,
+    extra_column_tuples,
+    subplot_adjust=0.0,
+):
+    df = extract_relevant_df(df.reset_index(), method_tuples)
+
+    df_melted = pd.melt(df, id_vars=["method"])
+    df_melted = df_melted[~df_melted["dataset"].isin(["index", "Average"])]
+
+    # Convert tuples to dictionaries for easy lookup
+    method_lut = dict(method_tuples)
+    extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
+
+    # Apply lookup transformations
+    df_melted["method_name"] = df_melted["method"].map(method_lut)
+    if extra_column_name and extra_column_tuples:
+        df_melted["extra_name"] = df_melted["method"].map(extra_column_lut)
+        df_melted["name"] = df_melted["method_name"] + " " + df_melted["extra_name"]
+    else:
+        df_melted["name"] = df_melted["method_name"]
+
+    # Set the Seaborn theme
+    sns.set_theme("paper")
+
+    # Create a figure with specific size
+    plt.figure(figsize=(6, 6))
+    plt.tight_layout()
+    plt.subplots_adjust(subplot_adjust)
+    plt.xlim(0, 1)
+
+    sorted_df = df_melted.sort_values(by="extra_name", ascending=True)
+
+    sns.barplot(x="value", y="dataset", hue="extra_name", data=sorted_df)
+
+    plt.xlabel("Accuracy")
+    plt.ylabel(None)
+    plt.legend(title=extra_column_name)
 
     # Set the plot title
     plt.title(caption)
@@ -159,15 +216,14 @@ def generate_qd_tradeoff_ablations_gemma(df):
     )
 
     extra_column_name = "$\\lambda$"
-    result = generate_bar_plot(
+    result = generate_dataset_wise_bar_plot(
         df,
         caption,
         label,
         method_tuples,
         extra_column_name,
         extra_column_tuples,
-        hue="method_name",
-        subplot_adjust=0.2,
+        subplot_adjust=0.15,
     )
 
     return result
