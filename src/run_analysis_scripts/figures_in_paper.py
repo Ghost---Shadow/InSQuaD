@@ -108,7 +108,9 @@ def generate_dataset_wise_bar_plot(
     plt.subplots_adjust(subplot_adjust)
     plt.xlim(0, 1)
 
-    sorted_df = df_melted.sort_values(by="extra_name", ascending=True)
+    sorted_df = df_melted.sort_values(
+        by=["dataset", "extra_name", "value"], ascending=True
+    )
 
     sns.barplot(x="value", y="dataset", hue="extra_name", data=sorted_df)
 
@@ -149,13 +151,14 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_gain_gc_mpnet_gemma_best", "Combinatorial"),
     )
     extra_column_name = "Retrieval"
-    result = generate_bar_plot(
+    result = generate_dataset_wise_bar_plot(
         df,
         caption,
         label,
         method_tuples,
         extra_column_name,
         extra_column_tuples,
+        subplot_adjust=0.15,
     )
 
     return result
