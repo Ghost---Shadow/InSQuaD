@@ -7,7 +7,15 @@ from tqdm import tqdm
 
 
 def generate_bar_plot(
-    df, caption, label, method_tuples, extra_column_name=None, extra_column_tuples=None
+    df,
+    caption,
+    label,
+    method_tuples,
+    extra_column_name=None,
+    extra_column_tuples=None,
+    hue="extra_name",
+    subplot_adjust=0.0,
+    y_label=None,
 ):
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
@@ -29,19 +37,25 @@ def generate_bar_plot(
     # Create a figure with specific size
     plt.figure(figsize=(6, 6))
     plt.tight_layout()
-    plt.subplots_adjust(0.3)
+    plt.subplots_adjust(subplot_adjust)
+    plt.xlim(0, 1)
 
     # Sort the DataFrame for plotting
     sorted_df = df.sort_values(by="Average", ascending=True)
+    print(sorted_df)
 
     # Create a bar plot
     if extra_column_name is not None:
-        sns.barplot(x="Average", y="method_name", hue="extra_name", data=sorted_df)
+        if hue == "extra_name":
+            y = "method_name"
+        else:
+            y = "extra_name"
+        sns.barplot(x="Average", y=y, hue=hue, data=sorted_df)
     else:
         sns.barplot(x="Average", y="method_name", data=sorted_df)
 
     plt.xlabel("Accuracy")
-    plt.ylabel("Method")
+    plt.ylabel(y_label)
     if extra_column_name is not None:
         plt.legend(title=extra_column_name)
 
@@ -152,6 +166,8 @@ def generate_qd_tradeoff_ablations_gemma(df):
         method_tuples,
         extra_column_name,
         extra_column_tuples,
+        hue="method_name",
+        subplot_adjust=0.2,
     )
 
     return result
@@ -168,14 +184,12 @@ def generate_model_size_ablations(df):
         ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
         # gemma7b
-        ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "Zeroshot"),
         ("random_mpnet_gemma7b", "Random"),
         ("oracle_mpnet_gemma7b", "Oracle"),
         ("quaild_gain_fl_mpnet_gemma7b", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma7b", "QuailD-GC"),
         # davinci2
-        ("hline", "hline"),
         ("zeroshot_mpnet_davinci2", "Zeroshot"),
         ("random_mpnet_davinci2", "Random"),
         ("oracle_mpnet_davinci2", "Oracle"),
@@ -190,14 +204,12 @@ def generate_model_size_ablations(df):
         ("quaild_gain_fl_mpnet_gemma_best", "gemma2b"),
         ("quaild_gain_gc_mpnet_gemma_best", "gemma2b"),
         # gemma7b
-        ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "gemma7b"),
         ("random_mpnet_gemma7b", "gemma7b"),
         ("oracle_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_fl_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_gc_mpnet_gemma7b", "gemma7b"),
         # davinci2
-        ("hline", "hline"),
         ("zeroshot_mpnet_davinci2", "davinci2-175b"),
         ("random_mpnet_davinci2", "davinci2-175b"),
         ("oracle_mpnet_davinci2", "davinci2-175b"),
@@ -213,6 +225,8 @@ def generate_model_size_ablations(df):
         method_tuples,
         extra_column_name,
         extra_column_tuples,
+        hue="method_name",
+        subplot_adjust=0.2,
     )
 
     return result
@@ -233,7 +247,6 @@ def generate_main_figure_gemma(df):
         ("ideal_mpnet_gemma", "IDEAL"),
         ("quaild_nt_fl_mpnet_gemma", "QuailD-FL (NT)"),
         ("quaild_nt_gc_mpnet_gemma", "QuailD-GC (NT)"),
-        ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
     )
