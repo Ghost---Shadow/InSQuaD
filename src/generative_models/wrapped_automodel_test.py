@@ -240,6 +240,33 @@ class TestWrappedAutoModel(unittest.TestCase):
             "correct": True,
         }, result
 
+    # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_with_options_gptj6b -v
+    def test_evaluate_with_options_gptj6b(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.offline_validation.generative_model.checkpoint = (
+            # "ainize/gpt-j-6B-float16" # OOM
+            "ainize/gpt-j-6B-float16"
+        )
+        wrapped_model = WrappedAutoModel(
+            config, config.offline_validation.generative_model
+        )
+
+        prompt = "Q: Do you want a banana? yes or no?"
+        options = ["yes", "no"]
+        correct_option_index = 0
+
+        result = wrapped_model.evaluate_with_options(
+            prompt, correct_option_index, options
+        )
+
+        assert result == {
+            "option_probabilities": {
+                "yes": 0.9760242104530334,
+                "no": 0.21766166388988495,
+            },
+            "correct": True,
+        }, result
+
     # python -m unittest generative_models.wrapped_automodel_test.TestWrappedAutoModel.test_evaluate_with_options_gemma7b -v
     def test_evaluate_with_options_gemma7b(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")

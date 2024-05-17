@@ -47,7 +47,7 @@ offline_validation:
   type: zero_shot
   generative_model:
     type: 'automodel'
-    checkpoint: 'EleutherAI/gpt-j-6B'
+    checkpoint: 'ainize/gpt-j-6B-float16'
     device: "cuda:0"
   datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz','geoq']
   seeds: [42]
