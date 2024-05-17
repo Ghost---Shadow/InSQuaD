@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 import pandas as pd
 
+DPI = 500
+
 
 def generate_bar_plot(
     df,
@@ -68,7 +70,7 @@ def generate_bar_plot(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Save the plot
-    plt.savefig(output_path / f"{label}.png")
+    plt.savefig(output_path / f"{label}.png", dpi=DPI)
     plt.close()
     plt.clf()
 
@@ -126,7 +128,7 @@ def generate_dataset_wise_bar_plot(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Save the plot
-    plt.savefig(output_path / f"{label}.png")
+    plt.savefig(output_path / f"{label}.png", dpi=DPI)
     plt.close()
     plt.clf()
 
