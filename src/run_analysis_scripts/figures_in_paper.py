@@ -22,17 +22,20 @@ def generate_bar_plot(
 ):
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
+    df_melted = pd.melt(df, id_vars=["method"])
+    df_melted = df_melted[~df_melted["dataset"].isin(["index", "Average"])]
+
     # Convert tuples to dictionaries for easy lookup
     method_lut = dict(method_tuples)
     extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
 
     # Apply lookup transformations
-    df["method_name"] = df["method"].map(method_lut)
+    df_melted["method_name"] = df_melted["method"].map(method_lut)
     if extra_column_name and extra_column_tuples:
-        df["extra_name"] = df["method"].map(extra_column_lut)
-        df["name"] = df["method_name"] + " " + df["extra_name"]
+        df_melted["extra_name"] = df_melted["method"].map(extra_column_lut)
+        df_melted["name"] = df_melted["method_name"] + " " + df_melted["extra_name"]
     else:
-        df["name"] = df["method_name"]
+        df_melted["name"] = df_melted["method_name"]
 
     # Set the Seaborn theme
     sns.set_theme("paper")
@@ -44,8 +47,11 @@ def generate_bar_plot(
     plt.xlim(0, 1)
 
     # Sort the DataFrame for plotting
-    sorted_df = df.sort_values(by="Average", ascending=True)
-    # print(sorted_df)
+    # if extra_column_name:
+    #     sorted_df = df_melted.sort_values(
+    #         by=["dataset", "extra_name", "value"], ascending=True
+    #     )
+    sorted_df = df_melted
 
     # Create a bar plot
     if extra_column_name is not None:
@@ -53,9 +59,9 @@ def generate_bar_plot(
             y = "method_name"
         else:
             y = "extra_name"
-        sns.barplot(x="Average", y=y, hue=hue, data=sorted_df)
+        sns.barplot(x="value", y=y, hue=hue, data=sorted_df)
     else:
-        sns.barplot(x="Average", y="method_name", data=sorted_df)
+        sns.barplot(x="value", y="method_name", data=sorted_df)
 
     plt.xlabel("Accuracy")
     plt.ylabel(y_label)
