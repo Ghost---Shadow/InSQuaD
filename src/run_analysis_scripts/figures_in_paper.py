@@ -103,7 +103,7 @@ def generate_dataset_wise_bar_plot(
     sns.set_theme("paper")
 
     # Create a figure with specific size
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(5, 5))
     plt.tight_layout()
     plt.subplots_adjust(subplot_adjust)
     plt.xlim(0, 1)
