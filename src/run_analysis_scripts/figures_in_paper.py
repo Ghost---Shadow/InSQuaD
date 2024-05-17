@@ -179,13 +179,14 @@ def generate_annotation_budget_ablations_gemma(df):
     )
 
     extra_column_name = "Budget"
-    result = generate_bar_plot(
+    result = generate_dataset_wise_bar_plot(
         df,
         caption,
         label,
         method_tuples,
         extra_column_name,
         extra_column_tuples,
+        subplot_adjust=0.15,
     )
 
     return result
@@ -316,6 +317,7 @@ def generate_main_figure_gemma(df):
         method_tuples,
         extra_column_name,
         extra_column_tuples,
+        subplot_adjust=0.2,
     )
 
     return result
