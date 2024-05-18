@@ -9,62 +9,78 @@ class QuaidLogDetMILoss(BaseLoss):
         super(QuaidLogDetMILoss, self).__init__()
         self.lambd = config.training.loss.lambd
         self.epsilon = 1e-4
-        self.positive_inf = 1e6
+        self.positive_inf = torch.tensor(1e4)
+        # torch.log(self.positive_inf) crashes
+        self.log_positive_inf = torch.tensor(9.21)
 
-    def finitify(self, x):
+    def bind_print_grad(self, name):
         """
-        Helper function to smoothly limit values within a tensor using tanh, maintaining differentiability.
+        Helper function to create a gradient print hook with the given name.
         """
-        # Check for and handle infinity
-        x = torch.where(x.abs() == float("inf"), torch.sign(x) * self.positive_inf, x)
-        return x
+
+        def print_grad(grad):
+            print(f"grad_{name}", grad)
+
+        return print_grad
+
+    def safe_logdet(self, x, name="matrix"):
+        """
+        Safe version of torch.logdet that adds regularization to ensure the matrix is positive definite,
+        clamps values to avoid extreme results, and registers a gradient hook for debugging.
+        """
+        regularized_x = x + self.epsilon * torch.eye(x.size(-1), device=x.device)
+        log_det = torch.logdet(regularized_x)
+        log_det = torch.clamp(
+            log_det, min=-self.log_positive_inf, max=self.log_positive_inf
+        )
+        # print(f"log_det_{name}", log_det)
+        # log_det.register_hook(self.bind_print_grad(f"log_det_{name}"))
+        return log_det
+
+    def safe_pinverse(self, x, name="matrix"):
+        """
+        Safe version of torch.pinverse with logging and a gradient hook for debugging.
+        """
+        pinv = torch.pinverse(x)
+        # print(f"pinverse_{name}", pinv)
+        # pinv.register_hook(self.bind_print_grad(f"pinverse_{name}"))
+        return pinv
+
+    def safe_exp(self, x, name="value"):
+        """
+        Safe version of torch.exp that clamps the input to prevent overflow and registers a gradient hook.
+        """
+        clamped_x = torch.clamp(
+            x, min=-self.log_positive_inf, max=self.log_positive_inf
+        )
+        exp_x = torch.exp(clamped_x)
+        clamped_exp_x = torch.clamp(
+            exp_x, min=-self.positive_inf, max=self.positive_inf
+        )
+        # print(f"exp_{name}", clamped_exp_x)
+        # clamped_exp_x.register_hook(self.bind_print_grad(f"exp_{name}"))
+        return clamped_exp_x
 
     def logdetMI(self, S_A, S_AQ, S_Q):
-        # Register a hook to trace gradients
-        # def bind_print_grad(name):
-        #     def print_grad(grad):
-        #         print(name, grad)
-
-        #     return print_grad
-
         # Print input tensors
         # print("S_A", S_A)
         # print("S_AQ", S_AQ)
         # print("S_Q", S_Q)
 
-        # Bounds [-inf, 0]
-        log_det_SA = torch.logdet(S_A)
-        # log_det_SA.register_hook(bind_print_grad("log_det_SA"))
-        log_det_SA = self.finitify(log_det_SA)
-        # print("log_det_SA", log_det_SA)
+        # Compute log determinant in a safe manner
+        log_det_SA = self.safe_logdet(S_A, "S_A")
 
-        S_Q_inv = torch.pinverse(S_Q)
-        # S_Q_inv.register_hook(bind_print_grad("S_Q_inv"))
-        # print("S_Q_inv", S_Q_inv)
+        S_Q_inv = self.safe_pinverse(S_Q, "S_Q")
 
         second_term = S_A - self.lambd**2 * S_AQ @ S_Q_inv @ S_AQ.transpose(1, 2)
-        # second_term.register_hook(bind_print_grad("second_term"))
         # print("second_term", second_term)
 
-        log_det_second = torch.logdet(second_term)
-        # log_det_second.register_hook(bind_print_grad("log_det_second"))
-        log_det_second = self.finitify(log_det_second)
-        # print("log_det_second", log_det_second)
+        log_det_second = self.safe_logdet(second_term, "second_term")
 
         log_mutual_information = log_det_SA - log_det_second
-        # log_mutual_information.register_hook(bind_print_grad("log_mutual_information"))
-        log_mutual_information = self.finitify(log_mutual_information)
-        # log_mutual_information.register_hook(
-        # bind_print_grad("log_mutual_information_finitify")
-        # )
-        # print("log_det_SA", "log_det_second", log_det_SA, log_det_second)
         # print("log_mutual_information", log_mutual_information)
 
-        mutual_information = torch.exp(log_mutual_information)
-        # mutual_information.register_hook(bind_print_grad("mutual_information"))
-        mutual_information = self.finitify(mutual_information)
-        # mutual_information.register_hook(bind_print_grad("mutual_information"))
-        # print("mutual_information", mutual_information)
+        mutual_information = self.safe_exp(log_mutual_information, "mutual_information")
 
         # Return scaled mutual information
         return mutual_information / self.positive_inf
