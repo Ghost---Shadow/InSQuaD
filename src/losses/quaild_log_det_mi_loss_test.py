@@ -17,20 +17,52 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_finitify_inf -v
     def test_finitify_inf(self):
+        # Create a tensor representing positive infinity
         inf = -torch.log(torch.tensor([0.0]))
+        inf = inf.clone().detach().requires_grad_(True)
+
+        # Apply the finitify function
         finite_inf = self.loss_fn.finitify(inf)
         positive_inf = self.loss_fn.positive_inf
         self.assertAlmostEqual(finite_inf.item(), positive_inf, places=5)
 
-        neg_inf = -inf
+        # Backward pass to compute gradients
+        exp_finite_inf = torch.exp(finite_inf)
+        exp_finite_inf.backward()
+
+        # Check if gradients are NaN
+        self.assertAlmostEqual(inf.grad.item(), 0.0, places=5)
+
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_finitify_neg_inf -v
+    def test_finitify_neg_inf(self):
+        # Create a tensor representing negative infinity
+        neg_inf = torch.log(torch.tensor([0.0]))
+        neg_inf = neg_inf.clone().detach().requires_grad_(True)
+
+        # Apply the finitify function
         finite_inf = self.loss_fn.finitify(neg_inf)
+        positive_inf = self.loss_fn.positive_inf
         self.assertAlmostEqual(finite_inf.item(), -positive_inf, places=5)
+
+        # Backward pass to compute gradients
+        exp_finite_inf = torch.exp(finite_inf)
+        exp_finite_inf.backward()
+
+        # Check if gradients are NaN
+        self.assertAlmostEqual(neg_inf.grad.item(), 0.0, places=5)
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_finitify_finite -v
     def test_finitify_finite(self):
-        finite = torch.tensor([4.2])
+        finite = torch.tensor([4.2], requires_grad=True)
         result_finite = self.loss_fn.finitify(finite)
         self.assertAlmostEqual(finite.item(), result_finite.item(), places=5)
+
+        # Backward pass to compute gradients
+        exp_result_finite = torch.exp(result_finite)
+        exp_result_finite.backward()
+
+        # Check if gradients are NaN
+        self.assertAlmostEqual(finite.grad.item(), 66.68631744384766, places=5)
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_lower_bound -v
     def test_theoretical_lower_bound(self):
@@ -49,19 +81,19 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss = self.loss_fn(a, b)
         self.assertAlmostEqual(loss.item(), 0.0, places=5)
 
-        # # Compute gradients
-        # loss.backward()
-
-        # print(original_a.grad)
+        # Should not crash
+        with torch.autograd.detect_anomaly():
+            loss = self.loss_fn(a, b)
+            loss.backward()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_upper_bound -v
     def test_theoretical_upper_bound(self):
-        a = torch.tensor([[[1.0, 0.0], [-1.0, 0.0]]])
-        b = torch.tensor([[[0.0, 1.0], [0.0, -1.0]]])
+        original_a = torch.tensor([[[1.0, 0.0], [-1.0, 0.0]]], requires_grad=True)
+        original_b = torch.tensor([[[0.0, 1.0], [0.0, -1.0]]], requires_grad=True)
 
         # Normalize to avoid any scale issues
-        a = F.normalize(a, p=2, dim=-1)
-        b = F.normalize(b, p=2, dim=-1)
+        a = F.normalize(original_a, p=2, dim=-1)
+        b = F.normalize(original_b, p=2, dim=-1)
 
         # Compute the similarity
         similarity = self.loss_fn.similarity(a, b)
@@ -71,16 +103,27 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss = self.loss_fn(a, b)
         self.assertAlmostEqual(loss.item(), 1.0, places=5)
 
+        # Should not crash
+        with torch.autograd.detect_anomaly():
+            loss = self.loss_fn(a, b)
+            loss.backward()
+
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_dimension_mismatch -v
     def test_dimension_mismatch(self):
         a = torch.tensor(
-            [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+            [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]],
+            requires_grad=True,
         )
-        b = torch.tensor([[[1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0]]])
+        b = torch.tensor([[[1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0]]], requires_grad=True)
         a = F.normalize(a, dim=-1)
         b = F.normalize(b, dim=-1)
         loss = self.loss_fn(a, b)
         self.assertAlmostEqual(loss.item(), 1.0, places=5)
+
+        # Should not crash
+        with torch.autograd.detect_anomaly():
+            loss = self.loss_fn(a, b)
+            loss.backward()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_submodularity -v
     def test_submodularity(self):

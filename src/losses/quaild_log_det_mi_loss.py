@@ -15,59 +15,58 @@ class QuaidLogDetMILoss(BaseLoss):
         """
         Helper function to smoothly limit values within a tensor using tanh, maintaining differentiability.
         """
-        # Apply tanh to ensure the range is within [-1, 1] and then scale
-        return self.positive_inf * torch.tanh(x / self.positive_inf)
+        # Check for and handle infinity
+        x = torch.where(x.abs() == float("inf"), torch.sign(x) * self.positive_inf, x)
+        return x
 
     def logdetMI(self, S_A, S_AQ, S_Q):
-        """
-        Compute the Log-Determinant Mutual Information.
-        """
+        # Register a hook to trace gradients
+        # def bind_print_grad(name):
+        #     def print_grad(grad):
+        #         print(name, grad)
+
+        #     return print_grad
+
+        # Print input tensors
         # print("S_A", S_A)
         # print("S_AQ", S_AQ)
         # print("S_Q", S_Q)
 
-        # Bounds S_A = [-1, 1]
-        # Bounds S_AQ = [-1, 1]
-        # Bounds S_Q = [-1, 1]
-
         # Bounds [-inf, 0]
         log_det_SA = torch.logdet(S_A)
-        # Bounds [-1e6, 0]
+        # log_det_SA.register_hook(bind_print_grad("log_det_SA"))
         log_det_SA = self.finitify(log_det_SA)
         # print("log_det_SA", log_det_SA)
 
-        # Compute the term S_A - lambda^2 * S_AQ * S_Q^-1 * S_AQ^T
-        # Bounds [TODO, TODO]
         S_Q_inv = torch.pinverse(S_Q)
+        # S_Q_inv.register_hook(bind_print_grad("S_Q_inv"))
         # print("S_Q_inv", S_Q_inv)
-        # Bounds [TODO, TODO]
+
         second_term = S_A - self.lambd**2 * S_AQ @ S_Q_inv @ S_AQ.transpose(1, 2)
-        # print("S_AQ @ S_Q_inv", S_AQ @ S_Q_inv)
-        # print("MI", S_AQ @ S_Q_inv @ S_AQ.transpose(1, 2))
+        # second_term.register_hook(bind_print_grad("second_term"))
         # print("second_term", second_term)
 
-        # Calculate log(det(S_A - lambda^2 * S_AQ * S_Q^-1 * S_AQ^T))
-        # Bounds [-inf, 0]
         log_det_second = torch.logdet(second_term)
-        # Bounds [-1e6, 0]
+        # log_det_second.register_hook(bind_print_grad("log_det_second"))
         log_det_second = self.finitify(log_det_second)
         # print("log_det_second", log_det_second)
 
-        # Bounds [-1e6, 1e6]
         log_mutual_information = log_det_SA - log_det_second
-        # Bounds [-1e6, 1e6] (just in case)
+        # log_mutual_information.register_hook(bind_print_grad("log_mutual_information"))
         log_mutual_information = self.finitify(log_mutual_information)
+        # log_mutual_information.register_hook(
+        # bind_print_grad("log_mutual_information_finitify")
+        # )
         # print("log_det_SA", "log_det_second", log_det_SA, log_det_second)
         # print("log_mutual_information", log_mutual_information)
 
-        # Bounds [0, inf]
         mutual_information = torch.exp(log_mutual_information)
-
-        # Bounds [0, 1e6]
+        # mutual_information.register_hook(bind_print_grad("mutual_information"))
         mutual_information = self.finitify(mutual_information)
+        # mutual_information.register_hook(bind_print_grad("mutual_information"))
         # print("mutual_information", mutual_information)
 
-        # Bounds [0, 1]
+        # Return scaled mutual information
         return mutual_information / self.positive_inf
 
     def compute_similarity(self, a, b):
