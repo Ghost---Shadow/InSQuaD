@@ -1,5 +1,6 @@
 import torch
 from losses.base_loss import BaseLoss
+from torch.cuda.amp import autocast
 
 
 class QuaidLogDetMILoss(BaseLoss):
@@ -9,9 +10,10 @@ class QuaidLogDetMILoss(BaseLoss):
         super(QuaidLogDetMILoss, self).__init__()
         self.lambd = config.training.loss.lambd
         self.epsilon = 1e-4
-        self.positive_inf = torch.tensor(1e4)
+        self.device = config.architecture.semantic_search_model.device
+        self.positive_inf = torch.tensor(1e4, device=self.device)
         # torch.log(self.positive_inf) crashes
-        self.log_positive_inf = torch.tensor(9.21)
+        self.log_positive_inf = torch.tensor(9.21, device=self.device)
 
     def bind_print_grad(self, name):
         """
@@ -40,8 +42,12 @@ class QuaidLogDetMILoss(BaseLoss):
     def safe_pinverse(self, x, name="matrix"):
         """
         Safe version of torch.pinverse with logging and a gradient hook for debugging.
+        Ensures the operation uses float32 precision for stability.
         """
-        pinv = torch.pinverse(x)
+        with autocast(dtype=torch.float32):
+            x = x.to(torch.float32)
+            pinv = torch.pinverse(x)
+
         # print(f"pinverse_{name}", pinv)
         # pinv.register_hook(self.bind_print_grad(f"pinverse_{name}"))
         return pinv
