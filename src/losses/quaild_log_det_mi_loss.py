@@ -12,14 +12,34 @@ class QuaidLogDetMILoss(BaseLoss):
         self.device = config.architecture.semantic_search_model.device
         self.epsilon = torch.tensor(1e-4, device=self.device)
         self.positive_inf = torch.tensor(1e4, device=self.device)
+        self.grad_norm_max = torch.tensor(10.0, device=self.device)
         # torch.log(self.positive_inf) crashes
         self.log_positive_inf = torch.tensor(9.21, device=self.device)
+
+    def clamp_gradients_hook(self, grad):
+        """
+        A method to clamp gradients based on the class's maximum gradient norm.
+        """
+        norm = torch.norm(grad, 2)
+        if norm > self.grad_norm_max:
+            return grad * self.grad_norm_max / norm
+        return grad
+
+    def attach_gradient_hooks(self, local_vars):
+        """
+        Helper function to attach gradient hooks to tensors that require gradients.
+        """
+        for var_name, tensor in local_vars.items():
+            if isinstance(tensor, torch.Tensor) and tensor.requires_grad:
+                tensor.register_hook(self.clamp_gradients_hook)
 
     def safe_logdet(self, x, name="matrix"):
         """
         Computes the logarithm of the determinant by computing the determinant first,
         then taking the log, and clamping after each step to avoid extreme results.
         """
+        # self.print_and_bind(x, "x")
+
         # Regularize the matrix by adding a small value to its diagonal
         regularized_x = x + self.epsilon * torch.eye(x.size(-1), device=x.device)
         # self.print_and_bind(regularized_x, "regularized_x")
@@ -42,6 +62,9 @@ class QuaidLogDetMILoss(BaseLoss):
         )
         # self.print_and_bind(clamped_log_det, "clamped_log_det")
 
+        # Use the helper function to attach hooks
+        self.attach_gradient_hooks(locals())
+
         return clamped_log_det
 
     def safe_pinverse(self, x, name="matrix"):
@@ -51,21 +74,19 @@ class QuaidLogDetMILoss(BaseLoss):
         """
 
         regularized_x = x + self.epsilon * torch.eye(x.size(-1), device=x.device)
-        # print(f"regularized_x_{name}", regularized_x)
-        # regularized_x.register_hook(self.bind_print_grad(f"regularized_x_{name}"))
+        # self.print_and_bind(regularized_x, "regularized_x")
         clamped_regularized_x = torch.clamp(
             regularized_x, min=-self.positive_inf, max=self.positive_inf
         )
-        # print(f"clamped_regularized_x_{name}", clamped_regularized_x)
-        # clamped_regularized_x.register_hook(
-        #     self.bind_print_grad(f"clamped_regularized_x_{name}")
-        # )
+        # self.print_and_bind(clamped_regularized_x, "clamped_regularized_x")
 
         pinv = torch.pinverse(clamped_regularized_x)
-        # print(f"pinv_{name}", pinv)
-        # pinv.register_hook(self.bind_print_grad(f"pinv_{name}"))
+        # self.print_and_bind(pinv, "pinv")
+
         clamped_pinv = torch.clamp(pinv, min=-self.positive_inf, max=self.positive_inf)
         # self.print_and_bind(clamped_pinv, "clamped_pinv")
+
+        self.attach_gradient_hooks(locals())
 
         return clamped_pinv
 
@@ -76,12 +97,16 @@ class QuaidLogDetMILoss(BaseLoss):
         clamped_x = torch.clamp(
             x, min=-self.log_positive_inf, max=self.log_positive_inf
         )
+        # self.print_and_bind(clamped_x, "clamped_x")
         exp_x = torch.exp(clamped_x)
+        # self.print_and_bind(exp_x, "exp_x")
         clamped_exp_x = torch.clamp(
             exp_x, min=-self.positive_inf, max=self.positive_inf
         )
-        # print(f"exp_{name}", clamped_exp_x)
-        # clamped_exp_x.register_hook(self.bind_print_grad(f"exp_{name}"))
+        # self.print_and_bind(clamped_exp_x, "clamped_exp_x")
+
+        self.attach_gradient_hooks(locals())
+
         return clamped_exp_x
 
     def print_and_bind(self, tensor, name):
@@ -123,7 +148,11 @@ class QuaidLogDetMILoss(BaseLoss):
         # self.print_and_bind(mutual_information, "mutual_information")
 
         # Return scaled mutual information
-        return mutual_information / self.positive_inf
+        scaled_mutual_information = mutual_information / self.positive_inf
+
+        self.attach_gradient_hooks(locals())
+
+        return scaled_mutual_information
 
     def compute_similarity(self, a, b):
         """

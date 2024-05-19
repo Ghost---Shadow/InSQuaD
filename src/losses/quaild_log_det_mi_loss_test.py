@@ -36,8 +36,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [3.0001001358032227, -1.0000001192092896],
-            [-1.0000001192092896, 4.000100612640381],
+            [2.7271900177001953, -0.9090330600738525],
+            [-0.9090331196784973, 3.636223316192627],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_singular -v
@@ -146,8 +146,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [-24982102.0, 24979604.0],
-            [24979604.0, -24982102.0],
+            [-5.000250339508057, 4.999749183654785],
+            [4.999749183654785, -5.000250339508057],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_weird -v
@@ -183,8 +183,14 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [[43720380.0, 68696032.0], [-43716008.0, -68702912.0]],
-            [[-500308.21875, -500058.125], [-500058.15625, -500308.21875]],
+            [
+                [-2.235128164291382, 6.703449249267578],
+                [2.2349050045013428, -6.704117774963379],
+            ],
+            [
+                [-0.17852270603179932, -0.17921559512615204],
+                [-0.17843350768089294, -0.17930519580841064],
+            ],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_lower_bound -v
