@@ -10,10 +10,12 @@ def format_experiment_name(experiment_name):
     EXPERIMENT_NAME_LUT = {
         "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
         "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+        "quaild_gain_ld_mpnet_gemma": "QuailD-LD",
         # "quaild_gain_fl_mpnet_gemma_lambda_025": "QuailD-FL 0.25",
         # "quaild_gain_gc_mpnet_gemma_lambda_025": "QuailD-GC 0.25",
         "quaild_nt_fl_mpnet_gemma": "QuailD-FL (NT)",
         "quaild_nt_gc_mpnet_gemma": "QuailD-GC (NT)",
+        "quaild_nt_ld_mpnet_gemma": "QuailD-LD (NT)",
     }
     experiment_name = "_".join(experiment_name.split("_")[:-1])
     found = experiment_name in EXPERIMENT_NAME_LUT
