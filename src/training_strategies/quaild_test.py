@@ -70,6 +70,8 @@ class TestQuaildStrategy(unittest.TestCase):
         # config.training.loss.type = "mean_squared_error"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
+        # config.training.loss.type = "log_det_mi"
+        # config.training.loss.lambd = 1.0
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -81,9 +83,13 @@ class TestQuaildStrategy(unittest.TestCase):
 
         # Should not crash
         for step in range(11):
+            # for step in range(100):
             optimizer.zero_grad()
             loss = training_strategy.train_step(batch)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(
+                pipeline.semantic_search_model.model.parameters(), max_norm=1.0
+            )
             optimizer.step()
 
             metrics = {}
@@ -102,13 +108,16 @@ class TestQuaildStrategy(unittest.TestCase):
         config.architecture.subset_selection_strategy.k = None
         # config.training.loss.type = "mean_squared_error"
 
-        config.training.loss.lambd = 0.5
-        config.training.loss.type = "graph_cut"
+        # config.training.loss.lambd = 0.5
+        # config.training.loss.type = "graph_cut"
         # config.training.loss.lambd = 1.0
         # config.training.loss.type = "facility_location"
+        config.training.loss.type = "log_det_mi"
+        config.training.loss.lambd = 1.0
+        config.training.learning_rate = 3e-6
 
         config.training.q_d_tradeoff_lambda = 0.5
-        # config.architecture.subset_selection_strategy.type = "flat_cutoff"
+        config.architecture.subset_selection_strategy.type = "flat_cutoff"
         pipeline = TrainingPipeline(config)
         training_strategy = QuaildStrategy(config, pipeline)
         training_strategy.before_each_epoch()
@@ -122,7 +131,7 @@ class TestQuaildStrategy(unittest.TestCase):
 
         # Should not crash
         for step in range(11):
-            # for step in range(111):
+            # for step in range(500):
             optimizer.zero_grad()
 
             # Automatic Mixed Precision
@@ -131,10 +140,16 @@ class TestQuaildStrategy(unittest.TestCase):
                 metrics = {}
                 if step % 10 == 0:
                     metrics = pipeline.compute_extra_metrics(batch)
-                print({"loss": loss.item(), **metrics})
 
             # Scales loss. Calls backward() on scaled loss to create scaled gradients.
             scaler.scale(loss).backward()
+
+            metrics["norm"] = pipeline.compute_average_norm(pipeline)
+            print({"loss": loss.item(), **metrics})
+
+            torch.nn.utils.clip_grad_norm_(
+                pipeline.semantic_search_model.model.parameters(), max_norm=1.0
+            )
 
             # Unscales gradients and calls or skips optimizer.step()
             scaler.step(optimizer)

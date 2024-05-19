@@ -130,6 +130,24 @@ class TrainingPipeline:
     def artifacts_dir(self):
         return generate_artifacts_dir(self.config, self.current_seed, "train")
 
+    def compute_average_norm(self):
+        model = self.semantic_search_model.model
+
+        # Compute the norm of gradients for each parameter
+        total_norm = 0
+        param_count = 0
+        for p in model.parameters():
+            if p.grad is not None:
+                if not torch.isnan(p.grad).any():
+                    param_norm = p.grad.data.norm(2)
+                    total_norm += param_norm.item() ** 2
+                param_count += 1
+
+        # Compute the average norm
+        average_norm = (total_norm / param_count) ** 0.5
+
+        return average_norm
+
     @torch.no_grad()
     def compute_extra_metrics(self, batch):
         all_metrics = {}
@@ -160,24 +178,27 @@ class TrainingPipeline:
                     if check_for_nan_then_dump(loss, batch):
                         continue
 
-                    extra_metrics = {}
-                    if self.current_step % 100 == 0:
-                        extra_metrics = self.compute_extra_metrics(batch)
-                    metrics = {
-                        "train": {
-                            dataset_name: {
-                                "loss": loss.item(),
-                                "learning_rate": self.lr_scheduler.get_lr()[0],
-                                **extra_metrics,
-                            }
-                        }
-                    }
                     pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
-
-                    wandb_safe_log(metrics, step=self.current_step)
 
                 # Scales loss. Calls backward() on scaled loss to create scaled gradients.
                 self.scaler.scale(loss).backward()
+
+                extra_metrics = {}
+                if self.current_step % 100 == 0:
+                    extra_metrics = self.compute_extra_metrics(batch)
+                    extra_metrics["norm"] = self.compute_average_norm()
+
+                metrics = {
+                    "train": {
+                        dataset_name: {
+                            "loss": loss.item(),
+                            "learning_rate": self.lr_scheduler.get_lr()[0],
+                            **extra_metrics,
+                        }
+                    }
+                }
+
+                wandb_safe_log(metrics, step=self.current_step)
 
                 # Clip grads to hopefully prevent OOMs
                 torch.nn.utils.clip_grad_norm_(
