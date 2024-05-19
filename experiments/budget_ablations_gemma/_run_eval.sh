@@ -4,6 +4,9 @@ source devops/upload_artifacts.sh
 python src/offline_eval.py --config=experiments/budget_ablations_gemma/quaild_gain_gc_mpnet_gemma_100.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/budget_ablations_gemma/quaild_gain_ld_mpnet_gemma_100.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/budget_ablations_gemma/random_mpnet_gemma_100.yaml
 source devops/upload_artifacts.sh
 

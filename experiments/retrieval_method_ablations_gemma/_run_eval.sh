@@ -4,10 +4,16 @@ source devops/upload_artifacts.sh
 python src/offline_eval.py --config=experiments/retrieval_method_ablations_gemma/quaild_random_gc_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/retrieval_method_ablations_gemma/quaild_random_ld_mpnet_gemma.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/retrieval_method_ablations_gemma/quaild_similar_fl_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
 python src/offline_eval.py --config=experiments/retrieval_method_ablations_gemma/quaild_similar_gc_mpnet_gemma.yaml
+source devops/upload_artifacts.sh
+
+python src/offline_eval.py --config=experiments/retrieval_method_ablations_gemma/quaild_similar_ld_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
 

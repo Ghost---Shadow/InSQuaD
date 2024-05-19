@@ -1,6 +1,6 @@
 wandb:
   project: "quaild"
-  name: "quaild_nt_ld_mpnet_gemma"
+  name: "quaild_gain_ld_mpnet_gemma_100"
   # entity: "carml"
 
 architecture:
@@ -16,7 +16,7 @@ architecture:
 
   subset_selection_strategy:
     type: 'quaild_submodular'
-    gain_cutoff: -0.0004 # Figure 4
+    gain_cutoff: -0.0005 # Figure 4
 
   dense_index:
     type: 'faiss'
@@ -29,7 +29,7 @@ architecture:
 
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
-  type: 'noop'
+  type: 'quaild'
   dataset: 'hotpot_qa_with_q'
   q_d_tradeoff_lambda: 0.5
   extra_metrics: ['hotpot_qa_with_q_f1']
@@ -53,6 +53,6 @@ offline_validation:
   datasets: ['mrpc', 'sst5','mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz','geoq']
   seeds: [42]
   num_shots: 5
-  annotation_budget: 18
+  annotation_budget: 100
   subsample_for_train_size: 3000
   subsample_for_eval_size: 256

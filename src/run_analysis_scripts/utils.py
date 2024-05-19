@@ -30,6 +30,12 @@ def generate_best_row(df):
         "quaild_gain_gc_mpnet_gemma",
         "quaild_gain_gc_mpnet_gemma_lambda_1",
     ]
+    methods_ld = [
+        "quaild_gain_ld_mpnet_gemma_lambda_0",
+        "quaild_gain_ld_mpnet_gemma_lambda_025",
+        "quaild_gain_ld_mpnet_gemma",
+        "quaild_gain_ld_mpnet_gemma_lambda_1",
+    ]
 
     ddf = df.copy()
     ddf["method"] = ddf["method"].apply(lambda x: "_".join(x.split("_")[:-1]))
@@ -40,8 +46,21 @@ def generate_best_row(df):
     gc_max_values = ddf[ddf["method"].isin(methods_gc)].max()
     gc_max_values["method"] = "quaild_gain_gc_mpnet_gemma_best_00000"
 
+    ld_max_values = ddf[ddf["method"].isin(methods_ld)].max()
+    ld_max_values["method"] = "quaild_gain_ld_mpnet_gemma_best_00000"
+
     df = pd.concat(
-        [df, pd.DataFrame([fl_max_values, gc_max_values])], ignore_index=True
+        [
+            df,
+            pd.DataFrame(
+                [
+                    fl_max_values,
+                    gc_max_values,
+                    ld_max_values,
+                ]
+            ),
+        ],
+        ignore_index=True,
     )
 
     return df

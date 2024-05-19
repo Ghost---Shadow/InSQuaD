@@ -1,6 +1,6 @@
 wandb:
   project: "quaild"
-  name: "quaild_nt_ld_mpnet_gemma"
+  name: "quaild_random_ld_mpnet_gemma"
   # entity: "carml"
 
 architecture:
@@ -16,7 +16,7 @@ architecture:
 
   subset_selection_strategy:
     type: 'quaild_submodular'
-    gain_cutoff: -0.0004 # Figure 4
+    gain_cutoff: -0.0009 # Figure 4
 
   dense_index:
     type: 'faiss'
@@ -29,7 +29,7 @@ architecture:
 
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
-  type: 'noop'
+  type: 'noop' # No training
   dataset: 'hotpot_qa_with_q'
   q_d_tradeoff_lambda: 0.5
   extra_metrics: ['hotpot_qa_with_q_f1']
@@ -45,7 +45,7 @@ training:
     lambd: 1
 
 offline_validation:
-  type: quaild_gain_counter
+  type: random
   generative_model:
     type: 'automodel'
     checkpoint: google/gemma-2b

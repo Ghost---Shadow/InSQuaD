@@ -202,12 +202,15 @@ def generate_retrieval_method_ablations_gemma(df):
         ("hline", "hline"),
         ("quaild_random_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_random_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_random_ld_mpnet_gemma", "QuailD-LD"),
         ("hline", "hline"),
         ("quaild_similar_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_similar_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_similar_ld_mpnet_gemma", "QuailD-LD"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_best", "QuailD-LD"),
     )
     extra_column_tuples = (
         ("zeroshot_mpnet_gemma", ""),
@@ -216,12 +219,15 @@ def generate_retrieval_method_ablations_gemma(df):
         ("hline", "hline"),
         ("quaild_random_fl_mpnet_gemma", "Random"),
         ("quaild_random_gc_mpnet_gemma", "Random"),
+        ("quaild_random_ld_mpnet_gemma", "Random"),
         ("hline", "hline"),
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
+        ("quaild_similar_ld_mpnet_gemma", "Similar"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_best", "Combinatorial"),
         ("quaild_gain_gc_mpnet_gemma_best", "Combinatorial"),
+        ("quaild_gain_ld_mpnet_gemma_best", "Combinatorial"),
     )
     extra_column_name = "Retrieval"
     result = generate_latex_table(
@@ -247,11 +253,13 @@ def generate_annotation_budget_ablations_gemma(df):
         ("random_mpnet_gemma", "Random"),
         ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma", "QuailD-LD"),
         # budget 100
         ("hline", "hline"),
         ("random_mpnet_gemma_100", "Random"),
         ("quaild_gain_fl_mpnet_gemma_100", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_100", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_100", "QuailD-LD"),
     )
 
     extra_column_tuples = (
@@ -264,11 +272,13 @@ def generate_annotation_budget_ablations_gemma(df):
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma", "18"),
         ("quaild_gain_gc_mpnet_gemma", "18"),
+        ("quaild_gain_ld_mpnet_gemma", "18"),
         # budget 100
         ("hline", "hline"),
         ("random_mpnet_gemma_100", "100"),
         ("quaild_gain_fl_mpnet_gemma_100", "100"),
         ("quaild_gain_gc_mpnet_gemma_100", "100"),
+        ("quaild_gain_ld_mpnet_gemma_100", "100"),
     )
 
     extra_column_name = "Budget"
@@ -294,15 +304,19 @@ def generate_qd_tradeoff_ablations_gemma(df):
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_lambda_0", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_lambda_0", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_lambda_0", "QuailD-LD"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_lambda_025", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_lambda_025", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_lambda_025", "QuailD-LD"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma", "QuailD-LD"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_lambda_1", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_lambda_1", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_lambda_1", "QuailD-LD"),
     )
     extra_column_tuples = (
         ("zeroshot_mpnet_gemma", ""),
@@ -311,15 +325,19 @@ def generate_qd_tradeoff_ablations_gemma(df):
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_lambda_0", "0"),
         ("quaild_gain_gc_mpnet_gemma_lambda_0", "0"),
+        ("quaild_gain_ld_mpnet_gemma_lambda_0", "0"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_lambda_025", "0.25"),
         ("quaild_gain_gc_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_gain_ld_mpnet_gemma_lambda_025", "0.25"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma", "0.5"),
         ("quaild_gain_gc_mpnet_gemma", "0.5"),
+        ("quaild_gain_ld_mpnet_gemma", "0.5"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_lambda_1", "1"),
         ("quaild_gain_gc_mpnet_gemma_lambda_1", "1"),
+        ("quaild_gain_ld_mpnet_gemma_lambda_1", "1"),
     )
 
     extra_column_name = "$\\lambda$"
@@ -345,6 +363,7 @@ def generate_model_size_ablations(df):
         ("oracle_mpnet_gemma", "Oracle"),
         ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_best", "QuailD-LD"),
         # gemma7b
         ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "Zeroshot"),
@@ -352,6 +371,7 @@ def generate_model_size_ablations(df):
         ("oracle_mpnet_gemma7b", "Oracle"),
         ("quaild_gain_fl_mpnet_gemma7b", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma7b", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma7b", "QuailD-LD"),
         # davinci2
         ("hline", "hline"),
         ("zeroshot_mpnet_davinci2", "Zeroshot"),
@@ -359,6 +379,7 @@ def generate_model_size_ablations(df):
         ("oracle_mpnet_davinci2", "Oracle"),
         ("quaild_gain_fl_mpnet_davinci2", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_davinci2", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_davinci2", "QuailD-LD"),
     )
     extra_column_tuples = (
         # gemma
@@ -367,6 +388,7 @@ def generate_model_size_ablations(df):
         ("oracle_mpnet_gemma", "gemma2b"),
         ("quaild_gain_fl_mpnet_gemma_best", "gemma2b"),
         ("quaild_gain_gc_mpnet_gemma_best", "gemma2b"),
+        ("quaild_gain_ld_mpnet_gemma_best", "gemma2b"),
         # gemma7b
         ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "gemma7b"),
@@ -374,6 +396,7 @@ def generate_model_size_ablations(df):
         ("oracle_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_fl_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_gc_mpnet_gemma7b", "gemma7b"),
+        ("quaild_gain_ld_mpnet_gemma7b", "gemma7b"),
         # davinci2
         ("hline", "hline"),
         ("zeroshot_mpnet_davinci2", "davinci2-175b"),
@@ -381,6 +404,7 @@ def generate_model_size_ablations(df):
         ("oracle_mpnet_davinci2", "davinci2-175b"),
         ("quaild_gain_fl_mpnet_davinci2", "davinci2-175b"),
         ("quaild_gain_gc_mpnet_davinci2", "davinci2-175b"),
+        ("quaild_gain_ld_mpnet_davinci2", "davinci2-175b"),
     )
 
     extra_column_name = "Model"
@@ -411,9 +435,11 @@ def generate_main_table_gemma(df):
         ("ideal_mpnet_gemma", "IDEAL"),
         ("quaild_nt_fl_mpnet_gemma", "QuailD-FL (NT)"),
         ("quaild_nt_gc_mpnet_gemma", "QuailD-GC (NT)"),
+        ("quaild_nt_ld_mpnet_gemma", "QuailD-LD (NT)"),
         ("hline", "hline"),
         ("quaild_gain_fl_mpnet_gemma_best", "QuailD-FL"),
         ("quaild_gain_gc_mpnet_gemma_best", "QuailD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_best", "QuailD-LD"),
     )
 
     extra_column_tuples = None
