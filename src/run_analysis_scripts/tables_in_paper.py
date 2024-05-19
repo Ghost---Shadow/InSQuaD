@@ -128,7 +128,13 @@ def generate_latex_rows(full_df, method_tuples, num_columns, extra_column_tuples
 
 
 def generate_latex_table(
-    df, caption, label, method_tuples, extra_column_name=None, extra_column_tuples=None
+    df,
+    caption,
+    label,
+    method_tuples,
+    extra_column_name=None,
+    extra_column_tuples=None,
+    pre_wrapped=True,
 ):
     # Reset the index to make 'method' a regular column
     df = df.reset_index()
@@ -171,10 +177,7 @@ def generate_latex_table(
     if extra_column_name is not None:
         offset = 1
 
-    latex_template = f"""
-\\begin{{table}}[H]
-\\centering
-\\small
+    inner_table = f"""
 \\caption{{{caption}}}
 \\label{{table:{label}}}
 \\setlength{{\\tabcolsep}}{{3pt}}
@@ -187,9 +190,19 @@ def generate_latex_table(
 {latex_rows}
 \\hline
 \\end{{tabular}}
+"""
+
+    latex_template = f"""
+\\begin{{table}}[H]
+\\centering
+\\small
+{inner_table}
 \\end{{table}}
 """
-    return latex_template
+    if pre_wrapped:
+        return latex_template
+    else:
+        return inner_table
 
 
 def generate_retrieval_method_ablations_gemma(df):
@@ -444,6 +457,7 @@ def generate_main_table_gemma(df):
 
     extra_column_tuples = None
     extra_column_name = None
+    pre_wrapped = False
     result = generate_latex_table(
         df,
         caption,
@@ -451,6 +465,7 @@ def generate_main_table_gemma(df):
         method_tuples,
         extra_column_name,
         extra_column_tuples,
+        pre_wrapped,
     )
 
     return result
