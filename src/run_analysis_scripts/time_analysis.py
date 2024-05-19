@@ -9,6 +9,7 @@ EXPERIMENT_NAME_LUT = {
     "ideal_mpnet_gemma": "IDEAL",
     "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
     "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
+    "quaild_gain_ld_mpnet_gemma": "QuailD-LD",
 }
 
 
