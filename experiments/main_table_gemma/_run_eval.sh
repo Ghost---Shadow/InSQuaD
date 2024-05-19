@@ -19,6 +19,9 @@ source devops/upload_artifacts.sh
 python src/offline_eval.py --config=experiments/main_table_gemma/quaild_gain_gc_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_gain_ld_mpnet_gemma.yaml
+source devops/upload_artifacts.sh
+
 python src/offline_eval.py --config=experiments/main_table_gemma/quaild_nt_fl_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
