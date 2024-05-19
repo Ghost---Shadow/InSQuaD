@@ -8,18 +8,13 @@ class QuaidLogDetMILoss(BaseLoss):
 
     def __init__(self, config):
         super(QuaidLogDetMILoss, self).__init__()
+        self.config = config
         self.lambd = config.training.loss.lambd
         self.device = config.architecture.semantic_search_model.device
-        self.epsilon = torch.tensor(1e-3, device=self.device)
+        self.epsilon = torch.tensor(1e-4, device=self.device)
         self.positive_inf = torch.tensor(1e4, device=self.device)
         # torch.log(self.positive_inf) crashes
         self.log_positive_inf = torch.tensor(9.21, device=self.device)
-
-    def bind_print_grad(self, name):
-        def print_grad(grad):
-            print(f"grad_{name}", grad)
-
-        return print_grad
 
     def safe_logdet(self, x, name="matrix"):
         """
@@ -28,31 +23,26 @@ class QuaidLogDetMILoss(BaseLoss):
         """
         # Regularize the matrix by adding a small value to its diagonal
         regularized_x = x + self.epsilon * torch.eye(x.size(-1), device=x.device)
-        # regularized_x.register_hook(self.bind_print_grad(f"det_{name}"))
-        # print(f"regularized_x_{name}", regularized_x)
+        # self.print_and_bind(regularized_x, "regularized_x")
 
         # Compute the determinant
         det = torch.det(regularized_x)
-        # det.register_hook(self.bind_print_grad(f"det_{name}"))
-        # print(f"det_{name}", det)
+        # self.print_and_bind(det, "det")
 
         # Clamp the determinant to avoid negative or zero values that cause issues with log
         clamped_det = torch.clamp(det, min=self.epsilon, max=self.positive_inf)
-        # clamped_det.register_hook(self.bind_print_grad(f"clamped_det_{name}"))
-        # print(f"clamped_det_{name}", clamped_det)
+        # self.print_and_bind(clamped_det, "clamped_det")
 
         # Compute the logarithm of the clamped determinant
         log_det = torch.log(clamped_det)
-        # print(f"log_det_{name}", log_det)
-        # log_det.register_hook(self.bind_print_grad(f"log_det_{name}"))
+        # self.print_and_bind(log_det, "log_det")
 
         # Clamp the logarithm of the determinant to avoid extreme negative values
         clamped_log_det = torch.clamp(
             log_det, min=-self.log_positive_inf, max=self.log_positive_inf
         )
-        # print(f"clamped_log_det_{name}", clamped_log_det)
+        # self.print_and_bind(clamped_log_det, "clamped_log_det")
 
-        # clamped_log_det.register_hook(self.bind_print_grad(f"clamped_log_det_{name}"))
         return clamped_log_det
 
     def safe_pinverse(self, x, name="matrix"):
@@ -76,8 +66,8 @@ class QuaidLogDetMILoss(BaseLoss):
         # print(f"pinv_{name}", pinv)
         # pinv.register_hook(self.bind_print_grad(f"pinv_{name}"))
         clamped_pinv = torch.clamp(pinv, min=-self.positive_inf, max=self.positive_inf)
-        # print(f"clamped_pinv_{name}", clamped_pinv)
-        # pinv.register_hook(self.bind_print_grad(f"clamped_pinv_{name}"))
+        # self.print_and_bind(clamped_pinv, "clamped_pinv")
+
         return clamped_pinv
 
     def safe_exp(self, x, name="value"):
@@ -95,6 +85,16 @@ class QuaidLogDetMILoss(BaseLoss):
         # clamped_exp_x.register_hook(self.bind_print_grad(f"exp_{name}"))
         return clamped_exp_x
 
+    def print_and_bind(self, tensor, name):
+        def bind_print_grad(name):
+            def print_grad(grad):
+                print(f"grad_{name}", grad)
+
+            return print_grad
+
+        print(name, tensor)
+        tensor.register_hook(bind_print_grad(name))
+
     def logdetMI(self, S_A, S_AQ, S_Q):
         # print("S_A", S_A)
         # print("S_AQ", S_AQ)
@@ -102,18 +102,26 @@ class QuaidLogDetMILoss(BaseLoss):
 
         # Compute log determinant in a safe manner
         log_det_SA = self.safe_logdet(S_A, "S_A")
+        # self.print_and_bind(log_det_SA, "log_det_SA")
 
         S_Q_inv = self.safe_pinverse(S_Q, "S_Q")
+        # self.print_and_bind(S_Q_inv, "S_Q_inv")
 
-        second_term = S_A - self.lambd**2 * S_AQ @ S_Q_inv @ S_AQ.transpose(1, 2)
-        # print("second_term", second_term)
+        rhs_a = S_AQ @ S_Q_inv
+        # self.print_and_bind(rhs_a, "rhs_a")
+        rhs_b = rhs_a @ S_AQ.transpose(1, 2)
+        # self.print_and_bind(rhs_b, "rhs_b")
+        second_term = S_A - self.lambd**2 * rhs_b
+        # self.print_and_bind(second_term, "second_term")
 
         log_det_second = self.safe_logdet(second_term, "second_term")
+        # self.print_and_bind(log_det_second, "log_det_second")
 
         log_mutual_information = log_det_SA - log_det_second
-        # print("log_mutual_information", log_mutual_information)
+        # self.print_and_bind(log_mutual_information, "log_mutual_information")
 
         mutual_information = self.safe_exp(log_mutual_information, "mutual_information")
+        # self.print_and_bind(mutual_information, "mutual_information")
 
         # Return scaled mutual information
         return mutual_information / self.positive_inf

@@ -36,8 +36,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [3.000000238418579, -1.0000001192092896],
-            [-1.0000001192092896, 4.000000476837158],
+            [3.0001001358032227, -1.0000001192092896],
+            [-1.0000001192092896, 4.000100612640381],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_singular -v
@@ -52,7 +52,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
 
         # Apply the finitify function
         actual_loss = self.loss_fn.safe_logdet(matrix)
-        expected_loss = -6.214068412780762
+        expected_loss = -8.516927719116211
         self.assertAlmostEqual(actual_loss.item(), expected_loss, places=3)
 
         # Backward pass to compute gradients
@@ -60,8 +60,38 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [1.0010002851486206, -1.000000238418579],
-            [-1.000000238418579, 1.0010002851486206],
+            [1.000099539756775, -0.9999995231628418],
+            [-0.999999463558197, 1.000099539756775],
+        ], matrix.grad.tolist()
+
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_weird -v
+    def test_log_det_weird(self):
+        # Create a tensor representing positive infinity
+        matrix = torch.tensor(
+            [
+                [[0.0014, 0.0014], [0.0014, 0.0014]],
+                [[0.0007, -0.0004], [-0.0004, 0.0007]],
+            ],
+            dtype=torch.float32,
+            requires_grad=True,
+            device="cuda:0",
+        )
+
+        # Apply the finitify function
+        log_det = self.loss_fn.safe_logdet(matrix)
+        assert log_det.tolist() == [
+            -9.210000038146973,
+            -9.210000038146973,
+        ], log_det.tolist()
+
+        # Backward pass to compute gradients
+        loss = torch.exp(log_det).mean()
+        loss.backward()
+        assert loss.item() == 0.00010003404167946428, loss.item()
+
+        assert matrix.grad.tolist() == [
+            [[0.0, 0.0], [0.0, 0.0]],
+            [[0.0, 0.0], [0.0, 0.0]],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_happy -v
@@ -77,19 +107,19 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         # Apply the finitify function
         actual = self.loss_fn.safe_pinverse(matrix)
         assert actual.tolist() == [
-            [0.27264466881752014, -0.09085128456354141],
-            [-0.09085127711296082, 0.36349597573280334],
+            [0.27271899580955505, -0.09090327471494675],
+            [-0.09090330451726913, 0.3636223077774048],
         ], actual.tolist()
 
         # Backward pass to compute gradients
         loss = self.loss_fn.safe_logdet(actual)
         loss = torch.exp(loss)
-        assert loss.item() == 0.09148841351270676, loss.item()
+        assert loss.item() == 0.09096692502498627, loss.item()
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [-0.024852704256772995, 0.008311750367283821],
-            [0.008311749435961246, -0.03316446766257286],
+            [-0.024799315258860588, 0.008269185200333595],
+            [0.008269190788269043, -0.03306850418448448],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_singular -v
@@ -105,19 +135,56 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         # Apply the finitify function
         actual = self.loss_fn.safe_pinverse(matrix)
         assert actual.tolist() == [
-            [500.2230529785156, -499.7232971191406],
-            [-499.7232971191406, 500.2230529785156],
+            [4998.419921875, -4997.919921875],
+            [-4997.919921875, 4998.419921875],
         ], actual.tolist()
 
         # Backward pass to compute gradients
         loss = self.loss_fn.safe_logdet(actual)
         loss = torch.exp(loss)
-        assert loss.item() == 500.7322692871094, loss.item()
+        assert loss.item() == 4997.7958984375, loss.item()
         loss.backward()
 
         assert matrix.grad.tolist() == [
-            [-250448.109375, 250228.875],
-            [250198.359375, -250478.625],
+            [-24982102.0, 24979604.0],
+            [24979604.0, -24982102.0],
+        ], matrix.grad.tolist()
+
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_weird -v
+    def test_safe_pinverse_weird(self):
+        # Create a tensor representing positive infinity
+        matrix = torch.tensor(
+            [
+                [[1.0000, 1.0000], [1.0000, 1.0000]],
+                [[1.0000, -0.9996], [-0.9996, 1.0000]],
+            ],
+            dtype=torch.float32,
+            requires_grad=True,
+            device="cuda:0",
+        )
+
+        # Apply the finitify function
+        actual = self.loss_fn.safe_pinverse(matrix)
+        assert actual.tolist() == [
+            [
+                [4998.419921875, -4997.919921875],
+                [-4997.919921875, 4998.419921875],
+            ],
+            [
+                [1000.2492065429688, 999.7490234375],
+                [999.7491455078125, 1000.2490844726562],
+            ],
+        ], actual.tolist()
+
+        # Backward pass to compute gradients
+        loss = self.loss_fn.safe_logdet(actual)
+        loss = torch.exp(loss).mean()
+        assert loss.item() == 2999.09130859375, loss.item()
+        loss.backward()
+
+        assert matrix.grad.tolist() == [
+            [[43720380.0, 68696032.0], [-43716008.0, -68702912.0]],
+            [[-500308.21875, -500058.125], [-500058.15625, -500308.21875]],
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_lower_bound -v
@@ -302,8 +369,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         optimizer = AdamW([a, b], lr=1e-0)
 
         # Training loop
-        # for epoch in range(10):
-        for epoch in range(1000):
+        for epoch in range(10):
+            # for epoch in range(1000):
             # print("-" * 80)
             optimizer.zero_grad()
             loss = self.loss_fn(a, b)
@@ -332,11 +399,11 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
                 a.copy_(F.normalize(a, dim=-1))  # In-place update of 'a'
                 b.copy_(F.normalize(b, dim=-1))  # In-place update of 'b'
 
-            print(
-                f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}, ga: {grad_norm_a}, gb: {grad_norm_b}",
-                # a.tolist(),
-                # b.tolist(),
-            )
+            # print(
+            #     f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}, ga: {grad_norm_a}, gb: {grad_norm_b}",
+            #     # a.tolist(),
+            #     # b.tolist(),
+            # )
 
         # assert mse_loss.item() <= 1.5, mse_loss.item()
 
@@ -371,8 +438,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         scaler = GradScaler()  # Initialize GradScaler for AMP
 
         # Training loop
-        # for epoch in range(10):
-        for epoch in range(1000):
+        for epoch in range(10):
+            # for epoch in range(1000):
             # print("-" * 80)
             # for epoch in range(1000):
             optimizer.zero_grad()
@@ -400,11 +467,11 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
                 a.copy_(F.normalize(a, dim=-1))
                 b.copy_(F.normalize(b, dim=-1))
 
-            print(
-                f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}, ga: {grad_norm_a}, gb: {grad_norm_b}",
-                # a.tolist(),
-                # b.tolist(),
-            )
+            # print(
+            #     f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}, ga: {grad_norm_a}, gb: {grad_norm_b}",
+            #     # a.tolist(),
+            #     # b.tolist(),
+            # )
 
         # assert mse_loss.item() <= 1.5, f"MSE Loss is too high: {mse_loss.item()}"
 
