@@ -389,6 +389,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             grad_norm_a = torch.norm(a.grad).item()
             grad_norm_b = torch.norm(b.grad).item()
 
+            torch.nn.utils.clip_grad_norm_([a, b], max_norm=1.0)
+
             # if grad_norm_b == 0.0:
             #     raise Exception("B died, stopping")
 
@@ -457,6 +459,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
 
             grad_norm_a = torch.norm(a.grad).item()
             grad_norm_b = torch.norm(b.grad).item()
+
+            torch.nn.utils.clip_grad_norm_([a, b], max_norm=1.0)
 
             # Update the parameters
             scaler.step(optimizer)
