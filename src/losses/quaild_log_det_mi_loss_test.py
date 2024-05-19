@@ -16,54 +16,53 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         config.training.loss.lambd = 1.0
         self.loss_fn = QuaidLogDetMILoss(config)
 
-    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_finitify_inf -v
-    def test_finitify_inf(self):
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_happy -v
+    def test_log_det_happy(self):
         # Create a tensor representing positive infinity
-        inf = -torch.log(torch.tensor([0.0]))
-        inf = inf.clone().detach().requires_grad_(True)
+        matrix = torch.tensor(
+            [[4.0, 1.0], [1.0, 3.0]],
+            dtype=torch.float32,
+            requires_grad=True,
+            device="cuda:0",
+        )
 
         # Apply the finitify function
-        finite_inf = self.loss_fn.finitify(inf)
-        positive_inf = self.loss_fn.positive_inf
-        self.assertAlmostEqual(finite_inf.item(), positive_inf, places=3)
+        actual_loss = self.loss_fn.safe_logdet(matrix)
+        expected_loss = 2.397895336151123
+        self.assertAlmostEqual(actual_loss.item(), expected_loss, places=3)
 
         # Backward pass to compute gradients
-        exp_finite_inf = torch.exp(finite_inf)
-        exp_finite_inf.backward()
+        loss = torch.exp(actual_loss)
+        loss.backward()
 
-        # Check if gradients are NaN
-        self.assertAlmostEqual(inf.grad.item(), 0.0, places=3)
+        assert matrix.grad.tolist() == [
+            [3.000000238418579, -1.0000001192092896],
+            [-1.0000001192092896, 4.000000476837158],
+        ], matrix.grad.tolist()
 
-    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_finitify_neg_inf -v
-    def test_finitify_neg_inf(self):
-        # Create a tensor representing negative infinity
-        neg_inf = torch.log(torch.tensor([0.0]))
-        neg_inf = neg_inf.clone().detach().requires_grad_(True)
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_singular -v
+    def test_log_det_singular(self):
+        # Create a tensor representing positive infinity
+        matrix = torch.tensor(
+            [[1.0, 1.0], [1.0, 1.0]],
+            dtype=torch.float32,
+            requires_grad=True,
+            device="cuda:0",
+        )
 
         # Apply the finitify function
-        finite_inf = self.loss_fn.finitify(neg_inf)
-        positive_inf = self.loss_fn.positive_inf
-        self.assertAlmostEqual(finite_inf.item(), -positive_inf, places=3)
+        actual_loss = self.loss_fn.safe_logdet(matrix)
+        expected_loss = -6.214068412780762
+        self.assertAlmostEqual(actual_loss.item(), expected_loss, places=3)
 
         # Backward pass to compute gradients
-        exp_finite_inf = torch.exp(finite_inf)
-        exp_finite_inf.backward()
+        loss = torch.exp(actual_loss)
+        loss.backward()
 
-        # Check if gradients are NaN
-        self.assertAlmostEqual(neg_inf.grad.item(), 0.0, places=3)
-
-    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_finitify_finite -v
-    def test_finitify_finite(self):
-        finite = torch.tensor([4.2], requires_grad=True)
-        result_finite = self.loss_fn.finitify(finite)
-        self.assertAlmostEqual(finite.item(), result_finite.item(), places=3)
-
-        # Backward pass to compute gradients
-        exp_result_finite = torch.exp(result_finite)
-        exp_result_finite.backward()
-
-        # Check if gradients are NaN
-        self.assertAlmostEqual(finite.grad.item(), 66.68631744384766, places=3)
+        assert matrix.grad.tolist() == [
+            [1.0010002851486206, -1.000000238418579],
+            [-1.000000238418579, 1.0010002851486206],
+        ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_lower_bound -v
     def test_theoretical_lower_bound(self):
@@ -315,7 +314,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         # Training loop
         # for epoch in range(10):
         for epoch in range(1000):
-            print("-" * 80)
+            # print("-" * 80)
             # for epoch in range(1000):
             optimizer.zero_grad()
 
@@ -330,6 +329,9 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             # Backward pass with scaled loss
             scaler.scale(loss).backward()
 
+            grad_norm_a = torch.norm(a.grad).item()
+            grad_norm_b = torch.norm(b.grad).item()
+
             # Update the parameters
             scaler.step(optimizer)
             scaler.update()
@@ -340,7 +342,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
                 b.copy_(F.normalize(b, dim=-1))
 
             print(
-                f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}",
+                f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}, ga: {grad_norm_a}, gb: {grad_norm_b}",
                 # a.tolist(),
                 # b.tolist(),
             )

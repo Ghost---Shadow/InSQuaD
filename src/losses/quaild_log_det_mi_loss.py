@@ -26,17 +26,25 @@ class QuaidLogDetMILoss(BaseLoss):
         Computes the logarithm of the determinant by computing the determinant first,
         then taking the log, and clamping after each step to avoid extreme results.
         """
+        # Regularize the matrix by adding a small value to its diagonal
+        regularized_x = x + self.epsilon * torch.eye(x.size(-1), device=x.device)
+        # regularized_x.register_hook(self.bind_print_grad(f"det_{name}"))
+        # print(f"regularized_x_{name}", regularized_x)
+
         # Compute the determinant
-        det = torch.det(x)
+        det = torch.det(regularized_x)
+        # det.register_hook(self.bind_print_grad(f"det_{name}"))
         # print(f"det_{name}", det)
 
         # Clamp the determinant to avoid negative or zero values that cause issues with log
         clamped_det = torch.clamp(det, min=self.epsilon, max=self.positive_inf)
+        # clamped_det.register_hook(self.bind_print_grad(f"clamped_det_{name}"))
         # print(f"clamped_det_{name}", clamped_det)
 
         # Compute the logarithm of the clamped determinant
         log_det = torch.log(clamped_det)
         # print(f"log_det_{name}", log_det)
+        # log_det.register_hook(self.bind_print_grad(f"log_det_{name}"))
 
         # Clamp the logarithm of the determinant to avoid extreme negative values
         clamped_log_det = torch.clamp(
