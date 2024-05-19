@@ -6,7 +6,7 @@ class QuaildGraphCutLoss(BaseLoss):
     NAME = "graph_cut"
 
     def __init__(self, config):
-        super(QuaildGraphCutLoss, self).__init__()
+        super(QuaildGraphCutLoss, self).__init__(config)
         self.lambd = config.training.loss.lambd
 
     def similarity(self, a, b):

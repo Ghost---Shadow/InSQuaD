@@ -6,8 +6,7 @@ class KLDivLoss(BaseLoss):
     NAME = "kl_divergence"
 
     def __init__(self, config=None):
-        super(KLDivLoss, self).__init__()
-        self.config = config
+        super(KLDivLoss, self).__init__(config)
 
     def forward(self, input, target):
         # Ensure input and target are probability distributions (e.g., using softmax)

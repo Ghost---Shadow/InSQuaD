@@ -12,7 +12,7 @@ class QuaildFacilityLocationLoss(BaseLoss):
         Parameters:
         - lambd (float): Regularization parameter.
         """
-        super(QuaildFacilityLocationLoss, self).__init__()
+        super(QuaildFacilityLocationLoss, self).__init__(config)
         self.lambd = config.training.loss.lambd
         self.epsilon = 0.0  # Adjust if needed
 

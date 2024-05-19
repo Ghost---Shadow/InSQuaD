@@ -6,8 +6,7 @@ class MSELoss(BaseLoss):
     NAME = "mean_squared_error"
 
     def __init__(self, config=None):
-        super(MSELoss, self).__init__()
-        self.config = config
+        super(MSELoss, self).__init__(config)
 
     def forward(self, input, target):
         # Compute the MSE loss

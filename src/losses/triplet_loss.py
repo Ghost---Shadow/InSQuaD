@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class TripletLoss(BaseLoss):
     def __init__(self, config):
-        super(TripletLoss, self).__init__()
+        super(TripletLoss, self).__init__(config)
         self.config = config
         self.margin = 1.0  # TODO
 

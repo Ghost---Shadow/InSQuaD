@@ -5,6 +5,10 @@ import torch.nn.functional as F
 
 
 class BaseLoss(nn.Module):
+    def __init__(self, config):
+        super(BaseLoss, self).__init__()
+        self.config = config
+
     def similarity(self, a, b):
         # Ensure a and b are float tensors (necessary for torch.cosine_similarity)
         a = a.float()

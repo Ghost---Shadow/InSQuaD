@@ -7,8 +7,7 @@ class QuaidLogDetMILoss(BaseLoss):
     NAME = "log_det_mi"
 
     def __init__(self, config):
-        super(QuaidLogDetMILoss, self).__init__()
-        self.config = config
+        super(QuaidLogDetMILoss, self).__init__(config)
         self.lambd = config.training.loss.lambd
         self.device = config.architecture.semantic_search_model.device
         self.epsilon = torch.tensor(1e-4, device=self.device)
