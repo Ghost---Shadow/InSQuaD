@@ -244,15 +244,18 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         a = normalized_a.clone().detach().requires_grad_(True)
         b = normalized_b.clone().detach().requires_grad_(True)
 
-        optimizer = AdamW([a, b], lr=1e-3)
+        optimizer = AdamW([a, b], lr=1e-0)
 
         # Training loop
-        for epoch in range(10):
-            # for epoch in range(1000):
+        # for epoch in range(10):
+        for epoch in range(1000):
+            # print("-" * 80)
             optimizer.zero_grad()
             loss = self.loss_fn(a, b)
 
             # print(loss)
+            if torch.isnan(loss):
+                raise Exception("Got nan, stopping")
 
             mse_loss = torch.nn.functional.mse_loss(a, b, reduction="mean")
 
@@ -261,6 +264,8 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             # Print gradients for inspection
             # print(f"Gradients of a at Epoch {epoch+1}: {a.grad.tolist()}")
             # print(f"Gradients of b at Epoch {epoch+1}: {b.grad.tolist()}")
+            grad_norm_a = torch.norm(a.grad).item()
+            grad_norm_b = torch.norm(b.grad).item()
 
             optimizer.step()
 
@@ -270,7 +275,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
                 b.copy_(F.normalize(b, dim=-1))  # In-place update of 'b'
 
             print(
-                f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}",
+                f"Epoch {epoch+1}, Loss: {loss.item()}, MSE: {mse_loss.item()}, ga: {grad_norm_a}, gb: {grad_norm_b}",
                 # a.tolist(),
                 # b.tolist(),
             )
@@ -308,7 +313,9 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         scaler = GradScaler()  # Initialize GradScaler for AMP
 
         # Training loop
-        for epoch in range(10):
+        # for epoch in range(10):
+        for epoch in range(1000):
+            print("-" * 80)
             # for epoch in range(1000):
             optimizer.zero_grad()
 
@@ -316,6 +323,9 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             with autocast():
                 loss = self.loss_fn(a, b)
                 mse_loss = torch.nn.functional.mse_loss(a, b, reduction="mean")
+
+            if torch.isnan(loss):
+                raise Exception("Got nan, stopping")
 
             # Backward pass with scaled loss
             scaler.scale(loss).backward()
