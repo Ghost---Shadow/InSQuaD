@@ -61,11 +61,24 @@ class QuaidLogDetMILoss(BaseLoss):
         Ensures the operation uses float32 precision for stability.
         """
 
-        pinv = torch.pinverse(x)
+        regularized_x = x + self.epsilon * torch.eye(x.size(-1), device=x.device)
+        # print(f"regularized_x_{name}", regularized_x)
+        # regularized_x.register_hook(self.bind_print_grad(f"regularized_x_{name}"))
+        clamped_regularized_x = torch.clamp(
+            regularized_x, min=-self.positive_inf, max=self.positive_inf
+        )
+        # print(f"clamped_regularized_x_{name}", clamped_regularized_x)
+        # clamped_regularized_x.register_hook(
+        #     self.bind_print_grad(f"clamped_regularized_x_{name}")
+        # )
 
-        # print(f"pinverse_{name}", pinv)
-        # pinv.register_hook(self.bind_print_grad(f"pinverse_{name}"))
-        return pinv
+        pinv = torch.pinverse(clamped_regularized_x)
+        # print(f"pinv_{name}", pinv)
+        # pinv.register_hook(self.bind_print_grad(f"pinv_{name}"))
+        clamped_pinv = torch.clamp(pinv, min=-self.positive_inf, max=self.positive_inf)
+        # print(f"clamped_pinv_{name}", clamped_pinv)
+        # pinv.register_hook(self.bind_print_grad(f"clamped_pinv_{name}"))
+        return clamped_pinv
 
     def safe_exp(self, x, name="value"):
         """

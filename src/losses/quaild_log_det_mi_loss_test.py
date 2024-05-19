@@ -64,6 +64,62 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             [-1.000000238418579, 1.0010002851486206],
         ], matrix.grad.tolist()
 
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_happy -v
+    def test_safe_pinverse_happy(self):
+        # Create a tensor representing positive infinity
+        matrix = torch.tensor(
+            [[4.0, 1.0], [1.0, 3.0]],
+            dtype=torch.float32,
+            requires_grad=True,
+            device="cuda:0",
+        )
+
+        # Apply the finitify function
+        actual = self.loss_fn.safe_pinverse(matrix)
+        assert actual.tolist() == [
+            [0.27264466881752014, -0.09085128456354141],
+            [-0.09085127711296082, 0.36349597573280334],
+        ], actual.tolist()
+
+        # Backward pass to compute gradients
+        loss = self.loss_fn.safe_logdet(actual)
+        loss = torch.exp(loss)
+        assert loss.item() == 0.09148841351270676, loss.item()
+        loss.backward()
+
+        assert matrix.grad.tolist() == [
+            [-0.024852704256772995, 0.008311750367283821],
+            [0.008311749435961246, -0.03316446766257286],
+        ], matrix.grad.tolist()
+
+    # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_singular -v
+    def test_safe_pinverse_singular(self):
+        # Create a tensor representing positive infinity
+        matrix = torch.tensor(
+            [[1.0, 1.0], [1.0, 1.0]],
+            dtype=torch.float32,
+            requires_grad=True,
+            device="cuda:0",
+        )
+
+        # Apply the finitify function
+        actual = self.loss_fn.safe_pinverse(matrix)
+        assert actual.tolist() == [
+            [500.2230529785156, -499.7232971191406],
+            [-499.7232971191406, 500.2230529785156],
+        ], actual.tolist()
+
+        # Backward pass to compute gradients
+        loss = self.loss_fn.safe_logdet(actual)
+        loss = torch.exp(loss)
+        assert loss.item() == 500.7322692871094, loss.item()
+        loss.backward()
+
+        assert matrix.grad.tolist() == [
+            [-250448.109375, 250228.875],
+            [250198.359375, -250478.625],
+        ], matrix.grad.tolist()
+
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_lower_bound -v
     def test_theoretical_lower_bound(self):
         # Construct vectors that should ideally minimize mutual information
@@ -265,6 +321,9 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             # print(f"Gradients of b at Epoch {epoch+1}: {b.grad.tolist()}")
             grad_norm_a = torch.norm(a.grad).item()
             grad_norm_b = torch.norm(b.grad).item()
+
+            # if grad_norm_b == 0.0:
+            #     raise Exception("B died, stopping")
 
             optimizer.step()
 
