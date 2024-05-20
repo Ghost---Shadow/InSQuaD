@@ -56,8 +56,9 @@ def plot_graph(plot_name, key_name):
     df = pd.DataFrame(data_list, columns=["Experiment", key_name, "F1", "should_plot"])
     df = df[df["should_plot"]]
     df = df.sort_values(key_name, ascending=True)
-    df = df[df[key_name] > -0.003]
-    df = df[df[key_name] < 0.001]
+    if key_name == "gain":
+        df = df[df[key_name] > -0.003]
+        df = df[df[key_name] < 0.001]
     # df.to_csv(f"{key_name}.csv")
 
     # Create a lineplot
