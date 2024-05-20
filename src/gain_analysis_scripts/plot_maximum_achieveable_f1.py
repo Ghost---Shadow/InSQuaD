@@ -56,7 +56,8 @@ def plot_graph(plot_name, key_name):
     df = pd.DataFrame(data_list, columns=["Experiment", key_name, "F1", "should_plot"])
     df = df[df["should_plot"]]
     df = df.sort_values(key_name, ascending=True)
-    df = df[df[key_name] > -0.002]
+    df = df[df[key_name] > -0.003]
+    df = df[df[key_name] < 0.001]
     # df.to_csv(f"{key_name}.csv")
 
     # Create a lineplot
@@ -75,6 +76,8 @@ def plot_graph(plot_name, key_name):
         max_row = df_experiment.loc[df_experiment["F1"].idxmax()]
         max_f1 = max_row["F1"]
         max_key_value = max_row[key_name]
+
+        print(experiment, max_key_value, max_f1)
 
         # Draw the horizontal line at the maximum F1 score
         plt.axhline(y=max_f1, color="r", linestyle="dashed", linewidth=1)
