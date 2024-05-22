@@ -20,6 +20,8 @@ def load_and_extract_labels(filepath, regex_pattern):
             for match in matches:
                 few_shot_label = match  # match is directly the few-shot label since re.findall returns the captured groups
                 label_few_shot_counts[main_label][few_shot_label] += 1
+            #     print(match)
+            # print("=" * 80)
     return label_few_shot_counts
 
 
