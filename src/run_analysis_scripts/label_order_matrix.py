@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 
-# Updated function to handle positions of few-shot labels that match the main label
+# Updated function to handle positions of few-shot labels that match the main label and track misses
 def load_and_extract_label_positions(filepath, regex_pattern):
     label_position_counts = defaultdict(lambda: defaultdict(int))
     with open(filepath, "r") as file:
@@ -17,21 +17,24 @@ def load_and_extract_label_positions(filepath, regex_pattern):
             main_label = data["labels"]
             # Extract all few-shot label occurrences
             matches = re.findall(regex_pattern, data["prompts"])
+            found_match = False
             for i, match in enumerate(matches):
                 if match == main_label:
                     label_position_counts[main_label][i + 1] += 1
-            #     print(match)
-            # print("-----")
+                    found_match = True
+            if not found_match:
+                label_position_counts[main_label]["miss"] += 1
+
     return label_position_counts
 
 
 # Function to create a DataFrame from the nested dictionary
 def create_dataframe(label_position_counts):
     df = pd.DataFrame.from_dict(label_position_counts, orient="index").fillna(0)
-    max_positions = max(
-        (max(d.keys()) for d in label_position_counts.values()), default=0
-    )
-    all_positions = range(1, max_positions + 1)
+    # Ensure all positions and 'miss' are accounted for in the DataFrame
+    max_positions = 5
+    all_positions = list(range(1, max_positions + 1))
+    all_positions.append("miss")  # Add 'miss' to positions
     df = df.reindex(columns=all_positions, fill_value=0)
     df = df.div(df.sum(axis=1), axis=0)  # Normalize by row to get percentages
     return df
@@ -73,7 +76,7 @@ if __name__ == "__main__":
 
         # Plotting the heatmap
         output_dir = Path("artifacts/diagrams/label_distribution")
+        output_dir.mkdir(parents=True, exist_ok=True)
         name = experiments[experiment]
         lower_name = name.lower().replace("-", "_")
-        output_dir.mkdir(parents=True, exist_ok=True)
         plot_heatmap(df, name, output_dir / f"label_position_heatmap_{lower_name}.png")
