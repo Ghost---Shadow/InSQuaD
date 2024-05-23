@@ -16,7 +16,7 @@ architecture:
 
   subset_selection_strategy:
     type: 'quaild_submodular'
-    gain_cutoff: -0.0009 # Figure 4
+    gain_cutoff: -0.0019 # Figure 4
 
   dense_index:
     type: 'faiss'
