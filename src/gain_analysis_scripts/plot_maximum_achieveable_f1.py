@@ -11,11 +11,19 @@ def format_experiment_name(experiment_name):
         "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
         "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
         "quaild_gain_ld_mpnet_gemma": "QuailD-LD",
-        # "quaild_gain_fl_mpnet_gemma_lambda_025": "QuailD-FL 0.25",
-        # "quaild_gain_gc_mpnet_gemma_lambda_025": "QuailD-GC 0.25",
         "quaild_nt_fl_mpnet_gemma": "QuailD-FL (NT)",
         "quaild_nt_gc_mpnet_gemma": "QuailD-GC (NT)",
         "quaild_nt_ld_mpnet_gemma": "QuailD-LD (NT)",
+        # Lambda
+        # "quaild_gain_fl_mpnet_gemma_lambda_0": "QuailD-FL 0",
+        # "quaild_gain_gc_mpnet_gemma_lambda_0": "QuailD-GC 0",
+        # "quaild_gain_ld_mpnet_gemma_lambda_0": "QuailD-LD 0",
+        # "quaild_gain_fl_mpnet_gemma_lambda_025": "QuailD-FL 0.25",
+        # "quaild_gain_gc_mpnet_gemma_lambda_025": "QuailD-GC 0.25",
+        # "quaild_gain_ld_mpnet_gemma_lambda_025": "QuailD-LD 0.25",
+        # "quaild_gain_fl_mpnet_gemma_lambda_1": "QuailD-FL 1",
+        # "quaild_gain_gc_mpnet_gemma_lambda_1": "QuailD-GC 1",
+        # "quaild_gain_ld_mpnet_gemma_lambda_1": "QuailD-LD 1",
     }
     experiment_name = "_".join(experiment_name.split("_")[:-1])
     found = experiment_name in EXPERIMENT_NAME_LUT
