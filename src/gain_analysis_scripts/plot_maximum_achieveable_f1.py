@@ -30,14 +30,7 @@ def format_experiment_name(experiment_name):
     return EXPERIMENT_NAME_LUT.get(experiment_name, experiment_name), found
 
 
-def plot_graph(plot_name, key_name):
-    # Enable LaTeX typesetting
-    # plt.rc("text", usetex=True)
-    # plt.rc("font", family="serif")
-    sns.set_theme("paper")
-    plt.tight_layout()
-    plt.figure(figsize=(6, 6))
-
+def populate_dataframe(plot_name, key_name):
     data_list = []
     root_dir = "./artifacts"
     for dir_name, _, file_names in os.walk(root_dir):
@@ -60,7 +53,6 @@ def plot_graph(plot_name, key_name):
                             f"{experiment_name}"
                         )
                         data_list.append([formatted_experiment_name, key, f1, found])
-
     df = pd.DataFrame(data_list, columns=["Experiment", key_name, "F1", "should_plot"])
     df = df[df["should_plot"]]
     df = df.sort_values(key_name, ascending=True)
@@ -68,15 +60,10 @@ def plot_graph(plot_name, key_name):
         df = df[df[key_name] > -0.003]
         df = df[df[key_name] < 0.001]
     # df.to_csv(f"{key_name}.csv")
+    return df
 
-    # Create a lineplot
-    sns.lineplot(x=key_name, y="F1", hue="Experiment", data=df)
-    plt.ylim(top=0.35)
 
-    # Calculate the average F1 score for each key value within each experiment
-    df_grouped = df.groupby(["Experiment", key_name]).mean().reset_index()
-
-    # Iterate over each experiment to find and draw the line for the maximum average F1
+def plot_ahlines(key_name, df, df_grouped):
     for experiment in df["Experiment"].unique():
         # Filter the data for the current experiment
         df_experiment = df_grouped[df_grouped["Experiment"] == experiment]
@@ -99,6 +86,27 @@ def plot_graph(plot_name, key_name):
             color="r",
             verticalalignment="bottom",
         )
+
+
+def plot_graph(plot_name, key_name):
+    # Enable LaTeX typesetting
+    # plt.rc("text", usetex=True)
+    # plt.rc("font", family="serif")
+    sns.set_theme("paper")
+    plt.tight_layout()
+    plt.figure(figsize=(6, 6))
+
+    df = populate_dataframe(plot_name, key_name)
+
+    # Create a lineplot
+    sns.lineplot(x=key_name, y="F1", hue="Experiment", data=df)
+    plt.ylim(top=0.35)
+
+    # Calculate the average F1 score for each key value within each experiment
+    df_grouped = df.groupby(["Experiment", key_name]).mean().reset_index()
+
+    # Iterate over each experiment to find and draw the line for the maximum average F1
+    plot_ahlines(key_name, df, df_grouped)
 
     Path("./artifacts/diagrams/").mkdir(parents=True, exist_ok=True)
     path = f"./artifacts/diagrams/{plot_name}.png"
