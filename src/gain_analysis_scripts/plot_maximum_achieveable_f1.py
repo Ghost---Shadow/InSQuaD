@@ -63,7 +63,10 @@ def populate_dataframe(plot_name, key_name):
     return df
 
 
-def plot_ahlines(key_name, df, df_grouped):
+def plot_ahlines(key_name, df, df_grouped, ax=None):
+    if ax is None:
+        ax = plt.gca()  # Get current axis if none is provided
+
     for experiment in df["Experiment"].unique():
         # Filter the data for the current experiment
         df_experiment = df_grouped[df_grouped["Experiment"] == experiment]
@@ -75,16 +78,17 @@ def plot_ahlines(key_name, df, df_grouped):
 
         print(experiment, max_key_value, max_f1)
 
-        # Draw the horizontal line at the maximum F1 score
-        plt.axhline(y=max_f1, color="r", linestyle="dashed", linewidth=1)
+        # Draw the horizontal line at the maximum F1 score on the specified axis
+        ax.axhline(y=max_f1, color="r", linestyle="dashed", linewidth=1)
 
-        # Annotate with text
-        plt.text(
+        # Annotate with text on the specified axis
+        ax.text(
             -0.00175,
             max_f1,
             f"(F1: {max_f1:.2f}, {key_name}: {max_key_value})",
             color="r",
             verticalalignment="bottom",
+            # transform=ax.transAxes,  # Use axis transform for positioning
         )
 
 
@@ -115,9 +119,45 @@ def plot_graph(plot_name, key_name):
     print(path)
 
 
+def plot_graph_stacked(plot_names, key_names, titles):
+    sns.set_theme("paper")
+    plt.tight_layout()
+    # plt.figure(figsize=(6, 6))
+
+    # Determine the number of plots
+    num_plots = len(plot_names)
+    fig, axes = plt.subplots(1, num_plots, figsize=(6 * num_plots, 6), sharey=True)
+
+    for i, (plot_name, key_name, title_name) in enumerate(
+        zip(plot_names, key_names, titles)
+    ):
+        df = populate_dataframe(plot_name, key_name)
+
+        # Create a lineplot on subplot i
+        sns.lineplot(ax=axes[i], x=key_name, y="F1", hue="Experiment", data=df)
+        axes[i].set_ylim(top=0.35)
+        axes[i].set_title(title_name)
+
+        # Calculate the average F1 score for each key value within each experiment
+        df_grouped = df.groupby(["Experiment", key_name]).mean().reset_index()
+
+        # Iterate over each experiment to find and draw the line for the maximum average F1
+        plot_ahlines(key_name, df, df_grouped, ax=axes[i])
+
+    plt.tight_layout()
+    Path("./artifacts/diagrams/").mkdir(parents=True, exist_ok=True)
+    path = "./artifacts/diagrams/sweep_results_stacked.png"
+    plt.savefig(path, dpi=300)
+    plt.clf()
+    print(path)
+
+
 if __name__ == "__main__":
     plot_names = ["sweep_results_gain", "sweep_results_k"]
     key_names = ["gain", "k"]
+    titles = ["Sweep by Gain", "Sweep by k"]
 
     for plot_name, key_name in zip(plot_names, key_names):
         plot_graph(plot_name, key_name)
+
+    plot_graph_stacked(plot_names, key_names, titles)
