@@ -42,6 +42,7 @@ def count_correct_answers(file_path):
     full_agreement_and_correct = 0
     full_agreement_and_incorrect = 0
     total_entropy = 0
+    label_majority_win = 0
     total = 0
     with open(file_path, "r") as file:
         for line in file:
@@ -59,6 +60,10 @@ def count_correct_answers(file_path):
             if all_agree and not data["correct"]:
                 full_agreement_and_incorrect += 1
 
+            most_common = Counter(few_shot_labels).most_common(1)[0][0]
+            if most_common == data["labels"]:
+                label_majority_win += 1
+
             total_entropy += calculate_entropy(few_shot_labels)
             total += 1
 
@@ -70,6 +75,7 @@ def count_correct_answers(file_path):
         full_agreement_and_correct,
         full_agreement_and_incorrect,
         entropy,
+        label_majority_win,
         total,
     )
 
@@ -93,6 +99,7 @@ def print_statistics(left_file_path, right_file_path):
         left_full_correct,
         left_full_incorrect,
         left_entropy,
+        left_label_majority_win,
         left_total,
     ) = count_correct_answers(left_file_path)
     (
@@ -101,6 +108,7 @@ def print_statistics(left_file_path, right_file_path):
         right_full_correct,
         right_full_incorrect,
         right_entropy,
+        right_label_majority_win,
         right_total,
     ) = count_correct_answers(right_file_path)
 
@@ -119,6 +127,13 @@ def print_statistics(left_file_path, right_file_path):
     )
     print(
         f"Full aggreement on incorrect right {right_full_incorrect}/{right_incorrects} ({right_full_incorrect/right_incorrects:.4f})"
+    )
+
+    print(
+        f"Label majority win left {left_label_majority_win}/{left_total} ({left_label_majority_win/left_total:.4f})"
+    )
+    print(
+        f"Label majority win right {right_label_majority_win}/{right_total} ({right_label_majority_win/right_total:.4f})"
     )
 
     print(f"Number of yes answers in left file: {left_yes_count}")
