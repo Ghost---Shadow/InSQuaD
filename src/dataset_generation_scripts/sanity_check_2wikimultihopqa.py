@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 
 def check_ids_in_jsonl(file_path, split):
-    dataset = load_dataset("scholarly-shadows-syndicate/2WikiMultihopQA", split=split)
+    dataset = load_dataset("[anonymized]", split=split)
     seen_rows = 0
     expected_length = min(15000, len(dataset))
     with open(file_path, "r") as f:

@@ -8,7 +8,7 @@ class WikiMultihopQaDataset(BaseDataset):
 
     def __init__(self, config):
         super().__init__(config)
-        self.dataset = load_dataset("scholarly-shadows-syndicate/2WikiMultihopQA")
+        self.dataset = load_dataset("[anonymized]")
         self.split_lut = {"train": "train", "validation": "dev", "dev": "dev"}
 
     @staticmethod

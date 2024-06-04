@@ -118,7 +118,7 @@ def convert_to_question_for_split(dataset, model, split, debug):
 
 
 def convert_to_question_dataset(model, debug=False):
-    dataset = load_dataset("scholarly-shadows-syndicate/2WikiMultihopQA")
+    dataset = load_dataset("[anonymized]")
 
     convert_to_question_for_split(dataset, model, "train", debug)
     convert_to_question_for_split(dataset, model, "dev", debug)

@@ -17,7 +17,7 @@ class BaseStrategy:
         ), "pipeline.current_dataset_name not set"
         # TODO: Cache load
 
-        # https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/get_task.py#L158
+        # Same as baseline papers
         subsample_size = self.config.offline_validation.subsample_for_train_size
         wrapped_dataset = self.pipeline.offline_dataset_lut[
             self.pipeline.current_dataset_name
@@ -41,7 +41,7 @@ class BaseStrategy:
         ), "pipeline.current_dataset_name not set"
         # TODO: Cache load
 
-        # https://github.com/xlang-ai/icl-selective-annotation/blob/e114472cc620c022e1981e1b85101ae492a0c39a/get_task.py#L161
+        # Same as baseline papers
         subsample_size = self.config.offline_validation.subsample_for_eval_size
         wrapped_dataset = self.pipeline.offline_dataset_lut[
             self.pipeline.current_dataset_name

@@ -9,9 +9,7 @@ class HotpotQaWithQDataset(BaseDataset):
 
     def __init__(self, config):
         super().__init__(config)
-        self.dataset = load_dataset(
-            "scholarly-shadows-syndicate/hotpotqa_with_qa_gpt35"
-        )
+        self.dataset = load_dataset("[anonymized]")
 
     @staticmethod
     def paraphrase_lut_to_mask(lookup_table, max_length):
