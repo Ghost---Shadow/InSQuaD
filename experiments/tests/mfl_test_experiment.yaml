@@ -1,7 +1,7 @@
 wandb:
   project: "quaild"
   name: "mfl_test_experiment"
-  # entity: "carml"
+
 
 architecture:
   generative_model:

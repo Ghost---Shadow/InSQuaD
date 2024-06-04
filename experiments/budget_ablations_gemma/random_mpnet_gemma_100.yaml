@@ -1,7 +1,7 @@
 wandb:
   project: "quaild"
   name: "random_mpnet_gemma_100"
-  # entity: "carml"
+
 
 architecture:
   generative_model:

@@ -1,7 +1,7 @@
 wandb:
   project: "quaild"
   name: "quaild_test_similar"
-  # entity: "carml"
+
 
 architecture:
   generative_model:
