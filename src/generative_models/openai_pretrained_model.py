@@ -21,7 +21,6 @@ class WrappedTokenizer:
         for attribute in attributes_to_copy:
             setattr(self, attribute, getattr(self.openai_tokenizer, attribute))
 
-        # https://community.openai.com/t/does-the-text-davinci-003-model-support-4000-or-4096-tokens/89507
         self.model_max_length = 4000
 
     def __call__(self, *args, **kwargs):

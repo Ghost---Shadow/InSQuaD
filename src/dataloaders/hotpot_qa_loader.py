@@ -18,7 +18,6 @@ class HotpotQaDataset(BaseDataset):
         # batch_flag_for_error = []
 
         for item in batch:
-            # https://github.com/hotpotqa/hotpot/issues/47
             # flag_for_error = False
             question = item["question"]
             flat_sentences = []

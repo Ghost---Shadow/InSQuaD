@@ -112,7 +112,6 @@ class TestHotpotQaWithQaLoader(unittest.TestCase):
 
     # python -m unittest dataloaders.hotpot_qa_loader_test.TestHotpotQaLoader.test_no_bad_rows -v
     def test_no_bad_rows(self):
-        # https://github.com/hotpotqa/hotpot/issues/47
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.training.batch_size = 2
 

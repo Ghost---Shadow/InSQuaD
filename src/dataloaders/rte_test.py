@@ -21,9 +21,7 @@ class TestRTELoader(unittest.TestCase):
 
         train_batch = next(iter(train_loader))
         expected_prompt = "Premise: Three Democrats joined the committee's 10 majority Republicans in a 13-5 vote to advance the conservative judge's nomination to the full Senate. Five Democrats opposed Roberts.\nHypothesis: The Senate Judiciary Committee, on Thursday, approved Judge John Roberts' nomination as the next Supreme Court Chief Justice, virtually assuring his confirmation by the Senate next week.\nAnswer:"
-        expected_label = RTE.LABELS[
-            1
-        ]  # https://chat.openai.com/share/2d64b934-d202-45b5-a9c5-02f5d4746003
+        expected_label = RTE.LABELS[1]
         assert train_batch["prompts"][0] == expected_prompt, (
             "(" + train_batch["prompts"][0] + ")"
         )

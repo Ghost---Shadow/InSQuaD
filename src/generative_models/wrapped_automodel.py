@@ -28,8 +28,6 @@ class WrappedAutoModel(BaseGenerativeModel):
         self._resolve_max_context_length()
 
     def _resolve_max_context_length(self):
-        # https://stackoverflow.com/a/77286207/1217998
-        # https://stackoverflow.com/a/77327248/1217998
         if hasattr(self.model.config, "max_position_embeddings"):
             if self.model.config.max_position_embeddings:
                 self.tokenizer.model_max_length = min(

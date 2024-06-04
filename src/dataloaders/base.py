@@ -14,9 +14,6 @@ class BaseDataset(Dataset):
         self.split_lut = {"train": "train", "validation": "validation"}
 
     def cached_load_dataset(self, name, source):
-        """
-        https://github.com/huggingface/datasets/issues/824
-        """
         cache_path = f"./artifacts/data_cache/{name}"
         Path(cache_path).mkdir(exist_ok=True, parents=True)
         try:
