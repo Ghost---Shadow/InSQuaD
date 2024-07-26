@@ -354,7 +354,6 @@ def generate_qd_tradeoff_ablations_gemma(df):
     )
 
     extra_column_name = "$\\lambda$"
-    pre_wrapped = True
     result = generate_latex_table(
         df,
         caption,
@@ -362,7 +361,6 @@ def generate_qd_tradeoff_ablations_gemma(df):
         method_tuples,
         extra_column_name,
         extra_column_tuples,
-        pre_wrapped,
     )
 
     return result
