@@ -178,8 +178,6 @@ def generate_latex_table(
         offset = 1
 
     inner_table = f"""
-\\caption{{{caption}}}
-\\label{{table:{label}}}
 \\setlength{{\\tabcolsep}}{{3pt}}
 \\begin{{tabular}}{{{column_spec}}}
 \\hline
@@ -190,6 +188,8 @@ def generate_latex_table(
 {latex_rows}
 \\hline
 \\end{{tabular}}
+\\caption{{{caption}}}
+\\label{{table:{label}}}
 """
 
     latex_template = f"""
@@ -367,13 +367,15 @@ def generate_qd_tradeoff_ablations_gemma(df):
 
 
 def generate_model_size_ablations(df):
-    caption = "Effects of model size"
+    caption = "Downstream evaluation on different model sizes"
     label = "model_size"
     method_tuples = (
         # gemma
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
         ("oracle_mpnet_gemma", "Oracle"),
+        ("votek_mpnet_gemma", "Vote-K"),
+        ("ideal_mpnet_gemma", "IDEAL"),
         ("quaild_gain_fl_mpnet_gemma_best", "InSQuaD-FL"),
         ("quaild_gain_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_gain_ld_mpnet_gemma_best", "InSQuaD-LD"),
@@ -382,6 +384,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma7b", "Zeroshot"),
         ("random_mpnet_gemma7b", "Random"),
         ("oracle_mpnet_gemma7b", "Oracle"),
+        ("votek_mpnet_gemma7b", "Vote-K"),
+        ("ideal_mpnet_gemma7b", "IDEAL"),
         ("quaild_gain_fl_mpnet_gemma7b", "InSQuaD-FL"),
         ("quaild_gain_gc_mpnet_gemma7b", "InSQuaD-GC"),
         ("quaild_gain_ld_mpnet_gemma7b", "InSQuaD-LD"),
@@ -390,6 +394,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_davinci2", "Zeroshot"),
         ("random_mpnet_davinci2", "Random"),
         ("oracle_mpnet_davinci2", "Oracle"),
+        ("votek_mpnet_davinci2", "Vote-K"),
+        ("ideal_mpnet_davinci2", "IDEAL"),
         ("quaild_gain_fl_mpnet_davinci2", "InSQuaD-FL"),
         ("quaild_gain_gc_mpnet_davinci2", "InSQuaD-GC"),
         ("quaild_gain_ld_mpnet_davinci2", "InSQuaD-LD"),
@@ -399,6 +405,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma", "gemma2b"),
         ("random_mpnet_gemma", "gemma2b"),
         ("oracle_mpnet_gemma", "gemma2b"),
+        ("votek_mpnet_gemma", "gemma2b"),
+        ("ideal_mpnet_gemma", "gemma2b"),
         ("quaild_gain_fl_mpnet_gemma_best", "gemma2b"),
         ("quaild_gain_gc_mpnet_gemma_best", "gemma2b"),
         ("quaild_gain_ld_mpnet_gemma_best", "gemma2b"),
@@ -407,6 +415,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma7b", "gemma7b"),
         ("random_mpnet_gemma7b", "gemma7b"),
         ("oracle_mpnet_gemma7b", "gemma7b"),
+        ("votek_mpnet_gemma7b", "gemma7b"),
+        ("ideal_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_fl_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_gc_mpnet_gemma7b", "gemma7b"),
         ("quaild_gain_ld_mpnet_gemma7b", "gemma7b"),
@@ -415,6 +425,8 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_davinci2", "davinci2-175b"),
         ("random_mpnet_davinci2", "davinci2-175b"),
         ("oracle_mpnet_davinci2", "davinci2-175b"),
+        ("votek_mpnet_davinci2", "davinci2-175b"),
+        ("ideal_mpnet_davinci2", "davinci2-175b"),
         ("quaild_gain_fl_mpnet_davinci2", "davinci2-175b"),
         ("quaild_gain_gc_mpnet_davinci2", "davinci2-175b"),
         ("quaild_gain_ld_mpnet_davinci2", "davinci2-175b"),
@@ -433,9 +445,9 @@ def generate_model_size_ablations(df):
     return result
 
 
-def generate_main_table_gemma(df):
+def generate_main_table(df):
     caption = "Downstream evaluation on Gemma (2B)"
-    label = "gemma_results"
+    label = "main_table"
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
@@ -457,7 +469,6 @@ def generate_main_table_gemma(df):
 
     extra_column_tuples = None
     extra_column_name = None
-    pre_wrapped = False
     result = generate_latex_table(
         df,
         caption,
@@ -465,7 +476,43 @@ def generate_main_table_gemma(df):
         method_tuples,
         extra_column_name,
         extra_column_tuples,
-        pre_wrapped,
+        pre_wrapped=False,
+    )
+
+    return result
+
+
+def generate_training_ablations_gemma(df):
+    caption = "Downstream evaluation on Gemma (2B)"
+    label = "training_effect_gemmma"
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("diversity_mpnet_gemma", "Diversity"),
+        ("leastconfidence_mpnet_gemma", "Least Confidence"),
+        ("mfl_mpnet_gemma", "MFL"),
+        ("gc_mpnet_gemma", "GC"),
+        ("votek_mpnet_gemma", "Vote-K"),
+        ("ideal_mpnet_gemma", "IDEAL"),
+        ("quaild_nt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
+        ("quaild_nt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
+        ("quaild_nt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
+        ("hline", "hline"),
+        ("quaild_gain_fl_mpnet_gemma_best", "InSQuaD-FL"),
+        ("quaild_gain_gc_mpnet_gemma_best", "InSQuaD-GC"),
+        ("quaild_gain_ld_mpnet_gemma_best", "InSQuaD-LD"),
+    )
+
+    extra_column_tuples = None
+    extra_column_name = None
+    result = generate_latex_table(
+        df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
     )
 
     return result
@@ -473,7 +520,8 @@ def generate_main_table_gemma(df):
 
 if __name__ == "__main__":
     TABLES_TO_GENERATE = {
-        "main_table_gemma": generate_main_table_gemma,
+        "main_table": generate_main_table,
+        "training_effect_gemmma": generate_training_ablations_gemma,
         "model_size_effect": generate_model_size_ablations,
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,

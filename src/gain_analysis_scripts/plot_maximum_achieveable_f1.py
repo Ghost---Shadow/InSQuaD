@@ -82,14 +82,14 @@ def plot_ahlines(key_name, df, df_grouped, ax=None):
         ax.axhline(y=max_f1, color="r", linestyle="dashed", linewidth=1)
 
         # Annotate with text on the specified axis
-        ax.text(
-            -0.00175,
-            max_f1,
-            f"(F1: {max_f1:.2f}, {key_name}: {max_key_value})",
-            color="r",
-            verticalalignment="bottom",
-            # transform=ax.transAxes,  # Use axis transform for positioning
-        )
+        # ax.text(
+        #     -0.00175,
+        #     max_f1,
+        #     f"(F1: {max_f1:.2f}, {key_name}: {max_key_value})",
+        #     color="r",
+        #     verticalalignment="bottom",
+        #     # transform=ax.transAxes,  # Use axis transform for positioning
+        # )
 
 
 def plot_graph(plot_name, key_name):
@@ -126,7 +126,10 @@ def plot_graph_stacked(plot_names, key_names, titles):
 
     # Determine the number of plots
     num_plots = len(plot_names)
-    fig, axes = plt.subplots(1, num_plots, figsize=(6 * num_plots, 6), sharey=True)
+    fig_scale = 5
+    fig, axes = plt.subplots(
+        1, num_plots, figsize=(fig_scale * num_plots, fig_scale - 1), sharey=True
+    )
 
     for i, (plot_name, key_name, title_name) in enumerate(
         zip(plot_names, key_names, titles)
@@ -157,7 +160,7 @@ if __name__ == "__main__":
     key_names = ["gain", "k"]
     titles = ["Sweep by Gain", "Sweep by k"]
 
-    for plot_name, key_name in zip(plot_names, key_names):
-        plot_graph(plot_name, key_name)
+    # for plot_name, key_name in zip(plot_names, key_names):
+    #     plot_graph(plot_name, key_name)
 
     plot_graph_stacked(plot_names, key_names, titles)

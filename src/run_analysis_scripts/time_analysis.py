@@ -55,7 +55,7 @@ def plot_data(data):
     # plt.rc("font", family="serif")
 
     # Set up the matplotlib figure to control size, aspect ratio
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(4, 2.5))
     sns.set_theme("paper")
 
     # Create a color palette and plot
