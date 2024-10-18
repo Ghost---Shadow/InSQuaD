@@ -223,8 +223,8 @@ CHERRY_PICKS = [
     {
         "left_file_path": "artifacts/quaild_nt_gc_mpnet_gemma_360ba/seed_42/mrpc/inference_result.jsonl",
         "right_file_path": "artifacts/quaild_gain_gc_mpnet_gemma_lambda_025_3c10e/seed_42/mrpc/inference_result.jsonl",
-        "left_model_name": "QuailD-GC (NT)",
-        "right_model_name": "QuailD-GC ($\\lambda = 0.25$)",
+        "left_model_name": "InSQuaD-GC (NT)",
+        "right_model_name": "InSQuaD-GC ($\\lambda = 0.25$)",
         "label": "nt_vs_t_all_agree_fail",
         "caption": "An example where there was a full label agreement, but the generative model still decided on the wrong answer. (5-shot followed by actual prompt and generated answer, correct answer is 'yes')",
         "skips": 0,
@@ -233,8 +233,8 @@ CHERRY_PICKS = [
     {
         "left_file_path": "artifacts/quaild_gain_ld_mpnet_gemma_lambda_0_60b87/seed_42/rte/inference_result.jsonl",
         "right_file_path": "artifacts/quaild_gain_ld_mpnet_gemma_lambda_1_bfd38/seed_42/rte/inference_result.jsonl",
-        "left_model_name": "QuailD-LD ($\\lambda = 0.0$)",
-        "right_model_name": "QuailD-LD ($\\lambda = 1.0$)",
+        "left_model_name": "InSQuaD-LD ($\\lambda = 0.0$)",
+        "right_model_name": "InSQuaD-LD ($\\lambda = 1.0$)",
         "label": "effect_of_lambda_rte",
         "caption": "An example in RTE dataset showing the effect of $\\lambda$ on few shot selection where both models got the answer correct.",
         "skips": 0,

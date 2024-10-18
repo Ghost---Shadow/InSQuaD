@@ -8,22 +8,22 @@ import os
 
 def format_experiment_name(experiment_name):
     EXPERIMENT_NAME_LUT = {
-        "quaild_gain_fl_mpnet_gemma": "QuailD-FL",
-        "quaild_gain_gc_mpnet_gemma": "QuailD-GC",
-        "quaild_gain_ld_mpnet_gemma": "QuailD-LD",
-        "quaild_nt_fl_mpnet_gemma": "QuailD-FL (NT)",
-        "quaild_nt_gc_mpnet_gemma": "QuailD-GC (NT)",
-        "quaild_nt_ld_mpnet_gemma": "QuailD-LD (NT)",
+        "quaild_gain_fl_mpnet_gemma": "InSQuaD-FL",
+        "quaild_gain_gc_mpnet_gemma": "InSQuaD-GC",
+        "quaild_gain_ld_mpnet_gemma": "InSQuaD-LD",
+        "quaild_nt_fl_mpnet_gemma": "InSQuaD-FL (NT)",
+        "quaild_nt_gc_mpnet_gemma": "InSQuaD-GC (NT)",
+        "quaild_nt_ld_mpnet_gemma": "InSQuaD-LD (NT)",
         # Lambda
-        # "quaild_gain_fl_mpnet_gemma_lambda_0": "QuailD-FL 0",
-        # "quaild_gain_gc_mpnet_gemma_lambda_0": "QuailD-GC 0",
-        # "quaild_gain_ld_mpnet_gemma_lambda_0": "QuailD-LD 0",
-        # "quaild_gain_fl_mpnet_gemma_lambda_025": "QuailD-FL 0.25",
-        # "quaild_gain_gc_mpnet_gemma_lambda_025": "QuailD-GC 0.25",
-        # "quaild_gain_ld_mpnet_gemma_lambda_025": "QuailD-LD 0.25",
-        # "quaild_gain_fl_mpnet_gemma_lambda_1": "QuailD-FL 1",
-        # "quaild_gain_gc_mpnet_gemma_lambda_1": "QuailD-GC 1",
-        # "quaild_gain_ld_mpnet_gemma_lambda_1": "QuailD-LD 1",
+        # "quaild_gain_fl_mpnet_gemma_lambda_0": "InSQuaD-FL 0",
+        # "quaild_gain_gc_mpnet_gemma_lambda_0": "InSQuaD-GC 0",
+        # "quaild_gain_ld_mpnet_gemma_lambda_0": "InSQuaD-LD 0",
+        # "quaild_gain_fl_mpnet_gemma_lambda_025": "InSQuaD-FL 0.25",
+        # "quaild_gain_gc_mpnet_gemma_lambda_025": "InSQuaD-GC 0.25",
+        # "quaild_gain_ld_mpnet_gemma_lambda_025": "InSQuaD-LD 0.25",
+        # "quaild_gain_fl_mpnet_gemma_lambda_1": "InSQuaD-FL 1",
+        # "quaild_gain_gc_mpnet_gemma_lambda_1": "InSQuaD-GC 1",
+        # "quaild_gain_ld_mpnet_gemma_lambda_1": "InSQuaD-LD 1",
     }
     experiment_name = "_".join(experiment_name.split("_")[:-1])
     found = experiment_name in EXPERIMENT_NAME_LUT
