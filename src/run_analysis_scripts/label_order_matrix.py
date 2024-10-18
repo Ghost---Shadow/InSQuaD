@@ -56,9 +56,9 @@ def plot_heatmap(df, name, output_path):
 
 if __name__ == "__main__":
     experiments = {
-        "quaild_gain_fl_mpnet_gemma_33940": "Quaild-FL",
-        "quaild_gain_gc_mpnet_gemma_e7ae2": "Quaild-GC",
-        "quaild_gain_ld_mpnet_gemma_1358e": "Quaild-LD",
+        "quaild_gain_fl_mpnet_gemma_33940": "InSQuaD-FL",
+        "quaild_gain_gc_mpnet_gemma_e7ae2": "InSQuaD-GC",
+        "quaild_gain_ld_mpnet_gemma_1358e": "InSQuaD-LD",
     }
 
     for experiment in experiments:
