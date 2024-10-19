@@ -149,9 +149,9 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_similar_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_similar_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_similar_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("quaild_gain_fl_mpnet_gemma_best", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_best", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_best", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
     extra_column_tuples = (
         ("quaild_random_fl_mpnet_gemma", "Random"),
@@ -160,9 +160,9 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
         ("quaild_similar_ld_mpnet_gemma", "Similar"),
-        ("quaild_gain_fl_mpnet_gemma_best", "Combinatorial"),
-        ("quaild_gain_gc_mpnet_gemma_best", "Combinatorial"),
-        ("quaild_gain_ld_mpnet_gemma_best", "Combinatorial"),
+        ("quaild_comb_fl_mpnet_gemma_best", "Combinatorial"),
+        ("quaild_comb_gc_mpnet_gemma_best", "Combinatorial"),
+        ("quaild_comb_ld_mpnet_gemma_best", "Combinatorial"),
     )
     extra_column_name = "Retrieval"
     result = generate_dataset_wise_bar_plot(
@@ -182,21 +182,21 @@ def generate_annotation_budget_ablations_gemma(df):
     caption = "Effects of annotation budget Gemma (2B) $\\lambda = 0.5$"
     label = "budget_ablations"
     method_tuples = (
-        ("quaild_gain_fl_mpnet_gemma", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("quaild_gain_fl_mpnet_gemma_100", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_100", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_100", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_100", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_100", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_100", "InSQuaD-LD"),
     )
 
     extra_column_tuples = (
-        ("quaild_gain_fl_mpnet_gemma", "18"),
-        ("quaild_gain_gc_mpnet_gemma", "18"),
-        ("quaild_gain_ld_mpnet_gemma", "18"),
-        ("quaild_gain_fl_mpnet_gemma_100", "100"),
-        ("quaild_gain_gc_mpnet_gemma_100", "100"),
-        ("quaild_gain_ld_mpnet_gemma_100", "100"),
+        ("quaild_comb_fl_mpnet_gemma", "18"),
+        ("quaild_comb_gc_mpnet_gemma", "18"),
+        ("quaild_comb_ld_mpnet_gemma", "18"),
+        ("quaild_comb_fl_mpnet_gemma_100", "100"),
+        ("quaild_comb_gc_mpnet_gemma_100", "100"),
+        ("quaild_comb_ld_mpnet_gemma_100", "100"),
     )
 
     extra_column_name = "Budget"
@@ -217,32 +217,32 @@ def generate_qd_tradeoff_ablations_gemma(df):
     caption = "Effects of $\\lambda$ on Gemma (2B) (Quality-Diversity tradeoff)"
     label = "qd_tradeoff"
     method_tuples = (
-        ("quaild_gain_fl_mpnet_gemma_lambda_0", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_lambda_0", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_lambda_0", "InSQuaD-LD"),
-        ("quaild_gain_fl_mpnet_gemma_lambda_025", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_lambda_025", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_lambda_025", "InSQuaD-LD"),
-        ("quaild_gain_fl_mpnet_gemma", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("quaild_gain_fl_mpnet_gemma_lambda_1", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_0", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_0", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_0", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_025", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_025", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_025", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_1", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
     )
     extra_column_tuples = (
-        ("quaild_gain_fl_mpnet_gemma_lambda_0", "0"),
-        ("quaild_gain_gc_mpnet_gemma_lambda_0", "0"),
-        ("quaild_gain_ld_mpnet_gemma_lambda_0", "0"),
-        ("quaild_gain_fl_mpnet_gemma_lambda_025", "0.25"),
-        ("quaild_gain_gc_mpnet_gemma_lambda_025", "0.25"),
-        ("quaild_gain_ld_mpnet_gemma_lambda_025", "0.25"),
-        ("quaild_gain_fl_mpnet_gemma", "0.5"),
-        ("quaild_gain_gc_mpnet_gemma", "0.5"),
-        ("quaild_gain_ld_mpnet_gemma", "0.5"),
-        ("quaild_gain_fl_mpnet_gemma_lambda_1", "1"),
-        ("quaild_gain_gc_mpnet_gemma_lambda_1", "1"),
-        ("quaild_gain_ld_mpnet_gemma_lambda_1", "1"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_0", "0"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_0", "0"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_0", "0"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_comb_fl_mpnet_gemma", "0.5"),
+        ("quaild_comb_gc_mpnet_gemma", "0.5"),
+        ("quaild_comb_ld_mpnet_gemma", "0.5"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_1", "1"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_1", "1"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_1", "1"),
     )
 
     extra_column_name = "$\\lambda$"
@@ -267,46 +267,46 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
         ("oracle_mpnet_gemma", "Oracle"),
-        ("quaild_gain_fl_mpnet_gemma_best", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_best", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_best", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
         # gemma7b
         ("zeroshot_mpnet_gemma7b", "Zeroshot"),
         ("random_mpnet_gemma7b", "Random"),
         ("oracle_mpnet_gemma7b", "Oracle"),
-        ("quaild_gain_fl_mpnet_gemma7b", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma7b", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma7b", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma7b", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma7b", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma7b", "InSQuaD-LD"),
         # davinci2
         ("zeroshot_mpnet_davinci2", "Zeroshot"),
         ("random_mpnet_davinci2", "Random"),
         ("oracle_mpnet_davinci2", "Oracle"),
-        ("quaild_gain_fl_mpnet_davinci2", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_davinci2", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_davinci2", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_davinci2", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_davinci2", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_davinci2", "InSQuaD-LD"),
     )
     extra_column_tuples = (
         # gemma
         ("zeroshot_mpnet_gemma", "gemma2b"),
         ("random_mpnet_gemma", "gemma2b"),
         ("oracle_mpnet_gemma", "gemma2b"),
-        ("quaild_gain_fl_mpnet_gemma_best", "gemma2b"),
-        ("quaild_gain_gc_mpnet_gemma_best", "gemma2b"),
-        ("quaild_gain_ld_mpnet_gemma_best", "gemma2b"),
+        ("quaild_comb_fl_mpnet_gemma_best", "gemma2b"),
+        ("quaild_comb_gc_mpnet_gemma_best", "gemma2b"),
+        ("quaild_comb_ld_mpnet_gemma_best", "gemma2b"),
         # gemma7b
         ("zeroshot_mpnet_gemma7b", "gemma7b"),
         ("random_mpnet_gemma7b", "gemma7b"),
         ("oracle_mpnet_gemma7b", "gemma7b"),
-        ("quaild_gain_fl_mpnet_gemma7b", "gemma7b"),
-        ("quaild_gain_gc_mpnet_gemma7b", "gemma7b"),
-        ("quaild_gain_ld_mpnet_gemma7b", "gemma7b"),
+        ("quaild_comb_fl_mpnet_gemma7b", "gemma7b"),
+        ("quaild_comb_gc_mpnet_gemma7b", "gemma7b"),
+        ("quaild_comb_ld_mpnet_gemma7b", "gemma7b"),
         # davinci2
         ("zeroshot_mpnet_davinci2", "davinci2-175b"),
         ("random_mpnet_davinci2", "davinci2-175b"),
         ("oracle_mpnet_davinci2", "davinci2-175b"),
-        ("quaild_gain_fl_mpnet_davinci2", "davinci2-175b"),
-        ("quaild_gain_gc_mpnet_davinci2", "davinci2-175b"),
-        ("quaild_gain_ld_mpnet_davinci2", "davinci2-175b"),
+        ("quaild_comb_fl_mpnet_davinci2", "davinci2-175b"),
+        ("quaild_comb_gc_mpnet_davinci2", "davinci2-175b"),
+        ("quaild_comb_ld_mpnet_davinci2", "davinci2-175b"),
     )
 
     extra_column_name = "Model"
@@ -337,12 +337,12 @@ def generate_main_figure_gemma(df):
         ("gc_mpnet_gemma", "GC"),
         ("votek_mpnet_gemma", "Vote-K"),
         ("ideal_mpnet_gemma", "IDEAL"),
-        ("quaild_nt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
-        ("quaild_nt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
-        ("quaild_nt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
-        ("quaild_gain_fl_mpnet_gemma_best", "InSQuaD-FL"),
-        ("quaild_gain_gc_mpnet_gemma_best", "InSQuaD-GC"),
-        ("quaild_gain_ld_mpnet_gemma_best", "InSQuaD-LD"),
+        ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
+        ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
+        ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
+        ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
 
     extra_column_tuples = None
