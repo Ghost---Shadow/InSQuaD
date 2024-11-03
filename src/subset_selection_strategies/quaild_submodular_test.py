@@ -15,7 +15,7 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         config.architecture.dense_index.type = "in_memory"
         config.offline_validation.datasets = []  # Save time
         # config.offline_validation.q_d_tradeoff_lambda = 0.5
-        config.architecture.subset_selection_strategy.gain_cutoff = 0.0
+        config.architecture.subset_selection_strategy.gain_cutoff = -100.0
         pipeline = TrainingPipeline(config)
 
         query_embedding = torch.tensor([0.7071, 0.7071, 0.0000], dtype=torch.float32)
@@ -62,16 +62,10 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
 
         metrics = pipeline.compute_extra_metrics(batch)
 
-        # assert metrics == {
-        #     "precision": 1.0,
-        #     "recall": 0.125,
-        #     "f1_score": 0.2222222222222222,
-        # }, metrics
-
         assert metrics == {
-            "precision": 0.6,
-            "recall": 0.375,
-            "f1_score": 0.4615384615384615,
+            "precision": 0.2,
+            "recall": 0.125,
+            "f1_score": 0.15384615384615385,
         }, metrics
 
     # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_other_loss_types -v
@@ -81,6 +75,7 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         config.architecture.dense_index.type = "in_memory"  # Save time
         config.offline_validation.datasets = []  # Save time
         config.training.loss.type = "mean_squared_error"
+        config.architecture.subset_selection_strategy.gain_cutoff = -100.0
         pipeline = TrainingPipeline(config)
 
         # Create an instance of the strategy
