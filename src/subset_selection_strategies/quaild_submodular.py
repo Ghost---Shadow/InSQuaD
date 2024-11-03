@@ -15,10 +15,12 @@ class QuaildSubmodularStrategy:
         self, query_embedding: torch.Tensor, shortlist_embeddings: torch.Tensor
     ):
         """
-        query_embedding.shape = [embedding_dim]
+        query_embedding.shape = [embedding_dim] or [num_queries, embedding_dim]
         shortlist_embeddings.shape = [num_docs, embedding_dim]
         """
-        query_embedding = query_embedding.unsqueeze(0)
+        if query_embedding.dim() == 1:
+            query_embedding = query_embedding.unsqueeze(0)
+
         picked_mask = torch.zeros(len(shortlist_embeddings), dtype=torch.bool)
         gains = []
 

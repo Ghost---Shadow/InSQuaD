@@ -11,12 +11,12 @@ from subset_selection_strategies.top_k_strategy import TopKStrategy
 
 
 SUBSET_SELECTION_STRATEGIES_LUT = {
+    DiversitySubsetSelectionStrategy.NAME: DiversitySubsetSelectionStrategy,
     FlatCutoffStrategy.NAME: FlatCutoffStrategy,
+    GraphCutSubsetStrategy.NAME: GraphCutSubsetStrategy,
+    MaximumFacilityLocationSubsetStrategy.NAME: MaximumFacilityLocationSubsetStrategy,
     NoOperationSubsetSelectionStrategy.NAME: NoOperationSubsetSelectionStrategy,
     QuaildSubmodularStrategy.NAME: QuaildSubmodularStrategy,
     RandomSubsetStrategy.NAME: RandomSubsetStrategy,
     TopKStrategy.NAME: TopKStrategy,
-    MaximumFacilityLocationSubsetStrategy.NAME: MaximumFacilityLocationSubsetStrategy,
-    GraphCutSubsetStrategy.NAME: GraphCutSubsetStrategy,
-    DiversitySubsetSelectionStrategy.NAME: DiversitySubsetSelectionStrategy,
 }
