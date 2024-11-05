@@ -108,6 +108,85 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()
 
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_with_similarity_many -v
+    def test_subset_select_with_similarity_many(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.architecture.semantic_search_model.type = "noop"
+        config.architecture.dense_index.type = "in_memory"
+        config.offline_validation.datasets = []  # Save time
+        # config.offline_validation.q_d_tradeoff_lambda = 0.5
+        config.architecture.subset_selection_strategy.k = 100
+        pipeline = TrainingPipeline(config)
+
+        query_embedding = torch.tensor(
+            [
+                [0.7071, 0.7071, 0.0000, 0.0000],
+                [0.0000, 0.7071, 0.7071, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+        shortlist_embeddings = torch.tensor(
+            [
+                # 0 # partial match to first
+                [1.0000, 0.0000, 0.0000, 0.0000],
+                # 1 # perflect quality, first pick
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 2 # completely orthogonal
+                [0.0000, 0.0000, 0.0000, 1.0000],
+                # 3 # perfect quality, wrong diversity
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 4 # anti-parallel quality
+                [-0.5774, -0.5774, -0.5774, 0.0000],
+                # 5 # partial match to both
+                [0.0000, 1.0000, 0.0000, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+
+        query_embedding = F.normalize(query_embedding, dim=-1)
+        shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1)
+
+        query_query_similarity = pipeline.loss_function.compute_similarity_matrix(
+            query_embedding, query_embedding
+        )
+
+        doc_query_similarity = pipeline.loss_function.compute_similarity_matrix(
+            shortlist_embeddings, query_embedding
+        )
+
+        doc_doc_similarity = pipeline.loss_function.compute_similarity_matrix(
+            shortlist_embeddings, shortlist_embeddings
+        )
+
+        # Apply the indexes
+        result, scores = (
+            pipeline.subset_selection_strategy.subset_select_with_similarity(
+                query_query_similarity, doc_query_similarity, doc_doc_similarity
+            )
+        )
+
+        # Expected sequence = [1, 0, 2, 3, 4]
+        expected_output = [1, 3, 5, 0, 2, 4]
+        # expected_scores = [
+        #     0.9082483053207397,
+        #     0.0,
+        #     -0.018231570720672607,
+        #     -0.05331003665924072,
+        #     -0.06734126806259155,
+        #     -0.11293572187423706,
+        # ]
+        expected_scores = [
+            0.9082483053207397,
+            0.0,
+            -0.018231570720672607,
+            -0.0533100962638855,
+            -0.06734132766723633,
+            -0.11293566226959229,
+        ]
+
+        assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
+
     # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_real_data -v
     def test_real_data(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
@@ -153,6 +232,276 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
 
         expected_output = [0, 1, 2]
         expected_scores = [1.0, 0.0, -0.3333333134651184]
+
+        assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
+
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_many_fl -v
+    def test_subset_select_many_fl(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.architecture.semantic_search_model.type = "noop"
+        config.architecture.dense_index.type = "in_memory"
+        config.offline_validation.datasets = []  # Save time
+        # config.offline_validation.q_d_tradeoff_lambda = 0.5
+        config.training.loss.type = "facility_location"
+        config.architecture.subset_selection_strategy.gain_cutoff = -100.0
+        pipeline = TrainingPipeline(config)
+
+        query_embedding = torch.tensor(
+            [
+                [0.7071, 0.7071, 0.0000, 0.0000],
+                [0.0000, 0.7071, 0.7071, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+        shortlist_embeddings = torch.tensor(
+            [
+                # 0 # partial match to first
+                [1.0000, 0.0000, 0.0000, 0.0000],
+                # 1 # perflect quality, first pick
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 2 # completely orthogonal
+                [0.0000, 0.0000, 0.0000, 1.0000],
+                # 3 # perfect quality, wrong diversity
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 4 # anti-parallel quality
+                [-0.5774, -0.5774, -0.5774, 0.0000],
+                # 5 # partial match to both
+                [0.0000, 1.0000, 0.0000, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+
+        query_embedding = F.normalize(query_embedding, dim=-1)
+        shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1)
+
+        # Apply the indexes
+        result, scores = pipeline.subset_selection_strategy.subset_select(
+            query_embedding, shortlist_embeddings
+        )
+
+        # Expected sequence = [1, 0, 2, 3, 4]
+        expected_output = [1, 3, 0, 5, 2, 4]
+        expected_scores = [
+            0.908248245716095,
+            0.0,
+            -0.006077110767364502,
+            -0.003038644790649414,
+            -0.025393426418304443,
+            -0.039609313011169434,
+        ]
+
+        assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
+
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_with_similarity_many_fl -v
+    def test_subset_select_with_similarity_many_fl(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.architecture.semantic_search_model.type = "noop"
+        config.architecture.dense_index.type = "in_memory"
+        config.offline_validation.datasets = []  # Save time
+        config.training.loss.type = "facility_location"
+        config.architecture.subset_selection_strategy.k = 100
+        pipeline = TrainingPipeline(config)
+
+        query_embedding = torch.tensor(
+            [
+                [0.7071, 0.7071, 0.0000, 0.0000],
+                [0.0000, 0.7071, 0.7071, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+        shortlist_embeddings = torch.tensor(
+            [
+                # 0 # partial match to first
+                [1.0000, 0.0000, 0.0000, 0.0000],
+                # 1 # perflect quality, first pick
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 2 # completely orthogonal
+                [0.0000, 0.0000, 0.0000, 1.0000],
+                # 3 # perfect quality, wrong diversity
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 4 # anti-parallel quality
+                [-0.5774, -0.5774, -0.5774, 0.0000],
+                # 5 # partial match to both
+                [0.0000, 1.0000, 0.0000, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+
+        query_embedding = F.normalize(query_embedding, dim=-1)
+        shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1)
+
+        query_query_similarity = pipeline.loss_function.compute_similarity_matrix(
+            query_embedding, query_embedding
+        )
+
+        doc_query_similarity = pipeline.loss_function.compute_similarity_matrix(
+            shortlist_embeddings, query_embedding
+        )
+
+        doc_doc_similarity = pipeline.loss_function.compute_similarity_matrix(
+            shortlist_embeddings, shortlist_embeddings
+        )
+
+        # Apply the indexes
+        result, scores = (
+            pipeline.subset_selection_strategy.subset_select_with_similarity(
+                query_query_similarity, doc_query_similarity, doc_doc_similarity
+            )
+        )
+
+        # Expected sequence = [1, 0, 2, 3, 4]
+        expected_output = [1, 3, 0, 5, 2, 4]
+        expected_scores = [
+            0.908248245716095,
+            0.0,
+            -0.006077110767364502,
+            -0.003038644790649414,
+            -0.025393426418304443,
+            -0.039609313011169434,
+        ]
+
+        assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
+
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_many_ld -v
+    def test_subset_select_many_ld(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.architecture.semantic_search_model.type = "noop"
+        config.architecture.dense_index.type = "in_memory"
+        config.offline_validation.datasets = []  # Save time
+        # config.offline_validation.q_d_tradeoff_lambda = 0.5
+        config.training.loss.type = "log_det_mi"
+        config.architecture.subset_selection_strategy.gain_cutoff = -100.0
+        pipeline = TrainingPipeline(config)
+
+        query_embedding = torch.tensor(
+            [
+                [0.7071, 0.7071, 0.0000, 0.0000],
+                [0.0000, 0.7071, 0.7071, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+        shortlist_embeddings = torch.tensor(
+            [
+                # 0 # partial match to first
+                [1.0000, 0.0000, 0.0000, 0.0000],
+                # 1 # perflect quality, first pick
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 2 # completely orthogonal
+                [0.0000, 0.0000, 0.0000, 1.0000],
+                # 3 # perfect quality, wrong diversity
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 4 # anti-parallel quality
+                [-0.5774, -0.5774, -0.5774, 0.0000],
+                # 5 # partial match to both
+                [0.0000, 1.0000, 0.0000, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+
+        query_embedding = F.normalize(query_embedding, dim=-1).cuda()
+        shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1).cuda()
+
+        # Apply the indexes
+        result, scores = pipeline.subset_selection_strategy.subset_select(
+            query_embedding, shortlist_embeddings
+        )
+
+        # Expected sequence = [1, 0, 2, 3, 4]
+        expected_output = [1, 0, 5, 2, 3, 4]
+        expected_scores = [
+            0.0001285652833757922,
+            3.141019260510802e-05,
+            1.775877899490297e-05,
+            1.4551915228366852e-11,
+            -7.77343157096766e-05,
+            0.0,
+        ]
+
+        assert result.tolist() == expected_output, result.tolist()
+        assert scores.tolist() == expected_scores, scores.tolist()
+
+    # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_with_similarity_many_ld -v
+    def test_subset_select_with_similarity_many_ld(self):
+        config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
+        config.architecture.semantic_search_model.type = "noop"
+        config.architecture.dense_index.type = "in_memory"
+        config.offline_validation.datasets = []  # Save time
+        config.training.loss.type = "log_det_mi"
+        config.architecture.subset_selection_strategy.k = 100
+        pipeline = TrainingPipeline(config)
+
+        query_embedding = torch.tensor(
+            [
+                [0.7071, 0.7071, 0.0000, 0.0000],
+                [0.0000, 0.7071, 0.7071, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+        shortlist_embeddings = torch.tensor(
+            [
+                # 0 # partial match to first
+                [1.0000, 0.0000, 0.0000, 0.0000],
+                # 1 # perflect quality, first pick
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 2 # completely orthogonal
+                [0.0000, 0.0000, 0.0000, 1.0000],
+                # 3 # perfect quality, wrong diversity
+                [0.5774, 0.5774, 0.5774, 0.0000],
+                # 4 # anti-parallel quality
+                [-0.5774, -0.5774, -0.5774, 0.0000],
+                # 5 # partial match to both
+                [0.0000, 1.0000, 0.0000, 0.0000],
+            ],
+            dtype=torch.float32,
+        )
+
+        query_embedding = F.normalize(query_embedding, dim=-1)
+        shortlist_embeddings = F.normalize(shortlist_embeddings, dim=-1)
+
+        query_query_similarity = pipeline.loss_function.compute_similarity_matrix(
+            query_embedding, query_embedding, False
+        )
+
+        doc_query_similarity = pipeline.loss_function.compute_similarity_matrix(
+            shortlist_embeddings, query_embedding, False
+        )
+
+        doc_doc_similarity = pipeline.loss_function.compute_similarity_matrix(
+            shortlist_embeddings, shortlist_embeddings, False
+        )
+
+        query_query_similarity = query_query_similarity.cuda()
+        doc_query_similarity = doc_query_similarity.cuda()
+        doc_doc_similarity = doc_doc_similarity.cuda()
+
+        # Apply the indexes
+        result, scores = (
+            pipeline.subset_selection_strategy.subset_select_with_similarity(
+                query_query_similarity, doc_query_similarity, doc_doc_similarity
+            )
+        )
+
+        # Expected sequence = [1, 0, 2, 3, 4]
+        expected_output = [1, 0, 5, 2, 3, 4]
+        # expected_scores = [
+        #     0.0001285652833757922,
+        #     3.141019260510802e-05,
+        #     1.775877899490297e-05,
+        #     1.4551915228366852e-11,
+        #     -7.77343157096766e-05,
+        #     0.0,
+        # ]
+        expected_scores = [
+            0.0001285652833757922,
+            3.1410178053192794e-05,
+            1.7758822650648654e-05,
+            1.4551915228366852e-11,
+            -7.77343157096766e-05,
+            0.0,
+        ]
 
         assert result.tolist() == expected_output, result.tolist()
         assert scores.tolist() == expected_scores, scores.tolist()

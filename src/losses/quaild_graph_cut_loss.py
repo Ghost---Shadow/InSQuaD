@@ -9,26 +9,23 @@ class QuaildGraphCutLoss(BaseLoss):
         super(QuaildGraphCutLoss, self).__init__(config)
         self.lambd = config.training.loss.lambd
 
-    def similarity(self, a, b):
-        if len(a.shape) == 2:
-            a = a.unsqueeze(0)
-        if len(b.shape) == 2:
-            b = b.unsqueeze(0)
-        assert len(a.shape) == 3, len(a.shape)
-        assert len(b.shape) == 3, len(b.shape)
-        batch_size, num_docs_a, features = a.shape
-        _, num_docs_b, _ = b.shape
+    def similarity(self, d, q):
+        # d.shape = [batch_size, num_docs_d, embedding_size]
+        # q.shape = [batch_size, num_docs_q, embedding_size]
 
-        # Ensure a and b are 2D [batch_size, num_docs, features]
-        b_t = b.transpose(1, 2)  # Now [batch_size, features, num_docs]
+        dq_similarities = self.compute_similarity_matrix(d, q)
+        return self.similarity_matrix_to_information(None, dq_similarities, None)
 
-        # Matrix multiplication [batch_size, num_docs, num_docs]
-        similarity = torch.matmul(a, b_t)
-        similarity = (similarity + 1.0) / 2.0  # Center at 0.5
+    def similarity_matrix_to_information(
+        self, qq_similarities, dq_similarities, dd_similarities
+    ):
+        # similarities.shape = [batch_size, num_docs_d, num_docs_q]
+        similarities = dq_similarities
 
         # Normalize and rescale
-        similarity = similarity.reshape([batch_size, num_docs_a * num_docs_b])
-        aggregated_similarity = 2 * self.lambd * similarity.mean(dim=-1)
+        batch_size, num_docs_a, num_docs_b = similarities.shape
+        similarities = similarities.reshape([batch_size, num_docs_a * num_docs_b])
+        aggregated_similarity = 2 * self.lambd * similarities.mean(dim=-1)
 
         return aggregated_similarity
 

@@ -128,7 +128,9 @@ class OfflineEvaluationPipeline:
                 row["confidence"] = confidence
                 shortlisted_rows.append(row)
             except IndexError as e:
-                raise IndexError(f"{str(e)} - Additional Info: {len(longlist_rows)}, {idx}") from e
+                raise IndexError(
+                    f"{str(e)} - Additional Info: {len(longlist_rows)}, {idx}"
+                ) from e
 
         with open(self.shortlisted_data_path, "w", encoding="utf-8") as f:
             json.dump(shortlisted_rows, f, indent=2)
@@ -404,4 +406,24 @@ class OfflineEvaluationPipeline:
     @property
     def final_result_json_path(self):
         path = Path(self.artifacts_dir) / "final_result.json"
+        return path
+
+    @property
+    def longlist_similarity_tensor_path(self):
+        path = Path(self.artifacts_dir) / "longlist_similarity.pt"
+        return path
+
+    @property
+    def shortlist_qq_similarity_tensor_path(self):
+        path = Path(self.artifacts_dir) / "shortlist_qq_similarity.pt"
+        return path
+
+    @property
+    def shortlist_dq_similarity_tensor_path(self):
+        path = Path(self.artifacts_dir) / "shortlist_dq_similarity.pt"
+        return path
+
+    @property
+    def shortlist_dd_similarity_tensor_path(self):
+        path = Path(self.artifacts_dir) / "shortlist_dd_similarity.pt"
         return path

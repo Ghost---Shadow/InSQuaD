@@ -17,21 +17,16 @@ class QuaildFacilityLocationLoss(BaseLoss):
         self.epsilon = 0.0  # Adjust if needed
 
     def similarity(self, a, b):
-        if len(a.shape) == 2:
-            a = a.unsqueeze(0)
-        if len(b.shape) == 2:
-            b = b.unsqueeze(0)
-        assert len(a.shape) == 3, len(a.shape)
-        assert len(b.shape) == 3, len(b.shape)
+        # d.shape = [batch_size, num_docs_d, embedding_size]
+        # q.shape = [batch_size, num_docs_q, embedding_size]
 
-        assert all(dim > 0 for dim in a.shape), "a has zero-size dimension"
-        assert all(dim > 0 for dim in b.shape), "b has zero-size dimension"
+        dq_similarities = self.compute_similarity_matrix(a, b)
+        return self.similarity_matrix_to_information(None, dq_similarities, None)
 
-        # Compute similarity matrix S using dot product
-        # S_ij = a_i . b_j^T
-        # [batch_size, num_docs, features] to [batch_size, num_docs, num_docs]
-        similarities = torch.matmul(a, b.transpose(1, 2))
-        similarities = (similarities + 1.0) / 2.0  # Center at 0.5
+    def similarity_matrix_to_information(
+        self, qq_similarities, dq_similarities, dd_similarities
+    ):
+        similarities = dq_similarities
 
         # Compute max similarity for each i in a with all j in b
         # [batch_size, num_docs, num_docs] to [batch_size, num_docs]

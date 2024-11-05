@@ -106,7 +106,7 @@ class TestQuaildFacilityLocation(unittest.TestCase):
 
         best_diversity, best_candidate = pick_most_diverse([a, b, c, e], [d])
 
-        assert best_diversity == 0.1372038722038269, best_diversity
+        assert best_diversity == 0.13720381259918213, best_diversity
         assert best_candidate == d, best_candidate
 
     # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocation.test_submodularity_with_arbitary_order -v
@@ -139,7 +139,7 @@ class TestQuaildFacilityLocation(unittest.TestCase):
 
         best_diversity, best_candidate = pick_most_diverse([a, b, c, d], [e])
 
-        assert best_diversity == 0.6127961874008179, best_diversity
+        assert best_diversity == 0.6127961277961731, best_diversity
         assert best_candidate == e, best_candidate
 
     # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocation.test_overfit -v

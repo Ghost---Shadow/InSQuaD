@@ -154,25 +154,14 @@ class QuaidLogDetMILoss(BaseLoss):
 
         return scaled_mutual_information
 
-    def compute_similarity(self, a, b):
-        """
-        Compute a bounded similarity between tensors 'a' and 'b' using matrix multiplication.
-        Assumes inputs are normalized.
-        """
-        # Use matrix multiplication to compute similarity
-        similarity = torch.matmul(a, b.transpose(1, 2))
-
-        # Bounded between -1 and 1
-        return similarity
-
-    def ensure_3d(self, tensor):
-        """
-        Ensure the input tensor has three dimensions [batch_size, num_vectors, vector_dimension].
-        If the tensor is 2D, interpret it as [1, num_vectors, vector_dimension].
-        """
-        if len(tensor.shape) == 2:
-            tensor = tensor.unsqueeze(0)
-        return tensor
+    def similarity_matrix_to_information(
+        self, qq_similarities, dq_similarities, dd_similarities
+    ):
+        with autocast(dtype=torch.float32):
+            S_A = dd_similarities
+            S_AQ = dq_similarities
+            S_Q = qq_similarities
+            return self.logdetMI(S_A, S_AQ, S_Q)
 
     def similarity(self, a, b):
         # Ensure inputs are 3D
@@ -184,9 +173,9 @@ class QuaidLogDetMILoss(BaseLoss):
             b = b.to(torch.float32)
 
             # Compute the similarity matrices
-            S_A = self.compute_similarity(a, a)
-            S_AQ = self.compute_similarity(a, b)
-            S_Q = self.compute_similarity(b, b)
+            S_A = self.compute_similarity_matrix(a, a, False)
+            S_AQ = self.compute_similarity_matrix(a, b, False)
+            S_Q = self.compute_similarity_matrix(b, b, False)
 
             # Compute the mutual information as a loss
             mutual_information = self.logdetMI(S_A, S_AQ, S_Q)
