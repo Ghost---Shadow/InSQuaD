@@ -1,4 +1,5 @@
 import torch
+from tqdm import tqdm
 
 
 class QuaildSubmodularStrategy:
@@ -30,7 +31,7 @@ class QuaildSubmodularStrategy:
         picked_mask = torch.zeros(num_docs, dtype=torch.bool)
         gains = []
 
-        for _ in range(min(self.top_k, num_docs)):
+        for _ in tqdm(range(min(self.top_k, num_docs)), desc="Picking documents"):
             picked_indices = torch.nonzero(picked_mask).squeeze(dim=-1)
             candidate_indices = torch.nonzero(~picked_mask).squeeze(dim=-1)
 

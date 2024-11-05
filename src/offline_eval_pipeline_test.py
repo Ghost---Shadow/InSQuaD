@@ -113,6 +113,21 @@ class TestOfflineEvaluationPipeline(unittest.TestCase):
         pipeline.run_inference(skip_if_done=True)
         pipeline.analyze_inference_outputs()
 
+    # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_insquad_ld_flow -v
+    def test_insquad_ld_flow(self):
+        config_path = "experiments/tests/insquad_ld_test_experiment.yaml"
+
+        config = Config.from_file(config_path)
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        # Should not crash
+        pipeline.shortlist(skip_if_done=True)
+        pipeline.generate_few_shots(skip_if_done=True)
+        pipeline.run_inference(skip_if_done=True)
+        pipeline.analyze_inference_outputs()
+
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_quaild_similar_flow -v
     def test_quaild_similar_flow(self):
         config_path = "experiments/tests/quaild_test_similar.yaml"
