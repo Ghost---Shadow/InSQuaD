@@ -3,6 +3,12 @@ from training_strategies.no_operation import NoOperation
 import yaml
 
 
+def is_deprecated(config_path):
+    if "_gain_" in config_path or "_nt_" in config_path:
+        return True
+    return False
+
+
 def generate_shell_scripts(root_dir):
     UPLOAD_ARTIFACTS = "source devops/upload_artifacts.sh\n\n"
     UPLOAD_CHECKPOINTS = "source devops/upload_all_checkpoints.sh\n\n"
@@ -20,6 +26,9 @@ def generate_shell_scripts(root_dir):
                 ) as eval_script:
                     for yaml_file in sorted(yaml_files):
                         config_path = os.path.join(dirpath, yaml_file)
+                        if is_deprecated(config_path):
+                            continue
+
                         # Make config_path relative to root_dir and replace backslashes if on a non-Unix system
                         config_path = os.path.relpath(config_path, start="./").replace(
                             "\\", "/"

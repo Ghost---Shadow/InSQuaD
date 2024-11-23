@@ -1,6 +1,6 @@
 wandb:
   project: "quaild"
-  name: "insquad_test_experiment"
+  name: "quaild_combnt_gc_mpnet_gemma"
   # entity: "carml"
 
 architecture:
@@ -8,7 +8,6 @@ architecture:
     type: 'noop'
     checkpoint: 'none'
     device: 'none'
-  
   semantic_search_model:
     type: 'mpnet'
     checkpoint: 'sentence-transformers/all-mpnet-base-v2'
@@ -16,8 +15,7 @@ architecture:
 
   subset_selection_strategy:
     type: 'quaild_submodular'
-    k: 20 # annotation_budget
-
+    k: 18
   dense_index:
     type: 'faiss'
     index_class: 'IndexFlatL2'
@@ -29,13 +27,13 @@ architecture:
 
 # https://arxiv.org/pdf/2004.09297.pdf - Page 12
 training:
-  type: 'quaild'
-  dataset: 'dummy_hotpot_qa_with_q'
+  type: 'noop'
+  dataset: 'hotpot_qa_with_q'
   q_d_tradeoff_lambda: 0.5
   extra_metrics: ['hotpot_qa_with_q_f1']
   epochs: 7
-  batch_size: 32
-  learning_rate: 3e-5
+  batch_size: 1 # 32 (Paper uses 32 with pretraining objective, our effective size is dynamic and larger)
+  learning_rate: 1e-5
   weight_decay: 0.01
   learning_rate_decay_strategy: 'linear'
   warmup_ratio: 0.06
@@ -48,12 +46,11 @@ offline_validation:
   type: insquad_combinatorial
   generative_model:
     type: 'automodel'
-    checkpoint: 'EleutherAI/gpt-neo-125m'
+    checkpoint: google/gemma-2b
     device: "cuda:0"
-    # override_max_sequence_length: 512
-  datasets: ['mrpc']
+  datasets: ['mrpc', 'sst5', 'mnli', 'dbpedia', 'rte', 'hellaswag', 'xsum', 'mwoz', 'geoq']
   seeds: [42]
   num_shots: 5
-  annotation_budget: 20
-  subsample_for_train_size: 300
+  annotation_budget: 18
+  subsample_for_train_size: 3000
   subsample_for_eval_size: 256

@@ -13,22 +13,22 @@ source devops/upload_artifacts.sh
 python src/offline_eval.py --config=experiments/main_table_gemma/oracle_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/main_table_gemma/quaild_gain_fl_mpnet_gemma.yaml
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_comb_fl_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/main_table_gemma/quaild_gain_gc_mpnet_gemma.yaml
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_comb_gc_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/main_table_gemma/quaild_gain_ld_mpnet_gemma.yaml
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_comb_ld_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/main_table_gemma/quaild_nt_fl_mpnet_gemma.yaml
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_combnt_fl_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/main_table_gemma/quaild_nt_gc_mpnet_gemma.yaml
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_combnt_gc_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
-python src/offline_eval.py --config=experiments/main_table_gemma/quaild_nt_ld_mpnet_gemma.yaml
+python src/offline_eval.py --config=experiments/main_table_gemma/quaild_combnt_ld_mpnet_gemma.yaml
 source devops/upload_artifacts.sh
 
 python src/offline_eval.py --config=experiments/main_table_gemma/random_mpnet_gemma.yaml
