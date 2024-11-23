@@ -3,6 +3,7 @@ import torch
 from shortlist_strategies.base import BaseStrategy
 from tqdm import tqdm
 from config import RootConfig
+from dataloaders.in_memory import InMemoryDataset
 
 
 class InsquadCombinatorialStrategy(BaseStrategy):
@@ -53,87 +54,68 @@ class InsquadCombinatorialStrategy(BaseStrategy):
         with open(self.pipeline.shortlisted_data_path) as f:
             shortlist = json.load(f)
 
+        # Populate dense index with shortlist this time
+        wrapped_shortlist_dataset = InMemoryDataset(self.config, shortlist)
+        cache_name = "short_list.index"
+        self._populate_and_cache_index(cache_name, use_cache, wrapped_shortlist_dataset)
+
         eval_list_rows = self.subsample_dataset_for_eval()
 
-        if (
-            use_cache
-            and self.pipeline.shortlist_qq_similarity_tensor_path.exists()
-            and self.pipeline.shortlist_dq_similarity_tensor_path.exists()
-            and self.pipeline.shortlist_dd_similarity_tensor_path.exists()
-        ):
-            query_query_similarity = torch.load(
-                self.pipeline.shortlist_qq_similarity_tensor_path
-            )
-            doc_query_similarity = torch.load(
-                self.pipeline.shortlist_dq_similarity_tensor_path
-            )
-            doc_doc_similarity = torch.load(
-                self.pipeline.shortlist_dd_similarity_tensor_path
-            )
-        else:
-            query_embeddings = []
-            document_embeddings = []
-
-            for row in tqdm(eval_list_rows, desc="Embedding queries"):
-                prompt = [row["prompts"]]
-                prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
-                query_embeddings.append(prompt_embedding)
-
-            for row in tqdm(shortlist, desc="Embedding documents"):
-                prompt = [row["prompts"]]
-                document_embedding = self.pipeline.semantic_search_model.embed(prompt)
-                document_embeddings.append(document_embedding)
-
-            query_embeddings = torch.stack(query_embeddings, dim=1)
-            document_embeddings = torch.stack(document_embeddings, dim=1)
-
-            query_query_similarity = (
-                self.pipeline.loss_function.compute_similarity_matrix(
-                    query_embeddings, query_embeddings
-                )
-            )
-
-            doc_query_similarity = (
-                self.pipeline.loss_function.compute_similarity_matrix(
-                    document_embeddings, query_embeddings
-                )
-            )
-
-            doc_doc_similarity = self.pipeline.loss_function.compute_similarity_matrix(
-                document_embeddings, document_embeddings
-            )
-
-            torch.save(
-                query_query_similarity,
-                self.pipeline.shortlist_qq_similarity_tensor_path,
-            )
-            torch.save(
-                doc_query_similarity,
-                self.pipeline.shortlist_dq_similarity_tensor_path,
-            )
-            torch.save(
-                doc_doc_similarity,
-                self.pipeline.shortlist_dd_similarity_tensor_path,
-            )
-
-        local_shortlist_indices, _ = (
-            self.pipeline.subset_selection_strategy.subset_select_with_similarity(
-                query_query_similarity, doc_query_similarity, doc_doc_similarity
-            )
-        )
-
-        # Already global
-        global_indices = local_shortlist_indices.tolist()
-        num_shots = self.config.offline_validation.num_shots
-        fewshot_indices = global_indices[:num_shots]
-
-        assert len(fewshot_indices) == num_shots, len(fewshot_indices)
-
-        few_shots = {"prompts": [], "labels": []}
-        for idx in fewshot_indices:
-            few_shots["prompts"].append(shortlist[idx]["prompts"])
-            few_shots["labels"].append(shortlist[idx]["labels"])
-
-        # Same few shot for all
         for row in tqdm(eval_list_rows, desc="Assembling few shot"):
+            prompt = [row["prompts"]]
+            prompt_embedding = self.pipeline.semantic_search_model.embed(prompt)
+            candidate_fewshot = self.pipeline.dense_index.retrieve(
+                prompt_embedding, omit_self=False
+            )
+            candidate_fewshot = candidate_fewshot[0]  # batch size 1
+            candidate_fewshot_indices = candidate_fewshot["global_indices"]
+            candidate_fewshot_prompts = candidate_fewshot["prompts"]
+
+            # TODO: Optimization: Recover embeddings from faiss instead of recomputing
+            # but this is better anyways so maybe not?
+            candidate_fewshot_embeddings = self.pipeline.semantic_search_model.embed(
+                candidate_fewshot_prompts
+            )
+
+            local_fewshot_indices, _ = (
+                self.pipeline.subset_selection_strategy.subset_select(
+                    prompt_embedding, candidate_fewshot_embeddings
+                )
+            )
+
+            num_shots = self.config.offline_validation.num_shots
+            fewshot_indices = [
+                candidate_fewshot_indices[i] for i in local_fewshot_indices
+            ]
+            fewshot_indices = fewshot_indices[:num_shots]
+
+            few_shots = {"prompts": [], "labels": []}
+            for idx in fewshot_indices:
+                few_shots["prompts"].append(shortlist[idx]["prompts"])
+                few_shots["labels"].append(shortlist[idx]["labels"])
+
+            # Add some from the candidate fewshot to get to the n-shot
+            # TODO: More principled way
+            if len(few_shots["prompts"]) < num_shots:
+                # Calculate how many more entries are needed.
+                more_required = num_shots - len(few_shots["prompts"])
+
+                # Find indices of prompts not yet in few_shots.
+                remaining_indices = [
+                    i
+                    for i, prompt in enumerate(candidate_fewshot["prompts"])
+                    if prompt not in set(few_shots["prompts"])
+                ]
+
+                # Ensure only as many elements as needed are added.
+                selected_indices = remaining_indices[:more_required]
+
+                # Append missing prompts and corresponding labels to few_shots.
+                few_shots["prompts"].extend(
+                    candidate_fewshot["prompts"][i] for i in selected_indices
+                )
+                few_shots["labels"].extend(
+                    candidate_fewshot["labels"][i] for i in selected_indices
+                )
+
             yield row, few_shots
