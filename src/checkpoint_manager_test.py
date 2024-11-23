@@ -1,9 +1,8 @@
 from pathlib import Path
 import unittest
-from checkpoint_manager import CheckpointManager
 from config import Config
+from offline_eval_pipeline import OfflineEvaluationPipeline
 import torch
-import random
 from tqdm import tqdm
 from train_utils import rmrf_if_possible
 from training_pipeline import TrainingPipeline
@@ -11,6 +10,23 @@ from training_pipeline import TrainingPipeline
 
 # python -m unittest checkpoint_manager_test.TestCheckpointManager -v
 class TestCheckpointManager(unittest.TestCase):
+    # python -m unittest checkpoint_manager_test.TestCheckpointManager.test_download_from_bucket -v
+    def test_download_from_bucket(self):
+        config_path = "experiments/main_table_gemma/quaild_comb_fl_mpnet_gemma.yaml"
+        config = Config.from_file(config_path)
+        pipeline = OfflineEvaluationPipeline(config, lazy_load=True)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
+        # Wipe checkpoint dir to test clean load
+        checkpoint_dir = pipeline.checkpoint_manager.checkpoint_dir
+        rmrf_if_possible(checkpoint_dir)
+
+        assert pipeline.checkpoint_manager.try_download_from_bucket() == True
+
+        # Test for no clobber
+        assert pipeline.checkpoint_manager.try_download_from_bucket() == False
+
     # python -m unittest checkpoint_manager_test.TestCheckpointManager.test_checkpoint_save_load -v
     def test_checkpoint_save_load(self):
         config_path = "experiments/tests/quaild_test_experiment.yaml"

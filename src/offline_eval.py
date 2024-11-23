@@ -25,6 +25,9 @@ def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
         return
 
     if config.training.type != NoOperation.NAME:
+        # Try to download checkpoint from bucket if it is missing
+        pipeline.checkpoint_manager.try_download_from_bucket()
+
         # Checkpoint must exist or it should crash and exit
         pipeline.checkpoint_manager.load_checkpoint(for_eval=True)
 

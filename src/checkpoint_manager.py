@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import Any
 from train_utils import generate_md5_hash
 import yaml
+from google.cloud import storage
 
 
 class Checkpoint(BaseModel):
@@ -104,6 +105,32 @@ class CheckpointManager:
             with open(config_path, "w") as f:
                 yaml.safe_dump(train_config, f)
         return checkpoint_dir
+
+    def try_download_from_bucket(self):
+        downloaded_something = False
+
+        client = storage.Client()
+        bucket_name = "quaild-icl-bucket"
+        local_dir = self.checkpoint_dir
+        # Remove the seed part to match the bucket structure
+        local_dir_base = "/".join(local_dir.split("/")[:-2]) + "/"
+        prefix = local_dir_base.split("./")[-1]
+
+        bucket = client.bucket(bucket_name)
+        blobs = bucket.list_blobs(prefix=prefix)
+
+        for blob in blobs:
+            local_path = os.path.join(local_dir_base, blob.name.replace(prefix, ""))
+            if not os.path.exists(local_path):  # Check if the file already exists
+                os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                print(f"Downloading: {local_path}")
+                blob.download_to_filename(local_path)
+                downloaded_something = True
+                print(f"Downloaded: {local_path}")
+            else:
+                print(f"Skipped (already exists): {local_path}")
+
+        return downloaded_something
 
     def save_checkpoint(self):
         epoch = self.pipeline.current_epoch

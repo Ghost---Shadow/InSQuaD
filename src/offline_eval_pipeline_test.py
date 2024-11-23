@@ -5,6 +5,15 @@ from offline_eval_pipeline import OfflineEvaluationPipeline
 
 # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline -v
 class TestOfflineEvaluationPipeline(unittest.TestCase):
+    # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_lazy_load -v
+    def test_lazy_load(self):
+        config_path = "experiments/tests/quaild_test_experiment.yaml"
+
+        config = Config.from_file(config_path)
+        pipeline = OfflineEvaluationPipeline(config, lazy_load=True)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+
     # python -m unittest offline_eval_pipeline_test.TestOfflineEvaluationPipeline.test_quaild_flow -v
     def test_quaild_flow(self):
         config_path = "experiments/tests/quaild_test_experiment.yaml"
