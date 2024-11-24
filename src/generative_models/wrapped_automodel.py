@@ -139,8 +139,8 @@ class WrappedAutoModel(BaseGenerativeModel):
         target_answer_ids = self.tokenizer(
             target_answer,
             add_special_tokens=False,
-            truncation=True,
-            max_length=self.tokenizer.model_max_length,
+            # truncation=True, # Dont truncate the target
+            # max_length=self.tokenizer.model_max_length,
         ).input_ids
         target_answer_ids = torch.tensor(target_answer_ids, device=self.device)
 
