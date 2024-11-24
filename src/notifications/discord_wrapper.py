@@ -8,7 +8,7 @@ import argparse
 load_dotenv()
 
 
-def send_discord_notification(message):
+def send_discord_notification_helper(message):
     if os.environ.get("IS_LOCAL") == "yes":
         # No notifications on development
         return
@@ -25,9 +25,45 @@ def send_discord_notification(message):
         if response.status_code == 204:
             print("Notification sent successfully.")
         else:
-            print(f"Failed to send notification. Code: {response.status_code}")
+            print(f"Failed to send notification. {response.json()}")
     except Exception as e:
-        print(e)
+        print(f"Exception during notification: {e}")
+
+
+def send_discord_notification(message):
+    max_length = 1994  # Subtract 6 to account for the addition of code block markers
+    chunks = []
+    in_code_block = message.startswith("```")
+
+    while message:
+        if in_code_block:
+            # Find the next code block end or adjust for the maximum message length
+            next_code_block_end = message.find("```", 3)
+            if next_code_block_end != -1 and next_code_block_end + 3 <= max_length:
+                split_point = next_code_block_end + 3
+            else:
+                split_point = max_length
+        else:
+            split_point = min(max_length, len(message))
+
+        # Ensure the split happens at the last newline within the allowed length
+        last_newline = message.rfind("\n", 0, split_point)
+        if last_newline != -1:
+            split_point = last_newline + 1
+
+        chunks.append(message[:split_point])
+        message = message[split_point:]
+        if in_code_block and message.startswith("```"):
+            in_code_block = False
+        elif not in_code_block and message.startswith("```"):
+            in_code_block = True
+
+    # Process each chunk for sending
+    for chunk in chunks:
+        if chunk.count("```") % 2 != 0:
+            # Balance unclosed code blocks for each chunk
+            chunk += "```"
+        send_discord_notification_helper(chunk)
 
 
 def send_discord_image(image_path):
