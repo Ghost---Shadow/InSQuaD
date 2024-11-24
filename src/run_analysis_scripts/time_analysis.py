@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 EXPERIMENT_NAME_LUT = {
     "votek_mpnet_gemma": "Vote-K",
     "ideal_mpnet_gemma": "IDEAL",
-    "quaild_gain_fl_mpnet_gemma": "InSQuaD-FL",
-    "quaild_gain_gc_mpnet_gemma": "InSQuaD-GC",
-    "quaild_gain_ld_mpnet_gemma": "InSQuaD-LD",
+    "quaild_comb_fl_mpnet_gemma": "InSQuaD-FL",
+    "quaild_comb_gc_mpnet_gemma": "InSQuaD-GC",
+    "quaild_comb_ld_mpnet_gemma": "InSQuaD-LD",
 }
 
 
