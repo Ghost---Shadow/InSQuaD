@@ -89,4 +89,7 @@ if __name__ == "__main__":
 
     for seed in config.offline_validation.seeds:
         for dataset_name in config.offline_validation.datasets:
-            main(pipeline, dataset_name, seed)
+            try:
+                main(pipeline, dataset_name, seed)
+            except Exception as e:
+                print(e)
