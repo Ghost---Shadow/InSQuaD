@@ -2,6 +2,7 @@ import argparse
 from datetime import datetime
 import json
 from pathlib import Path
+import subprocess
 import traceback
 from config import Config
 from notifications.discord_wrapper import send_discord_notification
@@ -32,7 +33,9 @@ def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
         pipeline.checkpoint_manager.load_checkpoint(for_eval=True)
 
     try:
-        send_discord_notification(f"Eval for {EXPERIMENT_NAME} started")
+        cmd = "df -h | grep nvme"
+        df_return = subprocess.getoutput(cmd)
+        send_discord_notification(f"Eval for {EXPERIMENT_NAME} started \n{df_return}")
 
         print(f"Shortlisting")
         with pipeline.timer():
