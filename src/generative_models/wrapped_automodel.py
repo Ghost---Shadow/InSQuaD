@@ -50,6 +50,7 @@ class WrappedAutoModel(BaseGenerativeModel):
         if override_max_sequence_length is not None:
             self.tokenizer.model_max_length = override_max_sequence_length
         assert self.tokenizer.model_max_length
+        # self.tokenizer.model_max_length = 512
 
     def evaluate_with_options(self, prompt, correct_option_index, options):
         # Tokenize input
