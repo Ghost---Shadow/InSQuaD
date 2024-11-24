@@ -25,7 +25,7 @@ def send_discord_notification(message):
         if response.status_code == 204:
             print("Notification sent successfully.")
         else:
-            print("Failed to send notification.")
+            print(f"Failed to send notification. Code: {response.status_code}")
     except Exception as e:
         print(e)
 
