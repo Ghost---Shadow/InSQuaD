@@ -47,7 +47,6 @@ class WrappedAutoModel(BaseGenerativeModel):
         override_max_sequence_length = (
             self.config.offline_validation.generative_model.override_max_sequence_length
         )
-        # override_max_sequence_length = 512
         if override_max_sequence_length is not None:
             self.tokenizer.model_max_length = override_max_sequence_length
         assert self.tokenizer.model_max_length
@@ -131,16 +130,12 @@ class WrappedAutoModel(BaseGenerativeModel):
         input_ids = self.tokenizer(
             prompt,
             return_tensors="pt",
-            truncation=True,
-            max_length=self.tokenizer.model_max_length,
         ).input_ids.to(self.device)
 
         # Tokenize the target answer and add special tokens (e.g., EOS) as needed by the model
         target_answer_ids = self.tokenizer(
             target_answer,
             add_special_tokens=False,
-            # truncation=True, # Dont truncate the target
-            # max_length=self.tokenizer.model_max_length,
         ).input_ids
         target_answer_ids = torch.tensor(target_answer_ids, device=self.device)
 
@@ -189,6 +184,9 @@ class WrappedAutoModel(BaseGenerativeModel):
         redecoded_target = self.tokenizer.decode(
             target_answer_ids, skip_special_tokens=True
         )
+        redecoded_prompt = self.tokenizer.decode(
+            input_ids.squeeze(0), skip_special_tokens=True
+        )
         predicted = self.tokenizer.decode(output_tokens, skip_special_tokens=True)
         rouge_result = self._compute_rouge(redecoded_target, predicted)
 
@@ -196,6 +194,7 @@ class WrappedAutoModel(BaseGenerativeModel):
             "target_sequence_probability": target_sequence_probability,
             "predicted_sequence_probability": predicted_sequence_probability,
             "target": redecoded_target,
+            "prompts": redecoded_prompt,
             "predicted": predicted,
             "rouge": rouge_result,
         }
