@@ -1,6 +1,9 @@
 python src/train.py --config=experiments/tests/insquad_ld_test_experiment.yaml
 source devops/upload_all_checkpoints.sh
 
+python src/train.py --config=experiments/tests/insquad_motest_experiment.yaml
+source devops/upload_all_checkpoints.sh
+
 python src/train.py --config=experiments/tests/insquad_test_experiment.yaml
 source devops/upload_all_checkpoints.sh
 
