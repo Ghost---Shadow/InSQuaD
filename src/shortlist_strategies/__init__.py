@@ -1,4 +1,5 @@
 from shortlist_strategies.insquad_combinatorial import InsquadCombinatorialStrategy
+from shortlist_strategies.insquad_mocombinatorial import InsquadMemoryOptimizedCombinatorialStrategy
 from shortlist_strategies.least_confidence import LeastConfidenceStrategy
 from shortlist_strategies.oracle_strategy import OracleStrategy
 from shortlist_strategies.quaild_gain_counter import QuaildGainCounterStrategy
@@ -10,6 +11,7 @@ from shortlist_strategies.zero_shot_strategy import ZeroShotStrategy
 
 SHORTLIST_STRATEGIES_LUT = {
     InsquadCombinatorialStrategy.NAME: InsquadCombinatorialStrategy,
+    InsquadMemoryOptimizedCombinatorialStrategy.NAME: InsquadMemoryOptimizedCombinatorialStrategy,
     LeastConfidenceStrategy.NAME: LeastConfidenceStrategy,
     OracleStrategy.NAME: OracleStrategy,
     QuaildGainCounterStrategy.NAME: QuaildGainCounterStrategy,

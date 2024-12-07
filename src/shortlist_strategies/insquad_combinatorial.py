@@ -16,7 +16,7 @@ class InsquadCombinatorialStrategy(BaseStrategy):
             == config.offline_validation.annotation_budget
         )
 
-    def shortlist(self, use_cache=True):
+    def _cache_similarities(self, use_cache):
         longlist_rows = self.subsample_dataset_for_train()
 
         if use_cache and self.pipeline.longlist_similarity_tensor_path.exists():
@@ -33,6 +33,11 @@ class InsquadCombinatorialStrategy(BaseStrategy):
                 longlist_embeddings, longlist_embeddings
             )
             torch.save(similarities, self.pipeline.longlist_similarity_tensor_path)
+
+        return similarities
+
+    def shortlist(self, use_cache=True):
+        similarities = self._cache_similarities(use_cache)
 
         # For long list, there is no distinction
         query_query_similarity = similarities

@@ -125,6 +125,10 @@ class TrainingConfig(BaseModel):
     )(type_validator(EXTRA_METRICS_LUT))
 
 
+class InsquadMemoryOptimizedCombinatorialConfig(BaseModel):
+    window_size: int = None
+
+
 class OfflineValidationConfig(BaseModel):
     type: str
     generative_model: GenerativeModelConfig
@@ -135,6 +139,7 @@ class OfflineValidationConfig(BaseModel):
     annotation_budget: int
     subsample_for_train_size: int = None
     subsample_for_eval_size: int = None
+    insquad_mocombinatorial_config: InsquadMemoryOptimizedCombinatorialConfig = None
 
     _validate_datasets = validator("datasets", each_item=True, allow_reuse=True)(
         type_validator(DATALOADERS_LUT)
