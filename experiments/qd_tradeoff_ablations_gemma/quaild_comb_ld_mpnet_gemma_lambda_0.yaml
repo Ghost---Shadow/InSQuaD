@@ -45,7 +45,7 @@ training:
 offline_validation:
   type: insquad_mocombinatorial
   insquad_mocombinatorial_config:
-    window_size: 300
+    window_size: 100
     max_chunks_to_process: 10
   generative_model:
     type: 'automodel'
