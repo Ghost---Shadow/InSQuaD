@@ -1,5 +1,7 @@
 from shortlist_strategies.insquad_combinatorial import InsquadCombinatorialStrategy
-from shortlist_strategies.insquad_mocombinatorial import InsquadMemoryOptimizedCombinatorialStrategy
+from shortlist_strategies.insquad_mocombinatorial import (
+    InsquadMemoryOptimizedCombinatorialStrategy,
+)
 from shortlist_strategies.least_confidence import LeastConfidenceStrategy
 from shortlist_strategies.oracle_strategy import OracleStrategy
 from shortlist_strategies.quaild_gain_counter import QuaildGainCounterStrategy

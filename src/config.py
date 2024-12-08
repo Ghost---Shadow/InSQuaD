@@ -127,6 +127,7 @@ class TrainingConfig(BaseModel):
 
 class InsquadMemoryOptimizedCombinatorialConfig(BaseModel):
     window_size: int = None
+    max_chunks_to_process: int = None
 
 
 class OfflineValidationConfig(BaseModel):

@@ -136,6 +136,116 @@ class TestInsquadMemoryOptimizedCombinatorialStrategy(unittest.TestCase):
             -0.0015034079551696777,
         ], confidences
 
+    # python -m unittest shortlist_strategies.insquad_mocombinatorial_test.TestInsquadMemoryOptimizedCombinatorialStrategy.test_shortlist_subsampled -v
+    def test_shortlist_subsampled(self):
+        config = Config.from_file("experiments/tests/insquad_motest_experiment.yaml")
+        config.offline_validation.insquad_mocombinatorial_config.max_chunks_to_process = (
+            90
+        )
+        pipeline = OfflineEvaluationPipeline(config)
+        pipeline.set_seed(42)
+        pipeline.current_dataset_name = "mrpc"
+        # use_cache = False
+        use_cache = True
+        indexes, confidences = pipeline.shortlist_strategy.shortlist(use_cache)
+
+        exact_indexes = [
+            1,
+            179,
+            127,
+            13,
+            155,
+            91,
+            190,
+            148,
+            47,
+            16,
+            123,
+            289,
+            4,
+            248,
+            132,
+            255,
+            220,
+            193,
+            131,
+            150,
+        ]
+
+        assert indexes == [
+            1,
+            93,
+            166,
+            271,
+            181,
+            95,
+            95,
+            18,
+            98,
+            79,
+            163,
+            106,
+            130,
+            96,
+            3,
+            170,
+            138,
+            77,
+            251,
+            116,
+        ], indexes
+
+        intersection = len(set(exact_indexes).intersection(set(indexes)))
+        union = len(set(exact_indexes).union(set(indexes)))
+        iou = intersection / union
+        assert iou == 0.02631578947368421, iou
+
+        # Exact confidences
+        # assert confidences == [
+        #     0.5913819670677185,
+        #     -0.0022861361503601074,
+        #     -0.0009650588035583496,
+        #     -0.0013608932495117188,
+        #     -0.0009065866470336914,
+        #     -0.0008512139320373535,
+        #     -0.0006109476089477539,
+        #     -0.0006862878799438477,
+        #     -0.0005466938018798828,
+        #     -0.0004929900169372559,
+        #     -0.00048160552978515625,
+        #     -0.00040262937545776367,
+        #     -0.00037169456481933594,
+        #     -0.00032651424407958984,
+        #     -0.00036263465881347656,
+        #     -0.0003325343132019043,
+        #     -0.0003428459167480469,
+        #     -0.0003165602684020996,
+        #     -0.00028389692306518555,
+        #     -0.00026601552963256836,
+        # ], confidences
+        assert confidences == [
+            0.6081281900405884,
+            -0.009695827960968018,
+            -0.0033611655235290527,
+            -0.0022423267364501953,
+            -0.001494765281677246,
+            -0.0013359785079956055,
+            -0.0009542703628540039,
+            -0.0011224150657653809,
+            -0.0014519095420837402,
+            -0.0013778209686279297,
+            -0.0011748075485229492,
+            -0.001124739646911621,
+            -0.001026928424835205,
+            -0.0010136961936950684,
+            -0.0009434223175048828,
+            -0.0008404254913330078,
+            -0.0008604526519775391,
+            -0.0008149147033691406,
+            -0.0015192627906799316,
+            -0.001993834972381592,
+        ], confidences
+
     # python -m unittest shortlist_strategies.insquad_mocombinatorial_test.TestInsquadMemoryOptimizedCombinatorialStrategy.test_assemble_few_shot -v
     def test_assemble_few_shot(self):
         config = Config.from_file("experiments/tests/insquad_test_experiment.yaml")
