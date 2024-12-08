@@ -45,7 +45,7 @@ training:
 offline_validation:
   type: insquad_mocombinatorial
   insquad_mocombinatorial_config:
-    window_size: 100
+    window_size: 300
   generative_model:
     type: 'automodel'
     checkpoint: google/gemma-2b
