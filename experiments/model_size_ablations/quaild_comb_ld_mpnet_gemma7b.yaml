@@ -43,7 +43,10 @@ training:
     lambd: 1
 
 offline_validation:
-  type: insquad_combinatorial
+  type: insquad_mocombinatorial
+  insquad_mocombinatorial_config:
+    window_size: 100
+    max_chunks_to_process: 20
   generative_model:
     type: 'automodel'
     checkpoint: 'google/gemma-7b'
