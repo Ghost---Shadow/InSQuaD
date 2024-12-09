@@ -26,6 +26,23 @@ class QuaildSubmodularStrategy:
 
         batch_size, num_docs, num_queries = doc_query_similarity.shape
 
+        assert query_query_similarity.shape[1] == num_queries, (
+            query_query_similarity.shape[1],
+            num_queries,
+        )
+        assert query_query_similarity.shape[2] == num_queries, (
+            query_query_similarity.shape[2],
+            num_queries,
+        )
+        assert doc_doc_similarity.shape[1] == num_docs, (
+            doc_doc_similarity.shape[1],
+            num_docs,
+        )
+        assert doc_doc_similarity.shape[2] == num_docs, (
+            doc_doc_similarity.shape[2],
+            num_docs,
+        )
+
         assert batch_size == 1, batch_size  # TODO
 
         picked_mask = torch.zeros(num_docs, dtype=torch.bool)

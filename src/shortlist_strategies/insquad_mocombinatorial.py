@@ -39,6 +39,10 @@ class InsquadMemoryOptimizedCombinatorialStrategy(InsquadCombinatorialStrategy):
         top_indices = []
         top_confidences = []
 
+        # If not exactly divisible
+        if n % self.window_size != 0:
+            n = n - n % self.window_size
+
         flat_list = [
             (row_start, col_start)
             for row_start in range(0, n, chunk_size)
