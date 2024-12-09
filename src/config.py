@@ -155,6 +155,8 @@ class RootConfig(BaseModel):
     @property
     def name_with_hash(self):
         config_copy = self.model_dump()
+        if config_copy["offline_validation"]["insquad_mocombinatorial_config"] is None:
+            del config_copy["offline_validation"]["insquad_mocombinatorial_config"]
         del config_copy["offline_validation"]["datasets"]
         del config_copy["offline_validation"]["seeds"]
         del config_copy["training"]["seeds"]
