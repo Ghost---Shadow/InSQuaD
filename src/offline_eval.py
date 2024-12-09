@@ -19,7 +19,10 @@ def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
     # TODO: Send the artifact to the same experiment as wandb
 
     print("-" * 80)
-    print(f"Starting eval for {EXPERIMENT_NAME}, Dataset: {dataset_name}, Seed: {seed}")
+    header_line = (
+        f"Starting eval for {EXPERIMENT_NAME}, Dataset: {dataset_name}, Seed: {seed}"
+    )
+    print(header_line)
 
     if pipeline.is_done():
         print("Already done")
@@ -35,7 +38,7 @@ def main(pipeline: OfflineEvaluationPipeline, dataset_name: str, seed: int):
     try:
         cmd = "df -h | grep nvme"
         df_return = subprocess.getoutput(cmd)
-        send_discord_notification(f"Eval for {EXPERIMENT_NAME} started \n{df_return}")
+        send_discord_notification(f"{header_line}\n{df_return}")
 
         print(f"Shortlisting")
         with pipeline.timer():
