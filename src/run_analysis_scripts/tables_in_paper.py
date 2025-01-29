@@ -451,13 +451,14 @@ def generate_main_table(df):
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
-        ("oracle_mpnet_gemma", "Oracle"),
         ("diversity_mpnet_gemma", "Diversity"),
         ("leastconfidence_mpnet_gemma", "Least Confidence"),
         ("mfl_mpnet_gemma", "MFL"),
         ("gc_mpnet_gemma", "GC"),
         ("votek_mpnet_gemma", "Vote-K"),
         ("ideal_mpnet_gemma", "IDEAL"),
+        ("divs3_mpnet_gemma", "Div-S3"),
+        ("hline", "hline"),
         ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
         ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
         ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
@@ -465,6 +466,8 @@ def generate_main_table(df):
         ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("oracle_mpnet_gemma", "Oracle"),
     )
 
     extra_column_tuples = None
