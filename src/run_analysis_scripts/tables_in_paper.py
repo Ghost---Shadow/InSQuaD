@@ -457,7 +457,6 @@ def generate_main_table(df):
         ("gc_mpnet_gemma", "GC"),
         ("votek_mpnet_gemma", "Vote-K"),
         ("ideal_mpnet_gemma", "IDEAL"),
-        ("divs3_mpnet_gemma", "Div-S3"),
         ("hline", "hline"),
         ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
         ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
