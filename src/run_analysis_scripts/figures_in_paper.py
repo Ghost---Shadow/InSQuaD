@@ -19,6 +19,9 @@ def generate_bar_plot(
     hue="extra_name",
     subplot_adjust=0.0,
     y_label=None,
+    fontsize=15,
+    font_scale=1.5,
+    fig_size=8,
 ):
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
@@ -38,10 +41,10 @@ def generate_bar_plot(
         df_melted["name"] = df_melted["method_name"]
 
     # Set the Seaborn theme
-    sns.set_theme("paper")
+    sns.set_theme(context="paper", font_scale=font_scale)
 
     # Create a figure with specific size
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(fig_size, fig_size))
     plt.tight_layout()
     plt.subplots_adjust(subplot_adjust)
     plt.xlim(0, 1)
@@ -63,13 +66,13 @@ def generate_bar_plot(
     else:
         sns.barplot(x="value", y="method_name", data=sorted_df)
 
-    plt.xlabel("Accuracy")
-    plt.ylabel(y_label)
+    plt.xlabel("Accuracy", fontsize=fontsize)
+    plt.ylabel(y_label if y_label else "Method", fontsize=fontsize)
     if extra_column_name is not None:
-        plt.legend(title=extra_column_name)
+        plt.legend(title=extra_column_name, fontsize=fontsize)
 
     # Set the plot title
-    plt.title(caption)
+    plt.title(caption, fontsize=(fontsize + 2))
 
     # Determine the output path
     output_path = Path("artifacts/diagrams")
@@ -89,6 +92,9 @@ def generate_dataset_wise_bar_plot(
     extra_column_name,
     extra_column_tuples,
     subplot_adjust=0.0,
+    fontsize=15,
+    font_scale=1.5,
+    fig_size=8,
 ):
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
@@ -108,10 +114,10 @@ def generate_dataset_wise_bar_plot(
         df_melted["name"] = df_melted["method_name"]
 
     # Set the Seaborn theme
-    sns.set_theme("paper")
+    sns.set_theme(context="paper", font_scale=font_scale)
 
     # Create a figure with specific size
-    plt.figure(figsize=(5, 5))
+    plt.figure(figsize=(fig_size, fig_size))
     plt.tight_layout()
     plt.subplots_adjust(subplot_adjust)
     plt.xlim(0, 1)
@@ -122,12 +128,12 @@ def generate_dataset_wise_bar_plot(
 
     sns.barplot(x="value", y="dataset", hue="extra_name", data=sorted_df)
 
-    plt.xlabel("Accuracy")
+    plt.xlabel("Accuracy", fontsize=fontsize)
     plt.ylabel(None)
-    plt.legend(title=extra_column_name)
+    plt.legend(title=extra_column_name, fontsize=fontsize)
 
     # Set the plot title
-    plt.title(caption)
+    plt.title(caption, fontsize=(fontsize + 2))
 
     # Determine the output path
     output_path = Path("artifacts/diagrams")
