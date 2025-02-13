@@ -25,7 +25,7 @@ def generate_bar_plot(
 ):
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
-    df_melted = pd.melt(df, id_vars=["method"])
+    df_melted = pd.melt(df, id_vars=["method"], var_name="dataset", value_name="value")
     df_melted = df_melted[~df_melted["dataset"].isin(["index", "Average"])]
 
     # Convert tuples to dictionaries for easy lookup
@@ -98,7 +98,7 @@ def generate_dataset_wise_bar_plot(
 ):
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
-    df_melted = pd.melt(df, id_vars=["method"])
+    df_melted = pd.melt(df, id_vars=["method"], var_name="dataset", value_name="value")
     df_melted = df_melted[~df_melted["dataset"].isin(["index", "Average"])]
 
     # Convert tuples to dictionaries for easy lookup
@@ -380,7 +380,8 @@ if __name__ == "__main__":
     df = excelify()
     df = df.reset_index()
     df = generate_best_row(df)
-    df.to_csv(BASE_PATH / "all.csv")
+    df.to_csv(BASE_PATH / "all.csv", index=False)
+    df = pd.read_csv(BASE_PATH / "all.csv")
 
     for file_name, fn in tqdm(FIGURES_TO_GENERATE.items()):
         fn(df)
