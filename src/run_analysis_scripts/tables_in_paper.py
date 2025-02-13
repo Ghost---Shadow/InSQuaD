@@ -535,7 +535,8 @@ if __name__ == "__main__":
     df = excelify()
     df = df.reset_index()
     df = generate_best_row(df)
-    df.to_csv(BASE_PATH / "all.csv")
+    df.to_csv(BASE_PATH / "all.csv", index=False)
+    df = pd.read_csv(BASE_PATH / "all.csv")
 
     for file_name, fn in tqdm(TABLES_TO_GENERATE.items()):
         with open(BASE_PATH / f"{file_name}.tex", "w") as f:
