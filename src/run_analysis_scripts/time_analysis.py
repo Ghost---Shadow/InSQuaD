@@ -23,8 +23,10 @@ def read_json_files(root_dir):
             elapsed_time = json_data["elapsed_milliseconds"]
             parts = json_file.parts
             experiment_name = parts[1]
-            seed = parts[2]
-            dataset_name = parts[3]
+            seed = parts[-3]
+            if "ideal" in seed or "votek" in seed:
+                seed = "seed_42"
+            dataset_name = parts[-2]
 
             experiment_name = "_".join(experiment_name.split("_")[:-1])
 
@@ -49,6 +51,7 @@ def plot_data(data):
     df = pd.DataFrame(data)
     # Sort data by elapsed time
     df_sorted = df.sort_values("Elapsed Time (ms)", ascending=False)
+    df_sorted.to_csv("artifacts/tables/time_analysis.csv", index=False)
 
     # Enable LaTeX typesetting
     # plt.rc("text", usetex=True)
