@@ -1,4 +1,4 @@
-# In Context Learning
+# InSQuaD: In-Context Learning for Efficient Retrieval via Submodular Mutual Information to Enforce Quality and Diversity
 
 ## Installation
 
