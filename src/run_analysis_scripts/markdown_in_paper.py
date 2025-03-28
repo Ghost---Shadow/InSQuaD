@@ -32,32 +32,19 @@ GROUPS = {
 }
 
 
-def create_header_row(groups, extra_column_name=None):
+def create_header_row(expected_columns, extra_column_name=None):
     """Create the header rows for the markdown table."""
-    # First row with group names
+    # First row with column names
     header1 = ["Method"]
     if extra_column_name:
         header1.append(extra_column_name)
 
-    group_headers = []
-    for group, columns in groups.items():
-        if len(columns) > 1:
-            group_headers.append(
-                f"**{group}**" + " " * (len(columns) * 8 - len(group) - 4)
-            )
-        else:
-            group_headers.append(f"**{group}**")
+    # Add dataset names
+    for col in expected_columns:
+        header1.append(f"**{DATASET_NAME_KEYS.get(col, col)}**")
 
-    header1.extend(group_headers)
-
-    # Second row with dataset names
-    header2 = ["---"]
-    if extra_column_name:
-        header2.append("---")
-
-    for group in groups.values():
-        for col in group:
-            header2.append(f"**{DATASET_NAME_KEYS.get(col, col)}**")
+    # Second row with separators
+    header2 = ["---"] * len(header1)
 
     return [header1, header2]
 
