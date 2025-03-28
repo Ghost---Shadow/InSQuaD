@@ -119,6 +119,87 @@ def generate_retrieval_method_ablations_gemma(df):
     )
 
 
+def generate_retrieval_method_performance_gap_gemma(df):
+    caption = "Performance Gap Gemma(2B)"
+    method_tuples = (
+        ("quaild_similar_fl_mpnet_gemma", "InSQuaD-FL"),
+        ("quaild_similar_gc_mpnet_gemma", "InSQuaD-GC"),
+        ("quaild_similar_ld_mpnet_gemma", "InSQuaD-LD"),
+        ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
+        ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
+        ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
+        ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
+    )
+    df = extract_relevant_df(df.reset_index(), method_tuples)
+
+    # Group the methods by type
+    similar_methods = df[df["method"].str.contains("similar")]["Average"].values
+    combnt_methods = df[df["method"].str.contains("combnt")]["Average"].values
+    comb_best_methods = df[df["method"].str.contains("comb_.*_best")]["Average"].values
+
+    # Calculate maximum performance for each group
+    similar_max = similar_methods.max()
+    combnt_max = combnt_methods.max()
+    comb_best_max = comb_best_methods.max()
+
+    # Get all dataset columns (excluding "method" and "Average")
+    dataset_columns = [
+        col for col in df.columns if col not in ["method", "Average", "index"]
+    ]
+
+    if dataset_columns:
+        # Create markdown table header
+        md_table = "\n## Per-dataset Performance Comparison\n\n"
+        md_table += "| Dataset | Similar | Combinatorial | % Increase Combinatorial |\n"
+        md_table += "|---------|------------|-----------------------------------|-----------------------------|\n"
+
+        # Initialize variables to calculate averages
+        similar_total = 0
+        comb_best_total = 0
+        comb_best_inc_total = 0
+
+        # Add rows for each dataset
+        for dataset in dataset_columns:
+            # Get max performance per method type for this dataset
+            similar_ds_max = df[df["method"].str.contains("similar")][dataset].max()
+            combnt_ds_max = df[df["method"].str.contains("combnt")][dataset].max()
+            comb_best_ds_max = df[df["method"].str.contains("comb_.*_best")][
+                dataset
+            ].max()
+
+            # Calculate percentage increases for this dataset
+            combnt_ds_increase = (
+                (combnt_ds_max - similar_ds_max) / similar_ds_max
+            ) * 100
+            comb_best_ds_increase = (
+                (comb_best_ds_max - similar_ds_max) / similar_ds_max
+            ) * 100
+
+            # Add row to markdown table
+            md_table += f"| {dataset} | {similar_ds_max:.4f} | {comb_best_ds_max:.4f} | {comb_best_ds_increase:.2f}% |\n"
+
+            # Accumulate values for average calculation
+            similar_total += similar_ds_max
+            comb_best_total += comb_best_ds_max
+            comb_best_inc_total += comb_best_ds_increase
+
+        # Calculate averages
+        dataset_count = len(dataset_columns)
+        similar_avg = similar_total / dataset_count
+        comb_best_avg = comb_best_total / dataset_count
+        comb_best_inc_avg = comb_best_inc_total / dataset_count
+
+        # Add a separator row
+        md_table += "|---------|------------|-----------------------------------|-----------------------------|\n"
+
+        # Add average row
+        md_table += f"| **Average** | **{similar_avg:.4f}** | **{comb_best_avg:.4f}** | **{comb_best_inc_avg:.2f}%** |\n"
+
+    return md_table
+
+
 def generate_annotation_budget_ablations_gemma(df):
     caption = "Effects of annotation budget Gemma (2B) λ = 0.5"
     method_tuples = (
@@ -267,6 +348,7 @@ def run_markdown_generation(df_path):
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
         "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
+        "performance_gap": generate_retrieval_method_performance_gap_gemma,
     }
 
     df = pd.read_csv(df_path)
