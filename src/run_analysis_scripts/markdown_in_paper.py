@@ -134,16 +134,6 @@ def generate_retrieval_method_performance_gap_gemma(df):
     )
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
-    # Group the methods by type
-    similar_methods = df[df["method"].str.contains("similar")]["Average"].values
-    combnt_methods = df[df["method"].str.contains("combnt")]["Average"].values
-    comb_best_methods = df[df["method"].str.contains("comb_.*_best")]["Average"].values
-
-    # Calculate maximum performance for each group
-    similar_max = similar_methods.max()
-    combnt_max = combnt_methods.max()
-    comb_best_max = comb_best_methods.max()
-
     # Get all dataset columns (excluding "method" and "Average")
     dataset_columns = [
         col for col in df.columns if col not in ["method", "Average", "index"]
@@ -197,7 +187,80 @@ def generate_retrieval_method_performance_gap_gemma(df):
         # Add average row
         md_table += f"| **Average** | **{similar_avg:.4f}** | **{comb_best_avg:.4f}** | **{comb_best_inc_avg:.2f}%** |\n"
 
-    return md_table
+    return f"## {caption} \n\n{md_table}"
+
+
+def generate_only_quality_performance_gap_gemma(df):
+    caption = "Performance Gap λ > 0 Gemma (2B)"
+    method_tuples = (
+        ("quaild_comb_fl_mpnet_gemma_lambda_0", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_0", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_0", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_025", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_025", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_025", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_1", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
+    )
+    df = extract_relevant_df(df.reset_index(), method_tuples)
+
+    # Get all dataset columns (excluding "method" and "Average")
+    dataset_columns = [
+        col for col in df.columns if col not in ["method", "Average", "index"]
+    ]
+
+    if dataset_columns:
+        # Create markdown table header
+        md_table = "\n## Per-dataset Performance Comparison\n\n"
+        md_table += "| Dataset | λ = 0 | λ > 0 | % Increase λ > 0 |\n"
+        md_table += "|---------|------------|-----------------|--------------------|\n"
+
+        # Initialize variables to calculate averages
+        lambda0_total = 0
+        lambdaGT0_total = 0
+        increase_total = 0
+
+        # Add rows for each dataset
+        for dataset in dataset_columns:
+            # Get max performance for lambda=0 methods for this dataset
+            lambda0_ds_max = df[df["method"].str.contains("lambda_0$")][dataset].max()
+
+            # Get max performance for lambda>0 methods for this dataset
+            # This includes lambda_025, lambda=0.5 (no suffix), and lambda_1
+            lambdaGT0_methods = df["method"].str.contains("lambda_025|lambda_1") | (
+                df["method"].str.contains("quaild_comb_")
+                & ~df["method"].str.contains("lambda_")
+            )
+            lambdaGT0_ds_max = df[lambdaGT0_methods][dataset].max()
+
+            # Calculate percentage increase
+            increase = ((lambdaGT0_ds_max - lambda0_ds_max) / lambda0_ds_max) * 100
+
+            # Add row to markdown table
+            md_table += f"| {dataset} | {lambda0_ds_max:.4f} | {lambdaGT0_ds_max:.4f} | {increase:.2f}% |\n"
+
+            # Accumulate values for average calculation
+            lambda0_total += lambda0_ds_max
+            lambdaGT0_total += lambdaGT0_ds_max
+            increase_total += increase
+
+        # Calculate averages
+        dataset_count = len(dataset_columns)
+        lambda0_avg = lambda0_total / dataset_count
+        lambdaGT0_avg = lambdaGT0_total / dataset_count
+        increase_avg = increase_total / dataset_count
+
+        # Add a separator row
+        md_table += "|---------|------------|-----------------|--------------------|\n"
+
+        # Add average row
+        md_table += f"| **Average** | **{lambda0_avg:.4f}** | **{lambdaGT0_avg:.4f}** | **{increase_avg:.2f}%** |\n"
+
+    return f"## {caption} \n\n{md_table}"
 
 
 def generate_annotation_budget_ablations_gemma(df):
@@ -348,7 +411,8 @@ def run_markdown_generation(df_path):
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
         "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
-        "performance_gap": generate_retrieval_method_performance_gap_gemma,
+        "retrieval_method_performance_gap_gemma": generate_retrieval_method_performance_gap_gemma,
+        "only_quality_performance_gap_gemma": generate_only_quality_performance_gap_gemma,
     }
 
     df = pd.read_csv(df_path)
