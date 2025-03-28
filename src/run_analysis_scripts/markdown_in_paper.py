@@ -1,171 +1,113 @@
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from run_analysis_scripts.utils import dictify, extract_relevant_df
-from tqdm import tqdm
-
-# Keeping the dataset name mappings and groups from the original code
-DATASET_NAME_KEYS = {
-    "dbpedia": "DBpedia",
-    "dummy": "DummyDataset",
-    "dummy_hotpot_qa_with_q": "DummyHotpotQaWithQDataset",
-    "hellaswag": "HellaSwag",
-    "hotpot_qa": "HotpotQaDataset",
-    "hotpot_qa_with_q": "HotpotQaWithQDataset",
-    "mnli": "MNLI",
-    "mrpc": "MRPC",
-    "rte": "RTE",
-    "sst2": "SST2",
-    "sst5": "SST5",
-    "wiki_multihop_qa": "WikiMultihopQaDataset",
-    "wiki_multihop_qa_with_q": "WikiMultihopQaWithQDataset",
-    "xsum": "Xsum",
-    "mwoz": "MWoZ",
-    "geoq": "GeoQ",
-}
-
-GROUPS = {
-    "Classification": ["mrpc", "sst5", "mnli", "dbpedia", "rte"],
-    "Multi-Choice": ["hellaswag"],
-    "Dialogue": ["mwoz"],
-    "Generation": ["geoq", "xsum"],
-}
-
-
-def create_header_row(expected_columns, extra_column_name=None):
-    """Create the header rows for the markdown table."""
-    # First row with column names
-    header1 = ["Method"]
-    if extra_column_name:
-        header1.append(extra_column_name)
-
-    # Add dataset names
-    for col in expected_columns:
-        header1.append(f"**{DATASET_NAME_KEYS.get(col, col)}**")
-
-    # Second row with separators
-    header2 = ["---"] * len(header1)
-
-    return [header1, header2]
-
-
-def generate_markdown_rows(full_df, method_tuples, extra_column_tuples=None):
-    """Generate the data rows for the markdown table."""
-    rows = []
-    df = extract_relevant_df(full_df, method_tuples)
-
-    # Find max values for each column (excluding 'oracle' methods)
-    df_copy = df.copy()
-    columns = df_copy.columns[1:]  # Skip the 'method' column
-    for col in columns:
-        mask = df_copy["method"].str.contains("oracle")
-        df_copy.loc[mask, col] = 0.0
-
-    max_values = {col: df_copy[col].max() for col in columns}
-
-    for method, method_print_name in method_tuples:
-        if method == "hline":
-            # For markdown, we can skip horizontal lines or use a separator
-            continue
-
-        row = df[df["method"] == method]
-        cells = [method_print_name]
-
-        # Add extra column if provided
-        if extra_column_tuples is not None:
-            extra_column_lut = dictify(extra_column_tuples)
-            cells.append(extra_column_lut.get(method, ""))
-
-        if len(row) == 1:
-            row_data = row.iloc[0]
-            for col in columns:
-                value = row_data[col]
-                if pd.notna(value):
-                    # Bold the max values
-                    if value == max_values.get(col, -float("inf")):
-                        cells.append(f"**{value*100:.1f}**")
-                    else:
-                        cells.append(f"{value*100:.1f}")
-                else:
-                    cells.append("??")
-        else:
-            # Handle missing or multiple rows
-            cells.extend(["??" for _ in columns])
-
-        rows.append(cells)
-
-    return rows
+from run_analysis_scripts.utils import extract_relevant_df
+from scipy import stats
 
 
 def generate_markdown_table(
-    df, title, method_tuples, extra_column_name=None, extra_column_tuples=None
+    df, caption, method_tuples, extra_column_name=None, extra_column_tuples=None
 ):
-    """Generate a complete markdown table."""
-    # Reset the index to make 'method' a regular column
-    df = df.reset_index()
+    """
+    Generate a markdown table from DataFrame with averages and 95% CI.
 
-    if extra_column_tuples is not None:
-        assert extra_column_name is not None
+    Parameters:
+    df (pandas.DataFrame): Input DataFrame
+    caption (str): Table caption
+    method_tuples (tuple): Method name tuples (id, display_name)
+    extra_column_name (str, optional): Name for grouping column
+    extra_column_tuples (tuple, optional): Extra column mapping tuples
 
-    # Ensure all required columns are present
-    expected_columns = [col for group in GROUPS.values() for col in group]
-    column_order = ["method"] + expected_columns
-    for column in expected_columns:
-        if column.lower() not in df.columns.str.lower():
-            df[column] = np.nan  # Add missing columns as NaN
+    Returns:
+    str: Markdown table
+    """
+    df = extract_relevant_df(df.reset_index(), method_tuples)
 
-    # Reorder DataFrame to match column order
-    df = df[column_order]
+    # Melt the DataFrame for easier manipulation
+    df_melted = pd.melt(df, id_vars=["method"], var_name="dataset", value_name="value")
+    df_melted = df_melted[~df_melted["dataset"].isin(["index", "Average"])]
 
-    # Create header rows
-    header_rows = create_header_row(GROUPS, extra_column_name)
+    # Convert tuples to dictionaries for lookup
+    method_lut = dict(method_tuples)
+    extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
 
-    # Create data rows
-    data_rows = generate_markdown_rows(df, method_tuples, extra_column_tuples)
+    # Apply lookup transformations
+    df_melted["method_name"] = df_melted["method"].map(method_lut)
 
-    # Combine all rows into a markdown table
-    markdown_table = f"### {title}\n\n"
-    all_rows = header_rows + data_rows
+    if extra_column_name and extra_column_tuples:
+        df_melted["extra_name"] = df_melted["method"].map(extra_column_lut)
+        df_melted["group"] = df_melted["extra_name"]
+        df_melted["name"] = df_melted["method_name"]
+    else:
+        df_melted["name"] = df_melted["method_name"]
+        df_melted["group"] = df_melted["method_name"]
 
-    for row in all_rows:
-        markdown_table += "| " + " | ".join(str(cell) for cell in row) + " |\n"
+    # Calculate statistics by group
+    stats_df = (
+        df_melted.groupby(["group", "name"])
+        .agg(
+            mean_value=("value", "mean"),
+            std_value=("value", "std"),
+            count=("value", "count"),
+        )
+        .reset_index()
+    )
 
-    return markdown_table
+    # Calculate 95% confidence interval
+    stats_df["ci_95"] = stats_df.apply(
+        lambda row: stats.t.ppf(0.975, row["count"] - 1)
+        * row["std_value"]
+        / np.sqrt(row["count"]),
+        axis=1,
+    )
+
+    # Format for markdown table
+    stats_df["formatted"] = stats_df.apply(
+        lambda row: f"{row['mean_value']:.3f} ± {row['ci_95']:.3f}", axis=1
+    )
+
+    # Create markdown table
+    markdown = f"## {caption}\n\n"
+
+    if extra_column_name:
+        # Pivot to get extra_column values as columns
+        pivot_df = stats_df.pivot(index="name", columns="group", values="formatted")
+        markdown += f"| Method | {' | '.join(pivot_df.columns)} |\n"
+        markdown += f"|---|{' | '.join(['---' for _ in pivot_df.columns])}|\n"
+
+        for idx, row in pivot_df.iterrows():
+            markdown += f"| {idx} | {' | '.join(row.values)} |\n"
+    else:
+        # Simple table with just methods
+        markdown += "| Method | Average (95% CI) |\n"
+        markdown += "|---|---|\n"
+
+        for idx, row in stats_df.iterrows():
+            markdown += f"| {row['name']} | {row['formatted']} |\n"
+
+    return markdown
 
 
 def generate_retrieval_method_ablations_gemma(df):
-    """Generate markdown table for retrieval method ablations."""
-    title = "Effect of retrieval methods Gemma (2B)"
+    caption = "Effect of retrieval methods Gemma (2B)"
     method_tuples = (
-        ("zeroshot_mpnet_gemma", "Zeroshot"),
-        ("random_mpnet_gemma", "Random"),
-        ("oracle_mpnet_gemma", "Oracle"),
-        ("hline", "hline"),
         ("quaild_random_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_random_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_random_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("hline", "hline"),
         ("quaild_similar_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_similar_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_similar_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
     extra_column_tuples = (
-        ("zeroshot_mpnet_gemma", ""),
-        ("random_mpnet_gemma", ""),
-        ("oracle_mpnet_gemma", ""),
-        ("hline", "hline"),
         ("quaild_random_fl_mpnet_gemma", "Random"),
         ("quaild_random_gc_mpnet_gemma", "Random"),
         ("quaild_random_ld_mpnet_gemma", "Random"),
-        ("hline", "hline"),
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
         ("quaild_similar_ld_mpnet_gemma", "Similar"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_best", "Combinatorial"),
         ("quaild_comb_gc_mpnet_gemma_best", "Combinatorial"),
         ("quaild_comb_ld_mpnet_gemma_best", "Combinatorial"),
@@ -173,42 +115,24 @@ def generate_retrieval_method_ablations_gemma(df):
     extra_column_name = "Retrieval"
 
     return generate_markdown_table(
-        df, title, method_tuples, extra_column_name, extra_column_tuples
+        df, caption, method_tuples, extra_column_name, extra_column_tuples
     )
 
 
 def generate_annotation_budget_ablations_gemma(df):
-    """Generate markdown table for annotation budget ablations."""
-    title = "Effects of annotation budget Gemma (2B) λ = 0.5"
+    caption = "Effects of annotation budget Gemma (2B) λ = 0.5"
     method_tuples = (
-        ("zeroshot_mpnet_gemma", "Zeroshot"),
-        ("oracle_mpnet_gemma", "Oracle"),
-        # budget 18
-        ("hline", "hline"),
-        ("random_mpnet_gemma", "Random"),
         ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
-        # budget 100
-        ("hline", "hline"),
-        ("random_mpnet_gemma_100", "Random"),
         ("quaild_comb_fl_mpnet_gemma_100", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_100", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_100", "InSQuaD-LD"),
     )
     extra_column_tuples = (
-        # Zeroshot
-        ("zeroshot_mpnet_gemma", ""),
-        ("oracle_mpnet_gemma", ""),
-        # budget 18
-        ("hline", "hline"),
-        ("random_mpnet_gemma", "18"),
         ("quaild_comb_fl_mpnet_gemma", "18"),
         ("quaild_comb_gc_mpnet_gemma", "18"),
         ("quaild_comb_ld_mpnet_gemma", "18"),
-        # budget 100
-        ("hline", "hline"),
-        ("random_mpnet_gemma_100", "100"),
         ("quaild_comb_fl_mpnet_gemma_100", "100"),
         ("quaild_comb_gc_mpnet_gemma_100", "100"),
         ("quaild_comb_ld_mpnet_gemma_100", "100"),
@@ -216,51 +140,36 @@ def generate_annotation_budget_ablations_gemma(df):
     extra_column_name = "Budget"
 
     return generate_markdown_table(
-        df, title, method_tuples, extra_column_name, extra_column_tuples
+        df, caption, method_tuples, extra_column_name, extra_column_tuples
     )
 
 
 def generate_qd_tradeoff_ablations_gemma(df):
-    """Generate markdown table for quality-diversity tradeoff ablations."""
-    title = "Effects of λ on Gemma (2B) (Quality-Diversity tradeoff)"
+    caption = "Effects of λ on Gemma (2B) (Quality-Diversity tradeoff)"
     method_tuples = (
-        ("zeroshot_mpnet_gemma", "Zeroshot"),
-        ("random_mpnet_gemma", "Random"),
-        ("oracle_mpnet_gemma", "Oracle"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_lambda_0", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_lambda_0", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_lambda_0", "InSQuaD-LD"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_lambda_025", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_lambda_025", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_lambda_025", "InSQuaD-LD"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_lambda_1", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
     )
     extra_column_tuples = (
-        ("zeroshot_mpnet_gemma", ""),
-        ("random_mpnet_gemma", ""),
-        ("oracle_mpnet_gemma", ""),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_lambda_0", "0"),
         ("quaild_comb_gc_mpnet_gemma_lambda_0", "0"),
         ("quaild_comb_ld_mpnet_gemma_lambda_0", "0"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_lambda_025", "0.25"),
         ("quaild_comb_gc_mpnet_gemma_lambda_025", "0.25"),
         ("quaild_comb_ld_mpnet_gemma_lambda_025", "0.25"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma", "0.5"),
         ("quaild_comb_gc_mpnet_gemma", "0.5"),
         ("quaild_comb_ld_mpnet_gemma", "0.5"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_lambda_1", "1"),
         ("quaild_comb_gc_mpnet_gemma_lambda_1", "1"),
         ("quaild_comb_ld_mpnet_gemma_lambda_1", "1"),
@@ -268,40 +177,31 @@ def generate_qd_tradeoff_ablations_gemma(df):
     extra_column_name = "λ"
 
     return generate_markdown_table(
-        df, title, method_tuples, extra_column_name, extra_column_tuples
+        df, caption, method_tuples, extra_column_name, extra_column_tuples
     )
 
 
 def generate_model_size_ablations(df):
-    """Generate markdown table for model size ablations."""
-    title = "Downstream evaluation on different model sizes"
+    caption = "Effects of model size"
     method_tuples = (
         # gemma
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
         ("oracle_mpnet_gemma", "Oracle"),
-        ("votek_mpnet_gemma", "Vote-K"),
-        ("ideal_mpnet_gemma", "IDEAL"),
         ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
         # gemma7b
-        ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "Zeroshot"),
         ("random_mpnet_gemma7b", "Random"),
         ("oracle_mpnet_gemma7b", "Oracle"),
-        ("votek_mpnet_gemma7b", "Vote-K"),
-        ("ideal_mpnet_gemma7b", "IDEAL"),
         ("quaild_comb_fl_mpnet_gemma7b", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma7b", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma7b", "InSQuaD-LD"),
         # davinci2
-        ("hline", "hline"),
         ("zeroshot_mpnet_davinci2", "Zeroshot"),
         ("random_mpnet_davinci2", "Random"),
         ("oracle_mpnet_davinci2", "Oracle"),
-        ("votek_mpnet_davinci2", "Vote-K"),
-        ("ideal_mpnet_davinci2", "IDEAL"),
         ("quaild_comb_fl_mpnet_davinci2", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_davinci2", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_davinci2", "InSQuaD-LD"),
@@ -311,28 +211,20 @@ def generate_model_size_ablations(df):
         ("zeroshot_mpnet_gemma", "gemma2b"),
         ("random_mpnet_gemma", "gemma2b"),
         ("oracle_mpnet_gemma", "gemma2b"),
-        ("votek_mpnet_gemma", "gemma2b"),
-        ("ideal_mpnet_gemma", "gemma2b"),
         ("quaild_comb_fl_mpnet_gemma", "gemma2b"),
         ("quaild_comb_gc_mpnet_gemma", "gemma2b"),
         ("quaild_comb_ld_mpnet_gemma", "gemma2b"),
         # gemma7b
-        ("hline", "hline"),
         ("zeroshot_mpnet_gemma7b", "gemma7b"),
         ("random_mpnet_gemma7b", "gemma7b"),
         ("oracle_mpnet_gemma7b", "gemma7b"),
-        ("votek_mpnet_gemma7b", "gemma7b"),
-        ("ideal_mpnet_gemma7b", "gemma7b"),
         ("quaild_comb_fl_mpnet_gemma7b", "gemma7b"),
         ("quaild_comb_gc_mpnet_gemma7b", "gemma7b"),
         ("quaild_comb_ld_mpnet_gemma7b", "gemma7b"),
         # davinci2
-        ("hline", "hline"),
         ("zeroshot_mpnet_davinci2", "davinci2-175b"),
         ("random_mpnet_davinci2", "davinci2-175b"),
         ("oracle_mpnet_davinci2", "davinci2-175b"),
-        ("votek_mpnet_davinci2", "davinci2-175b"),
-        ("ideal_mpnet_davinci2", "davinci2-175b"),
         ("quaild_comb_fl_mpnet_davinci2", "davinci2-175b"),
         ("quaild_comb_gc_mpnet_davinci2", "davinci2-175b"),
         ("quaild_comb_ld_mpnet_davinci2", "davinci2-175b"),
@@ -340,40 +232,12 @@ def generate_model_size_ablations(df):
     extra_column_name = "Model"
 
     return generate_markdown_table(
-        df, title, method_tuples, extra_column_name, extra_column_tuples
+        df, caption, method_tuples, extra_column_name, extra_column_tuples
     )
 
 
-def generate_main_table(df):
-    """Generate main markdown table."""
-    title = "Downstream evaluation on Gemma (2B)"
-    method_tuples = (
-        ("zeroshot_mpnet_gemma", "Zeroshot"),
-        ("random_mpnet_gemma", "Random"),
-        ("diversity_mpnet_gemma", "Diversity"),
-        ("leastconfidence_mpnet_gemma", "Least Confidence"),
-        ("mfl_mpnet_gemma", "MFL"),
-        ("gc_mpnet_gemma", "GC"),
-        ("votek_mpnet_gemma", "Vote-K"),
-        ("ideal_mpnet_gemma", "IDEAL"),
-        ("hline", "hline"),
-        ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
-        ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
-        ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
-        ("hline", "hline"),
-        ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
-        ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
-        ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
-        ("hline", "hline"),
-        ("oracle_mpnet_gemma", "Oracle"),
-    )
-
-    return generate_markdown_table(df, title, method_tuples)
-
-
-def generate_training_ablations_gemma(df):
-    """Generate markdown table for training ablations."""
-    title = "Downstream evaluation on Gemma (2B)"
+def generate_main_figure_gemma(df):
+    caption = "Downstream evaluation on Gemma (2B)"
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
@@ -387,29 +251,42 @@ def generate_training_ablations_gemma(df):
         ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
         ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
         ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
-        ("hline", "hline"),
         ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
 
-    return generate_markdown_table(df, title, method_tuples)
+    return generate_markdown_table(df, caption, method_tuples)
 
 
-if __name__ == "__main__":
+def run_markdown_generation(df_path):
+    """Generate all markdown tables and write to file."""
     TABLES_TO_GENERATE = {
-        "main_table": generate_main_table,
-        "training_effect_gemmma": generate_training_ablations_gemma,
+        "main_table_gemma": generate_main_figure_gemma,
         "model_size_effect": generate_model_size_ablations,
         "qd_tradeoff_gemma": generate_qd_tradeoff_ablations_gemma,
         "annotation_budget_effect_gemma": generate_annotation_budget_ablations_gemma,
         "retrieval_method_effect_gemma": generate_retrieval_method_ablations_gemma,
     }
+
+    df = pd.read_csv(df_path)
+
+    all_tables = []
+    for name, generator_fn in TABLES_TO_GENERATE.items():
+        table_md = generator_fn(df)
+        all_tables.append(f"# {name}\n\n{table_md}\n\n")
+
+    return "\n".join(all_tables)
+
+
+# For demo purposes
+if __name__ == "__main__":
     BASE_PATH = Path("./artifacts/markdowns")
     BASE_PATH.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv("./artifacts/tables/all.csv")
+    # Generate tables
+    tables_md = run_markdown_generation("./artifacts/tables/all.csv")
+    with open(BASE_PATH / "all_tables.md", "w", encoding="utf-8") as f:
+        f.write(tables_md)
 
-    for file_name, fn in tqdm(TABLES_TO_GENERATE.items()):
-        with open(BASE_PATH / f"{file_name}.md", "w", encoding="utf-8") as f:
-            f.write(fn(df))
+    print("Tables generated successfully!")
