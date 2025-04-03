@@ -106,7 +106,16 @@ def generate_markdown_table(
                     method_data[dataset] = f"{mean_val:.4f} ± {error_margin:.4f}"
             else:
                 method_data[dataset] = "-"
-        result_dict[method_name] = method_data
+
+        # Store results with method name
+        if extra_column_name and extra_column_tuples:
+            # Use extra_column_lut to get the group name
+            group_name = extra_column_lut.get(method_id, "")
+            # Create combined key with group and method name
+            combined_key = f"{group_name}: {method_name}"
+            result_dict[combined_key] = method_data
+        else:
+            result_dict[method_name] = method_data
 
     # Generate the markdown table
     markdown = f"## {caption}\n\n"
@@ -121,18 +130,50 @@ def generate_markdown_table(
     else:
         datasets_list = list(datasets)
 
-    header = ["Method"] + datasets_list
+    # Add extra column header if provided
+    if extra_column_name:
+        header = [extra_column_name, "Method"] + datasets_list
+    else:
+        header = ["Method"] + datasets_list
+
     markdown += "| " + " | ".join(header) + " |\n"
     markdown += "| " + " | ".join(["---" for _ in header]) + " |\n"
 
-    # Add data rows - deterministic ordering based on seed
-    method_names = list(result_dict.keys())
-    for method_name in method_names:
-        dataset_values = result_dict[method_name]
-        row_values = [method_name]
-        for dataset in datasets_list:
-            row_values.append(dataset_values.get(dataset, "-"))
-        markdown += "| " + " | ".join(row_values) + " |\n"
+    # Group methods by extra column if provided
+    if extra_column_name and extra_column_tuples:
+        # Get unique groups
+        groups = set(extra_column_lut.values())
+
+        # Organize method names by group
+        grouped_methods = {}
+        for method_id, method_name in method_tuples:
+            group = extra_column_lut.get(method_id, "")
+            if group not in grouped_methods:
+                grouped_methods[group] = []
+            grouped_methods[group].append(method_name)
+
+        # Generate rows group by group
+        for group in sorted(grouped_methods.keys()):
+            for method_name in grouped_methods[group]:
+                combined_key = f"{group}: {method_name}"
+                dataset_values = result_dict[combined_key]
+
+                row_values = [
+                    group,
+                    method_name,
+                ]  # First column is group, second is method
+                for dataset in datasets_list:
+                    row_values.append(dataset_values.get(dataset, "-"))
+                markdown += "| " + " | ".join(row_values) + " |\n"
+    else:
+        # No grouping, just list methods
+        method_names = list(result_dict.keys())
+        for method_name in method_names:
+            dataset_values = result_dict[method_name]
+            row_values = [method_name]
+            for dataset in datasets_list:
+                row_values.append(dataset_values.get(dataset, "-"))
+            markdown += "| " + " | ".join(row_values) + " |\n"
 
     return markdown
 
@@ -140,9 +181,9 @@ def generate_markdown_table(
 def generate_retrieval_method_ablations_gemma(df):
     caption = "Effect of retrieval methods Gemma (2B)"
     method_tuples = (
-        ("quaild_random_fl_mpnet_gemma", "InSQuaD-FL"),
-        ("quaild_random_gc_mpnet_gemma", "InSQuaD-GC"),
-        ("quaild_random_ld_mpnet_gemma", "InSQuaD-LD"),
+        # ("quaild_random_fl_mpnet_gemma", "InSQuaD-FL"),
+        # ("quaild_random_gc_mpnet_gemma", "InSQuaD-GC"),
+        # ("quaild_random_ld_mpnet_gemma", "InSQuaD-LD"),
         ("quaild_similar_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_similar_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_similar_ld_mpnet_gemma", "InSQuaD-LD"),
@@ -151,9 +192,9 @@ def generate_retrieval_method_ablations_gemma(df):
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
     extra_column_tuples = (
-        ("quaild_random_fl_mpnet_gemma", "Random"),
-        ("quaild_random_gc_mpnet_gemma", "Random"),
-        ("quaild_random_ld_mpnet_gemma", "Random"),
+        # ("quaild_random_fl_mpnet_gemma", "Random"),
+        # ("quaild_random_gc_mpnet_gemma", "Random"),
+        # ("quaild_random_ld_mpnet_gemma", "Random"),
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
         ("quaild_similar_ld_mpnet_gemma", "Similar"),
@@ -480,7 +521,7 @@ if __name__ == "__main__":
     BASE_PATH.mkdir(parents=True, exist_ok=True)
 
     # Generate tables
-    tables_md = run_markdown_generation("./artifacts/tables/all.csv")
+    tables_md = run_markdown_generation("./artifacts/tables/all_merged.csv")
     with open(BASE_PATH / "all_tables.md", "w", encoding="utf-8") as f:
         f.write(tables_md)
 
