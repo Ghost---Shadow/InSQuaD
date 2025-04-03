@@ -222,62 +222,170 @@ def generate_retrieval_method_performance_gap_gemma(df):
         ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
-    df = extract_relevant_df(df.reset_index(), method_tuples)
 
-    # Get all dataset columns (excluding "method" and "Average")
+    # Reset index and extract relevant dataframe
+    df_reset = df.reset_index()
+    df_relevant = extract_relevant_df(df_reset, method_tuples)
+
+    # Get all dataset columns (excluding "method", "Average", "index", and "seed")
     dataset_columns = [
-        col for col in df.columns if col not in ["method", "Average", "index"]
+        col
+        for col in df_relevant.columns
+        if col not in ["method", "Average", "index", "seed"]
     ]
 
     if dataset_columns:
         # Create markdown table header
-        md_table = "\n## Per-dataset Performance Comparison\n\n"
-        md_table += "| Dataset | Similar | Combinatorial | % Increase Combinatorial |\n"
-        md_table += "|---------|------------|-----------------------------------|-----------------------------|\n"
+        md_table = "\n## Per-dataset Performance Comparison (interval = sem * stats.t.ppf((1 + confidence=0.95) / 2, n - 1)) \n\n"
+        md_table += "| Dataset | Similar (95% CI) | Combinatorial (95% CI) | % Increase Combinatorial (95% CI) |\n"
+        md_table += "|---------|-----------------|------------------------|----------------------------------|\n"
 
         # Initialize variables to calculate averages
-        similar_total = 0
-        comb_best_total = 0
-        comb_best_inc_total = 0
+        similar_values = []
+        comb_best_values = []
+        increase_values = []
 
-        # Add rows for each dataset
+        # Process each dataset
         for dataset in dataset_columns:
-            # Get max performance per method type for this dataset
-            similar_ds_max = df[df["method"].str.contains("similar")][dataset].max()
-            combnt_ds_max = df[df["method"].str.contains("combnt")][dataset].max()
-            comb_best_ds_max = df[df["method"].str.contains("comb_.*_best")][
-                dataset
-            ].max()
+            # Group by method and seed, then get values for confidence interval calculation
+            similar_values_ds = []
+            combnt_values_ds = []
+            comb_best_values_ds = []
 
-            # Calculate percentage increases for this dataset
-            combnt_ds_increase = (
-                (combnt_ds_max - similar_ds_max) / similar_ds_max
-            ) * 100
-            comb_best_ds_increase = (
-                (comb_best_ds_max - similar_ds_max) / similar_ds_max
-            ) * 100
+            # Get values for each method type across all seeds
+            similar_methods = [m for m, _ in method_tuples if "similar" in m]
+            combnt_methods = [m for m, _ in method_tuples if "combnt" in m]
+            comb_best_methods = [
+                m for m, _ in method_tuples if "comb_" in m and "_best" in m
+            ]
+
+            # Extract all values for similar methods
+            similar_df = df_relevant[df_relevant["method"].isin(similar_methods)]
+            if not similar_df.empty:
+                grouped_similar = (
+                    similar_df.groupby(["method", "seed"])[dataset].max().reset_index()
+                )
+                similar_max_per_seed = grouped_similar.groupby("seed")[dataset].max()
+                similar_values_ds = similar_max_per_seed.tolist()
+
+            # Extract all values for combinatorial best methods
+            comb_best_df = df_relevant[df_relevant["method"].isin(comb_best_methods)]
+            if not comb_best_df.empty:
+                grouped_comb_best = (
+                    comb_best_df.groupby(["method", "seed"])[dataset]
+                    .max()
+                    .reset_index()
+                )
+                comb_best_max_per_seed = grouped_comb_best.groupby("seed")[
+                    dataset
+                ].max()
+                comb_best_values_ds = comb_best_max_per_seed.tolist()
+
+            # Calculate means
+            similar_mean = np.mean(similar_values_ds) if similar_values_ds else 0
+            comb_best_mean = np.mean(comb_best_values_ds) if comb_best_values_ds else 0
+
+            # Calculate percentage increases for each seed
+            increase_values_ds = []
+            if (
+                len(similar_values_ds) == len(comb_best_values_ds)
+                and len(similar_values_ds) > 0
+            ):
+                for s_val, cb_val in zip(similar_values_ds, comb_best_values_ds):
+                    if s_val > 0:
+                        increase = ((cb_val - s_val) / s_val) * 100
+                        increase_values_ds.append(increase)
+
+            increase_mean = np.mean(increase_values_ds) if increase_values_ds else 0
+
+            # Calculate confidence intervals (95%)
+            similar_ci = (
+                calculate_confidence_interval(similar_values_ds)
+                if len(similar_values_ds) > 1
+                else (similar_mean, similar_mean)
+            )
+            comb_best_ci = (
+                calculate_confidence_interval(comb_best_values_ds)
+                if len(comb_best_values_ds) > 1
+                else (comb_best_mean, comb_best_mean)
+            )
+            increase_ci = (
+                calculate_confidence_interval(increase_values_ds)
+                if len(increase_values_ds) > 1
+                else (increase_mean, increase_mean)
+            )
+
+            # Format confidence intervals
+            similar_ci_str = (
+                f"{similar_mean:.4f} ({similar_ci[0]:.4f}-{similar_ci[1]:.4f})"
+            )
+            comb_best_ci_str = (
+                f"{comb_best_mean:.4f} ({comb_best_ci[0]:.4f}-{comb_best_ci[1]:.4f})"
+            )
+            increase_ci_str = (
+                f"{increase_mean:.2f}% ({increase_ci[0]:.2f}%-{increase_ci[1]:.2f}%)"
+            )
 
             # Add row to markdown table
-            md_table += f"| {dataset} | {similar_ds_max:.4f} | {comb_best_ds_max:.4f} | {comb_best_ds_increase:.2f}% |\n"
+            md_table += f"| {dataset} | {similar_ci_str} | {comb_best_ci_str} | {increase_ci_str} |\n"
 
-            # Accumulate values for average calculation
-            similar_total += similar_ds_max
-            comb_best_total += comb_best_ds_max
-            comb_best_inc_total += comb_best_ds_increase
+            # Store values for overall average calculation
+            similar_values.append(similar_mean)
+            comb_best_values.append(comb_best_mean)
+            increase_values.append(increase_mean)
 
-        # Calculate averages
-        dataset_count = len(dataset_columns)
-        similar_avg = similar_total / dataset_count
-        comb_best_avg = comb_best_total / dataset_count
-        comb_best_inc_avg = comb_best_inc_total / dataset_count
+        # Calculate overall averages
+        similar_avg = np.mean(similar_values) if similar_values else 0
+        comb_best_avg = np.mean(comb_best_values) if comb_best_values else 0
+        increase_avg = np.mean(increase_values) if increase_values else 0
+
+        # Calculate overall confidence intervals
+        similar_overall_ci = (
+            calculate_confidence_interval(similar_values)
+            if len(similar_values) > 1
+            else (similar_avg, similar_avg)
+        )
+        comb_best_overall_ci = (
+            calculate_confidence_interval(comb_best_values)
+            if len(comb_best_values) > 1
+            else (comb_best_avg, comb_best_avg)
+        )
+        increase_overall_ci = (
+            calculate_confidence_interval(increase_values)
+            if len(increase_values) > 1
+            else (increase_avg, increase_avg)
+        )
+
+        # Format overall confidence intervals
+        similar_overall_ci_str = f"{similar_avg:.4f} ({similar_overall_ci[0]:.4f}-{similar_overall_ci[1]:.4f})"
+        comb_best_overall_ci_str = f"{comb_best_avg:.4f} ({comb_best_overall_ci[0]:.4f}-{comb_best_overall_ci[1]:.4f})"
+        increase_overall_ci_str = f"{increase_avg:.2f}% ({increase_overall_ci[0]:.2f}%-{increase_overall_ci[1]:.2f}%)"
 
         # Add a separator row
-        md_table += "|---------|------------|-----------------------------------|-----------------------------|\n"
-
-        # Add average row
-        md_table += f"| **Average** | **{similar_avg:.4f}** | **{comb_best_avg:.4f}** | **{comb_best_inc_avg:.2f}%** |\n"
+        md_table += "|---------|-----------------|------------------------|----------------------------------|\n"
+        # Add average row with confidence intervals
+        md_table += f"| **Average** | **{similar_overall_ci_str}** | **{comb_best_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
 
     return f"## {caption} \n\n{md_table}"
+
+
+def calculate_confidence_interval(values, confidence=0.95):
+    """
+    Calculate confidence interval for a list of values.
+
+    Parameters:
+    values (list): List of numerical values
+    confidence (float): Confidence level (default: 0.95 for 95% confidence)
+
+    Returns:
+    tuple: (lower_bound, upper_bound) of the confidence interval
+    """
+    values = np.array(values)
+    n = len(values)
+    mean = np.mean(values)
+    sem = stats.sem(values)  # Standard Error of the Mean
+    interval = sem * stats.t.ppf((1 + confidence) / 2, n - 1)  # t-value for CI
+    return (mean - interval, mean + interval)
 
 
 def generate_only_quality_performance_gap_gemma(df):
@@ -296,59 +404,153 @@ def generate_only_quality_performance_gap_gemma(df):
         ("quaild_comb_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
     )
-    df = extract_relevant_df(df.reset_index(), method_tuples)
 
-    # Get all dataset columns (excluding "method" and "Average")
+    # Reset index and extract relevant dataframe
+    df_reset = df.reset_index()
+    df_relevant = extract_relevant_df(df_reset, method_tuples)
+
+    # Get all dataset columns (excluding "method", "Average", "index", and "seed")
     dataset_columns = [
-        col for col in df.columns if col not in ["method", "Average", "index"]
+        col
+        for col in df_relevant.columns
+        if col not in ["method", "Average", "index", "seed"]
     ]
 
     if dataset_columns:
         # Create markdown table header
-        md_table = "\n## Per-dataset Performance Comparison\n\n"
-        md_table += "| Dataset | λ = 0 | λ > 0 | % Increase λ > 0 |\n"
-        md_table += "|---------|------------|-----------------|--------------------|\n"
+        md_table = "\n## Per-dataset Performance Comparison (interval = sem * stats.t.ppf((1 + confidence=0.95) / 2, n - 1))\n\n"
+        md_table += "| Dataset | λ = 0 (95% CI) | λ > 0 (95% CI) | % Increase λ > 0 (95% CI) |\n"
+        md_table += "|---------|----------------|----------------|---------------------------|\n"
 
-        # Initialize variables to calculate averages
-        lambda0_total = 0
-        lambdaGT0_total = 0
-        increase_total = 0
+        # Initialize lists to store values for average calculation
+        lambda0_values = []
+        lambdaGT0_values = []
+        increase_values = []
 
-        # Add rows for each dataset
+        # Process each dataset
         for dataset in dataset_columns:
-            # Get max performance for lambda=0 methods for this dataset
-            lambda0_ds_max = df[df["method"].str.contains("lambda_0$")][dataset].max()
+            # Lists to store values across seeds for confidence interval calculation
+            lambda0_values_ds = []
+            lambdaGT0_values_ds = []
+            increase_values_ds = []
 
-            # Get max performance for lambda>0 methods for this dataset
-            # This includes lambda_025, lambda=0.5 (no suffix), and lambda_1
-            lambdaGT0_methods = df["method"].str.contains("lambda_025|lambda_1") | (
-                df["method"].str.contains("quaild_comb_")
-                & ~df["method"].str.contains("lambda_")
+            # Get methods for lambda=0 and lambda>0
+            lambda0_methods = [m for m, _ in method_tuples if "lambda_0" in m]
+
+            lambdaGT0_methods = [
+                m
+                for m, _ in method_tuples
+                if "lambda_025" in m
+                or "lambda_1" in m
+                or (
+                    ("quaild_comb_fl_mpnet_gemma" == m)
+                    or ("quaild_comb_gc_mpnet_gemma" == m)
+                    or ("quaild_comb_ld_mpnet_gemma" == m)
+                )
+            ]
+
+            # Filter and group by seed for lambda=0 methods
+            lambda0_df = df_relevant[df_relevant["method"].isin(lambda0_methods)]
+            if not lambda0_df.empty and "seed" in lambda0_df.columns:
+                # Group by seed and get max performance for each seed
+                lambda0_by_seed = (
+                    lambda0_df.groupby("seed")[dataset].max().reset_index()
+                )
+                lambda0_values_ds = lambda0_by_seed[dataset].tolist()
+
+            # Filter and group by seed for lambda>0 methods
+            lambdaGT0_df = df_relevant[df_relevant["method"].isin(lambdaGT0_methods)]
+            if not lambdaGT0_df.empty and "seed" in lambdaGT0_df.columns:
+                # Group by seed and get max performance for each seed
+                lambdaGT0_by_seed = (
+                    lambdaGT0_df.groupby("seed")[dataset].max().reset_index()
+                )
+                lambdaGT0_values_ds = lambdaGT0_by_seed[dataset].tolist()
+
+            # Calculate means across seeds
+            lambda0_mean = np.mean(lambda0_values_ds) if lambda0_values_ds else 0
+            lambdaGT0_mean = np.mean(lambdaGT0_values_ds) if lambdaGT0_values_ds else 0
+
+            # Calculate percentage increase for each seed pair
+            if (
+                len(lambda0_values_ds) == len(lambdaGT0_values_ds)
+                and len(lambda0_values_ds) > 0
+            ):
+                for l0_val, lgt0_val in zip(lambda0_values_ds, lambdaGT0_values_ds):
+                    if l0_val > 0:
+                        increase = ((lgt0_val - l0_val) / l0_val) * 100
+                        increase_values_ds.append(increase)
+
+            # Calculate mean increase
+            increase_mean = np.mean(increase_values_ds) if increase_values_ds else 0
+
+            # Calculate confidence intervals (95%)
+            lambda0_ci = (
+                calculate_confidence_interval(lambda0_values_ds)
+                if len(lambda0_values_ds) > 1
+                else (lambda0_mean, lambda0_mean)
             )
-            lambdaGT0_ds_max = df[lambdaGT0_methods][dataset].max()
+            lambdaGT0_ci = (
+                calculate_confidence_interval(lambdaGT0_values_ds)
+                if len(lambdaGT0_values_ds) > 1
+                else (lambdaGT0_mean, lambdaGT0_mean)
+            )
+            increase_ci = (
+                calculate_confidence_interval(increase_values_ds)
+                if len(increase_values_ds) > 1
+                else (increase_mean, increase_mean)
+            )
 
-            # Calculate percentage increase
-            increase = ((lambdaGT0_ds_max - lambda0_ds_max) / lambda0_ds_max) * 100
+            # Format confidence intervals
+            lambda0_ci_str = (
+                f"{lambda0_mean:.4f} ({lambda0_ci[0]:.4f}-{lambda0_ci[1]:.4f})"
+            )
+            lambdaGT0_ci_str = (
+                f"{lambdaGT0_mean:.4f} ({lambdaGT0_ci[0]:.4f}-{lambdaGT0_ci[1]:.4f})"
+            )
+            increase_ci_str = (
+                f"{increase_mean:.2f}% ({increase_ci[0]:.2f}%-{increase_ci[1]:.2f}%)"
+            )
 
             # Add row to markdown table
-            md_table += f"| {dataset} | {lambda0_ds_max:.4f} | {lambdaGT0_ds_max:.4f} | {increase:.2f}% |\n"
+            md_table += f"| {dataset} | {lambda0_ci_str} | {lambdaGT0_ci_str} | {increase_ci_str} |\n"
 
-            # Accumulate values for average calculation
-            lambda0_total += lambda0_ds_max
-            lambdaGT0_total += lambdaGT0_ds_max
-            increase_total += increase
+            # Store values for overall average calculation
+            lambda0_values.append(lambda0_mean)
+            lambdaGT0_values.append(lambdaGT0_mean)
+            increase_values.append(increase_mean)
 
-        # Calculate averages
-        dataset_count = len(dataset_columns)
-        lambda0_avg = lambda0_total / dataset_count
-        lambdaGT0_avg = lambdaGT0_total / dataset_count
-        increase_avg = increase_total / dataset_count
+        # Calculate overall averages
+        lambda0_avg = np.mean(lambda0_values) if lambda0_values else 0
+        lambdaGT0_avg = np.mean(lambdaGT0_values) if lambdaGT0_values else 0
+        increase_avg = np.mean(increase_values) if increase_values else 0
+
+        # Calculate overall confidence intervals
+        lambda0_overall_ci = (
+            calculate_confidence_interval(lambda0_values)
+            if len(lambda0_values) > 1
+            else (lambda0_avg, lambda0_avg)
+        )
+        lambdaGT0_overall_ci = (
+            calculate_confidence_interval(lambdaGT0_values)
+            if len(lambdaGT0_values) > 1
+            else (lambdaGT0_avg, lambdaGT0_avg)
+        )
+        increase_overall_ci = (
+            calculate_confidence_interval(increase_values)
+            if len(increase_values) > 1
+            else (increase_avg, increase_avg)
+        )
+
+        # Format overall confidence intervals
+        lambda0_overall_ci_str = f"{lambda0_avg:.4f} ({lambda0_overall_ci[0]:.4f}-{lambda0_overall_ci[1]:.4f})"
+        lambdaGT0_overall_ci_str = f"{lambdaGT0_avg:.4f} ({lambdaGT0_overall_ci[0]:.4f}-{lambdaGT0_overall_ci[1]:.4f})"
+        increase_overall_ci_str = f"{increase_avg:.2f}% ({increase_overall_ci[0]:.2f}%-{increase_overall_ci[1]:.2f}%)"
 
         # Add a separator row
-        md_table += "|---------|------------|-----------------|--------------------|\n"
-
-        # Add average row
-        md_table += f"| **Average** | **{lambda0_avg:.4f}** | **{lambdaGT0_avg:.4f}** | **{increase_avg:.2f}%** |\n"
+        md_table += "|---------|----------------|----------------|---------------------------|\n"
+        # Add average row with confidence intervals
+        md_table += f"| **Average** | **{lambda0_overall_ci_str}** | **{lambdaGT0_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
 
     return f"## {caption} \n\n{md_table}"
 
