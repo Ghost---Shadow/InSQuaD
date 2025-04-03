@@ -6,26 +6,57 @@ from scipy import stats
 
 
 def generate_markdown_table(
-    df, caption, method_tuples, extra_column_name=None, extra_column_tuples=None
+    df,
+    caption,
+    method_tuples,
+    extra_column_name=None,
+    extra_column_tuples=None,
+    exclude_columns=None,
+    column_order=None,
 ):
     """
-    Generate a markdown table from DataFrame with averages and 95% CI.
-
     Parameters:
     df (pandas.DataFrame): Input DataFrame
     caption (str): Table caption
     method_tuples (tuple): Method name tuples (id, display_name)
     extra_column_name (str, optional): Name for grouping column
     extra_column_tuples (tuple, optional): Extra column mapping tuples
+    exclude_columns (list, optional): List of column names to exclude from the table
+    column_order (list, optional): List specifying the order of dataset columns
 
     Returns:
     str: Markdown table
     """
+    import pandas as pd
+    import numpy as np
+    from scipy import stats
+
+    # Initialize exclude_columns if None
+    if exclude_columns is None:
+        exclude_columns = ["seed"]
+
+    if column_order is None:
+        column_order = [
+            "mrpc",
+            "sst5",
+            "mnli",
+            "dbpedia",
+            "rte",
+            "hellaswag",
+            "mwoz",
+            "geoq",
+            "xsum",
+        ]
+
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
     # Melt the DataFrame for easier manipulation
     df_melted = pd.melt(df, id_vars=["method"], var_name="dataset", value_name="value")
-    df_melted = df_melted[~df_melted["dataset"].isin(["index", "Average"])]
+
+    # Exclude specified columns and default columns to exclude
+    default_exclude = ["index", "Average", "seed"]
+    all_exclude = list(set(default_exclude + exclude_columns))
+    df_melted = df_melted[~df_melted["dataset"].isin(all_exclude)]
 
     # Convert tuples to dictionaries for lookup
     method_lut = dict(method_tuples)
@@ -34,56 +65,74 @@ def generate_markdown_table(
     # Apply lookup transformations
     df_melted["method_name"] = df_melted["method"].map(method_lut)
 
+    # Apply extra column mapping if provided
     if extra_column_name and extra_column_tuples:
         df_melted["extra_name"] = df_melted["method"].map(extra_column_lut)
         df_melted["group"] = df_melted["extra_name"]
         df_melted["name"] = df_melted["method_name"]
     else:
         df_melted["name"] = df_melted["method_name"]
-        df_melted["group"] = df_melted["method_name"]
+        df_melted["group"] = df_melted["method"]  # Use method ID as group
 
-    # Calculate statistics by group
-    stats_df = (
-        df_melted.groupby(["group", "name"])
-        .agg(
-            mean_value=("value", "mean"),
-            std_value=("value", "std"),
-            count=("value", "count"),
-        )
-        .reset_index()
-    )
+    # Create a table with datasets as columns and methods as rows
+    # First get unique datasets
+    datasets = df_melted["dataset"].unique()
 
-    # Calculate 95% confidence interval
-    stats_df["ci_95"] = stats_df.apply(
-        lambda row: stats.t.ppf(0.975, row["count"] - 1)
-        * row["std_value"]
-        / np.sqrt(row["count"]),
-        axis=1,
-    )
+    # For each method and dataset, calculate the statistics
+    result_dict = {}
 
-    # Format for markdown table
-    stats_df["formatted"] = stats_df.apply(
-        lambda row: f"{row['mean_value']:.3f} ± {row['ci_95']:.3f}", axis=1
-    )
+    # Group by both method and dataset to get the statistics
+    for method_id, method_name in method_tuples:
+        method_data = {}
+        for dataset in datasets:
+            # Filter data for this method and dataset
+            filtered_data = df_melted[
+                (df_melted["method"] == method_id) & (df_melted["dataset"] == dataset)
+            ]
+            if not filtered_data.empty:
+                values = filtered_data["value"].values
+                mean_val = np.mean(values)
+                # Handle the case where we have only one value (no std)
+                if len(values) > 1:
+                    std_val = np.std(values, ddof=1)
+                    ci_95 = (
+                        stats.t.ppf(0.975, len(values) - 1)
+                        * std_val
+                        / np.sqrt(len(values))
+                    )
+                    method_data[dataset] = f"{mean_val:.4f} ± {ci_95:.4f}"
+                else:
+                    error_margin = 0.0
+                    method_data[dataset] = f"{mean_val:.4f} ± {error_margin:.4f}"
+            else:
+                method_data[dataset] = "-"
+        result_dict[method_name] = method_data
 
-    # Create markdown table
+    # Generate the markdown table
     markdown = f"## {caption}\n\n"
 
-    if extra_column_name:
-        # Pivot to get extra_column values as columns
-        pivot_df = stats_df.pivot(index="name", columns="group", values="formatted")
-        markdown += f"| Method | {' | '.join(pivot_df.columns)} |\n"
-        markdown += f"|---|{' | '.join(['---' for _ in pivot_df.columns])}|\n"
-
-        for idx, row in pivot_df.iterrows():
-            markdown += f"| {idx} | {' | '.join(row.values)} |\n"
+    # Create header row with enforced column order if provided
+    if column_order:
+        # Filter to include only columns that exist in the data
+        datasets_list = [col for col in column_order if col in datasets]
+        # Add any columns from the data that aren't in column_order at the end
+        missing_cols = [col for col in datasets if col not in column_order]
+        datasets_list.extend(missing_cols)
     else:
-        # Simple table with just methods
-        markdown += "| Method | Average (95% CI) |\n"
-        markdown += "|---|---|\n"
+        datasets_list = list(datasets)
 
-        for idx, row in stats_df.iterrows():
-            markdown += f"| {row['name']} | {row['formatted']} |\n"
+    header = ["Method"] + datasets_list
+    markdown += "| " + " | ".join(header) + " |\n"
+    markdown += "| " + " | ".join(["---" for _ in header]) + " |\n"
+
+    # Add data rows - deterministic ordering based on seed
+    method_names = list(result_dict.keys())
+    for method_name in method_names:
+        dataset_values = result_dict[method_name]
+        row_values = [method_name]
+        for dataset in datasets_list:
+            row_values.append(dataset_values.get(dataset, "-"))
+        markdown += "| " + " | ".join(row_values) + " |\n"
 
     return markdown
 
