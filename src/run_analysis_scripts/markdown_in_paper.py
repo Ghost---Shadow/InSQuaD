@@ -435,13 +435,13 @@ def generate_only_quality_performance_gap_gemma(df):
             increase_values_ds = []
 
             # Get methods for lambda=0 and lambda>0
-            lambda0_methods = [m for m, _ in method_tuples if "lambda_0" in m]
+            lambda0_methods = [m for m, _ in method_tuples if m.endswith("lambda_0")]
 
             lambdaGT0_methods = [
                 m
                 for m, _ in method_tuples
-                if "lambda_025" in m
-                or "lambda_1" in m
+                if m.endswith("lambda_025")
+                or m.endswith("lambda_1")
                 or (
                     ("quaild_comb_fl_mpnet_gemma" == m)
                     or ("quaild_comb_gc_mpnet_gemma" == m)
@@ -468,8 +468,8 @@ def generate_only_quality_performance_gap_gemma(df):
                 lambdaGT0_values_ds = lambdaGT0_by_seed[dataset].tolist()
 
             # Calculate means across seeds
-            lambda0_mean = np.mean(lambda0_values_ds) if lambda0_values_ds else 0
-            lambdaGT0_mean = np.mean(lambdaGT0_values_ds) if lambdaGT0_values_ds else 0
+            lambda0_mean = np.mean(lambda0_values_ds)
+            lambdaGT0_mean = np.mean(lambdaGT0_values_ds)
 
             # Calculate percentage increase for each seed pair
             if (
