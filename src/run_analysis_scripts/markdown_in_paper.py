@@ -94,16 +94,12 @@ def generate_markdown_table(
                 mean_val = np.mean(values)
                 # Handle the case where we have only one value (no std)
                 if len(values) > 1:
-                    std_val = np.std(values, ddof=1)
-                    ci_95 = (
-                        stats.t.ppf(0.975, len(values) - 1)
-                        * std_val
-                        / np.sqrt(len(values))
-                    )
-                    method_data[dataset] = f"{mean_val:.4f} ± {ci_95:.4f}"
+                    low, high = calculate_confidence_interval(values)
+
+                    method_data[dataset] = f"{mean_val:.4f} ({low:.4f}, {high:.4f})"
                 else:
                     error_margin = 0.0
-                    method_data[dataset] = f"{mean_val:.4f} ± {error_margin:.4f}"
+                    method_data[dataset] = f"{mean_val:.4f} ERROR"
             else:
                 method_data[dataset] = "-"
 
