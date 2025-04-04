@@ -405,152 +405,247 @@ def generate_only_quality_performance_gap_gemma(df):
         ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
     )
 
+    # Create a mapping from method name to method type
+    method_to_type = {method: type_name for method, type_name in method_tuples}
+
     # Reset index and extract relevant dataframe
     df_reset = df.reset_index()
     df_relevant = extract_relevant_df(df_reset, method_tuples)
 
-    # Get all dataset columns (excluding "method", "Average", "index", and "seed")
+    # Make a explicit copy to avoid the SettingWithCopyWarning
+    df_relevant = df_relevant.copy()
+
+    # Add method_type column based on the mapping
+    df_relevant.loc[:, "method_type"] = df_relevant["method"].map(method_to_type)
+
+    # Get all dataset columns (excluding "method", "method_type", "Average", "index", and "seed")
     dataset_columns = [
         col
         for col in df_relevant.columns
-        if col not in ["method", "Average", "index", "seed"]
+        if col not in ["method", "method_type", "Average", "index", "seed"]
     ]
 
     if dataset_columns:
         # Create markdown table header
         md_table = "\n## Per-dataset Performance Comparison (interval = sem * stats.t.ppf((1 + confidence=0.95) / 2, n - 1))\n\n"
-        md_table += "| Dataset | λ = 0 (95% CI) | λ > 0 (95% CI) | % Increase λ > 0 (95% CI) |\n"
-        md_table += "|---------|----------------|----------------|---------------------------|\n"
+        md_table += "| Method Type | Dataset | λ = 0 (95% CI) | λ > 0 (95% CI) | % Increase λ > 0 (95% CI) |\n"
+        md_table += "|------------|---------|----------------|----------------|---------------------------|\n"
 
-        # Initialize lists to store values for average calculation
-        lambda0_values = []
-        lambdaGT0_values = []
-        increase_values = []
+        # Initialize dictionaries to store values for final average calculation
+        method_type_results = {}
 
-        # Process each dataset
-        for dataset in dataset_columns:
-            # Lists to store values across seeds for confidence interval calculation
-            lambda0_values_ds = []
-            lambdaGT0_values_ds = []
-            increase_values_ds = []
+        # First, process each method type
+        for method_type in sorted(df_relevant["method_type"].unique()):
+            # Filter dataframe for current method type
+            df_method_type = df_relevant[df_relevant["method_type"] == method_type]
 
-            # Get methods for lambda=0 and lambda>0
-            lambda0_methods = [m for m, _ in method_tuples if m.endswith("lambda_0")]
+            # Initialize storage for this method type's results
+            method_type_results[method_type] = {
+                "lambda0_values": [],
+                "lambdaGT0_values": [],
+                "increase_values": [],
+            }
 
-            lambdaGT0_methods = [
-                m
-                for m, _ in method_tuples
-                if m.endswith("lambda_025")
-                or m.endswith("lambda_1")
-                or (
-                    ("quaild_comb_fl_mpnet_gemma" == m)
-                    or ("quaild_comb_gc_mpnet_gemma" == m)
-                    or ("quaild_comb_ld_mpnet_gemma" == m)
+            # Process each dataset for this method type
+            for dataset in dataset_columns:
+                # Lists to store values across seeds for confidence interval calculation
+                lambda0_values_ds = []
+                lambdaGT0_values_ds = []
+                increase_values_ds = []
+
+                # Get methods for lambda=0 and lambda>0 for this method type
+                lambda0_methods = [
+                    m
+                    for m, t in method_tuples
+                    if t == method_type and m.endswith("lambda_0")
+                ]
+
+                lambdaGT0_methods = [
+                    m
+                    for m, t in method_tuples
+                    if t == method_type
+                    and (
+                        m.endswith("lambda_025")
+                        or m.endswith("lambda_1")
+                        or (
+                            ("quaild_comb_fl_mpnet_gemma" == m and t == "InSQuaD-FL")
+                            or ("quaild_comb_gc_mpnet_gemma" == m and t == "InSQuaD-GC")
+                            or ("quaild_comb_ld_mpnet_gemma" == m and t == "InSQuaD-LD")
+                        )
+                    )
+                ]
+
+                # Filter and group by seed for lambda=0 methods
+                lambda0_df = df_method_type[
+                    df_method_type["method"].isin(lambda0_methods)
+                ]
+                if not lambda0_df.empty and "seed" in lambda0_df.columns:
+                    # Group by seed and get max performance for each seed
+                    lambda0_by_seed = (
+                        lambda0_df.groupby("seed")[dataset].max().reset_index()
+                    )
+                    lambda0_values_ds = lambda0_by_seed[dataset].tolist()
+
+                # Filter and group by seed for lambda>0 methods
+                lambdaGT0_df = df_method_type[
+                    df_method_type["method"].isin(lambdaGT0_methods)
+                ]
+                if not lambdaGT0_df.empty and "seed" in lambdaGT0_df.columns:
+                    # Group by seed and get max performance for each seed
+                    lambdaGT0_by_seed = (
+                        lambdaGT0_df.groupby("seed")[dataset].max().reset_index()
+                    )
+                    lambdaGT0_values_ds = lambdaGT0_by_seed[dataset].tolist()
+
+                # Calculate means across seeds
+                lambda0_mean = np.mean(lambda0_values_ds) if lambda0_values_ds else 0
+                lambdaGT0_mean = (
+                    np.mean(lambdaGT0_values_ds) if lambdaGT0_values_ds else 0
                 )
-            ]
 
-            # Filter and group by seed for lambda=0 methods
-            lambda0_df = df_relevant[df_relevant["method"].isin(lambda0_methods)]
-            if not lambda0_df.empty and "seed" in lambda0_df.columns:
-                # Group by seed and get max performance for each seed
-                lambda0_by_seed = (
-                    lambda0_df.groupby("seed")[dataset].max().reset_index()
+                # Calculate percentage increase for each seed pair
+                if (
+                    len(lambda0_values_ds) == len(lambdaGT0_values_ds)
+                    and len(lambda0_values_ds) > 0
+                ):
+                    for l0_val, lgt0_val in zip(lambda0_values_ds, lambdaGT0_values_ds):
+                        if l0_val > 0:
+                            increase = ((lgt0_val - l0_val) / l0_val) * 100
+                            increase_values_ds.append(increase)
+
+                # Calculate mean increase
+                increase_mean = np.mean(increase_values_ds) if increase_values_ds else 0
+
+                # Calculate confidence intervals (95%)
+                lambda0_ci = (
+                    calculate_confidence_interval(lambda0_values_ds)
+                    if len(lambda0_values_ds) > 1
+                    else (lambda0_mean, lambda0_mean)
                 )
-                lambda0_values_ds = lambda0_by_seed[dataset].tolist()
-
-            # Filter and group by seed for lambda>0 methods
-            lambdaGT0_df = df_relevant[df_relevant["method"].isin(lambdaGT0_methods)]
-            if not lambdaGT0_df.empty and "seed" in lambdaGT0_df.columns:
-                # Group by seed and get max performance for each seed
-                lambdaGT0_by_seed = (
-                    lambdaGT0_df.groupby("seed")[dataset].max().reset_index()
+                lambdaGT0_ci = (
+                    calculate_confidence_interval(lambdaGT0_values_ds)
+                    if len(lambdaGT0_values_ds) > 1
+                    else (lambdaGT0_mean, lambdaGT0_mean)
                 )
-                lambdaGT0_values_ds = lambdaGT0_by_seed[dataset].tolist()
+                increase_ci = (
+                    calculate_confidence_interval(increase_values_ds)
+                    if len(increase_values_ds) > 1
+                    else (increase_mean, increase_mean)
+                )
 
-            # Calculate means across seeds
-            lambda0_mean = np.mean(lambda0_values_ds)
-            lambdaGT0_mean = np.mean(lambdaGT0_values_ds)
+                # Format confidence intervals
+                lambda0_ci_str = (
+                    f"{lambda0_mean:.4f} ({lambda0_ci[0]:.4f}-{lambda0_ci[1]:.4f})"
+                )
+                lambdaGT0_ci_str = f"{lambdaGT0_mean:.4f} ({lambdaGT0_ci[0]:.4f}-{lambdaGT0_ci[1]:.4f})"
+                increase_ci_str = f"{increase_mean:.2f}% ({increase_ci[0]:.2f}%-{increase_ci[1]:.2f}%)"
 
-            # Calculate percentage increase for each seed pair
-            if (
-                len(lambda0_values_ds) == len(lambdaGT0_values_ds)
-                and len(lambda0_values_ds) > 0
-            ):
-                for l0_val, lgt0_val in zip(lambda0_values_ds, lambdaGT0_values_ds):
-                    if l0_val > 0:
-                        increase = ((lgt0_val - l0_val) / l0_val) * 100
-                        increase_values_ds.append(increase)
+                # Add row to markdown table
+                md_table += f"| {method_type} | {dataset} | {lambda0_ci_str} | {lambdaGT0_ci_str} | {increase_ci_str} |\n"
 
-            # Calculate mean increase
-            increase_mean = np.mean(increase_values_ds) if increase_values_ds else 0
+                # Store values for method type average calculation
+                method_type_results[method_type]["lambda0_values"].append(lambda0_mean)
+                method_type_results[method_type]["lambdaGT0_values"].append(
+                    lambdaGT0_mean
+                )
+                method_type_results[method_type]["increase_values"].append(
+                    increase_mean
+                )
 
-            # Calculate confidence intervals (95%)
-            lambda0_ci = (
-                calculate_confidence_interval(lambda0_values_ds)
-                if len(lambda0_values_ds) > 1
-                else (lambda0_mean, lambda0_mean)
+            # Calculate method type averages
+            lambda0_avg = (
+                np.mean(method_type_results[method_type]["lambda0_values"])
+                if method_type_results[method_type]["lambda0_values"]
+                else 0
             )
-            lambdaGT0_ci = (
-                calculate_confidence_interval(lambdaGT0_values_ds)
-                if len(lambdaGT0_values_ds) > 1
-                else (lambdaGT0_mean, lambdaGT0_mean)
+            lambdaGT0_avg = (
+                np.mean(method_type_results[method_type]["lambdaGT0_values"])
+                if method_type_results[method_type]["lambdaGT0_values"]
+                else 0
             )
-            increase_ci = (
-                calculate_confidence_interval(increase_values_ds)
-                if len(increase_values_ds) > 1
-                else (increase_mean, increase_mean)
-            )
-
-            # Format confidence intervals
-            lambda0_ci_str = (
-                f"{lambda0_mean:.4f} ({lambda0_ci[0]:.4f}-{lambda0_ci[1]:.4f})"
-            )
-            lambdaGT0_ci_str = (
-                f"{lambdaGT0_mean:.4f} ({lambdaGT0_ci[0]:.4f}-{lambdaGT0_ci[1]:.4f})"
-            )
-            increase_ci_str = (
-                f"{increase_mean:.2f}% ({increase_ci[0]:.2f}%-{increase_ci[1]:.2f}%)"
+            increase_avg = (
+                np.mean(method_type_results[method_type]["increase_values"])
+                if method_type_results[method_type]["increase_values"]
+                else 0
             )
 
-            # Add row to markdown table
-            md_table += f"| {dataset} | {lambda0_ci_str} | {lambdaGT0_ci_str} | {increase_ci_str} |\n"
+            # Calculate method type confidence intervals
+            lambda0_mt_ci = (
+                calculate_confidence_interval(
+                    method_type_results[method_type]["lambda0_values"]
+                )
+                if len(method_type_results[method_type]["lambda0_values"]) > 1
+                else (lambda0_avg, lambda0_avg)
+            )
+            lambdaGT0_mt_ci = (
+                calculate_confidence_interval(
+                    method_type_results[method_type]["lambdaGT0_values"]
+                )
+                if len(method_type_results[method_type]["lambdaGT0_values"]) > 1
+                else (lambdaGT0_avg, lambdaGT0_avg)
+            )
+            increase_mt_ci = (
+                calculate_confidence_interval(
+                    method_type_results[method_type]["increase_values"]
+                )
+                if len(method_type_results[method_type]["increase_values"]) > 1
+                else (increase_avg, increase_avg)
+            )
 
-            # Store values for overall average calculation
-            lambda0_values.append(lambda0_mean)
-            lambdaGT0_values.append(lambdaGT0_mean)
-            increase_values.append(increase_mean)
+            # Format method type confidence intervals
+            lambda0_mt_ci_str = (
+                f"{lambda0_avg:.4f} ({lambda0_mt_ci[0]:.4f}-{lambda0_mt_ci[1]:.4f})"
+            )
+            lambdaGT0_mt_ci_str = f"{lambdaGT0_avg:.4f} ({lambdaGT0_mt_ci[0]:.4f}-{lambdaGT0_mt_ci[1]:.4f})"
+            increase_mt_ci_str = f"{increase_avg:.2f}% ({increase_mt_ci[0]:.2f}%-{increase_mt_ci[1]:.2f}%)"
 
-        # Calculate overall averages
-        lambda0_avg = np.mean(lambda0_values) if lambda0_values else 0
-        lambdaGT0_avg = np.mean(lambdaGT0_values) if lambdaGT0_values else 0
-        increase_avg = np.mean(increase_values) if increase_values else 0
+            # Add method type average row
+            md_table += f"| **{method_type} Avg** | | **{lambda0_mt_ci_str}** | **{lambdaGT0_mt_ci_str}** | **{increase_mt_ci_str}** |\n"
+            md_table += "|------------|---------|----------------|----------------|---------------------------|\n"
+
+        # Calculate overall averages across all method types and datasets
+        all_lambda0_values = [
+            val for mt in method_type_results.values() for val in mt["lambda0_values"]
+        ]
+        all_lambdaGT0_values = [
+            val for mt in method_type_results.values() for val in mt["lambdaGT0_values"]
+        ]
+        all_increase_values = [
+            val for mt in method_type_results.values() for val in mt["increase_values"]
+        ]
+
+        lambda0_overall_avg = np.mean(all_lambda0_values) if all_lambda0_values else 0
+        lambdaGT0_overall_avg = (
+            np.mean(all_lambdaGT0_values) if all_lambdaGT0_values else 0
+        )
+        increase_overall_avg = (
+            np.mean(all_increase_values) if all_increase_values else 0
+        )
 
         # Calculate overall confidence intervals
         lambda0_overall_ci = (
-            calculate_confidence_interval(lambda0_values)
-            if len(lambda0_values) > 1
-            else (lambda0_avg, lambda0_avg)
+            calculate_confidence_interval(all_lambda0_values)
+            if len(all_lambda0_values) > 1
+            else (lambda0_overall_avg, lambda0_overall_avg)
         )
         lambdaGT0_overall_ci = (
-            calculate_confidence_interval(lambdaGT0_values)
-            if len(lambdaGT0_values) > 1
-            else (lambdaGT0_avg, lambdaGT0_avg)
+            calculate_confidence_interval(all_lambdaGT0_values)
+            if len(all_lambdaGT0_values) > 1
+            else (lambdaGT0_overall_avg, lambdaGT0_overall_avg)
         )
         increase_overall_ci = (
-            calculate_confidence_interval(increase_values)
-            if len(increase_values) > 1
-            else (increase_avg, increase_avg)
+            calculate_confidence_interval(all_increase_values)
+            if len(all_increase_values) > 1
+            else (increase_overall_avg, increase_overall_avg)
         )
 
         # Format overall confidence intervals
-        lambda0_overall_ci_str = f"{lambda0_avg:.4f} ({lambda0_overall_ci[0]:.4f}-{lambda0_overall_ci[1]:.4f})"
-        lambdaGT0_overall_ci_str = f"{lambdaGT0_avg:.4f} ({lambdaGT0_overall_ci[0]:.4f}-{lambdaGT0_overall_ci[1]:.4f})"
-        increase_overall_ci_str = f"{increase_avg:.2f}% ({increase_overall_ci[0]:.2f}%-{increase_overall_ci[1]:.2f}%)"
+        lambda0_overall_ci_str = f"{lambda0_overall_avg:.4f} ({lambda0_overall_ci[0]:.4f}-{lambda0_overall_ci[1]:.4f})"
+        lambdaGT0_overall_ci_str = f"{lambdaGT0_overall_avg:.4f} ({lambdaGT0_overall_ci[0]:.4f}-{lambdaGT0_overall_ci[1]:.4f})"
+        increase_overall_ci_str = f"{increase_overall_avg:.2f}% ({increase_overall_ci[0]:.2f}%-{increase_overall_ci[1]:.2f}%)"
 
-        # Add a separator row
-        md_table += "|---------|----------------|----------------|---------------------------|\n"
-        # Add average row with confidence intervals
-        md_table += f"| **Average** | **{lambda0_overall_ci_str}** | **{lambdaGT0_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
+        # Add overall average row
+        md_table += f"| **Overall Avg** | | **{lambda0_overall_ci_str}** | **{lambdaGT0_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
 
     return f"## {caption} \n\n{md_table}"
 
