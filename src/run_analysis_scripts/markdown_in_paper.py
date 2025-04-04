@@ -223,148 +223,258 @@ def generate_retrieval_method_performance_gap_gemma(df):
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
 
+    # Create a mapping from method name to method type
+    method_to_type = {method: type_name for method, type_name in method_tuples}
+
     # Reset index and extract relevant dataframe
     df_reset = df.reset_index()
     df_relevant = extract_relevant_df(df_reset, method_tuples)
 
-    # Get all dataset columns (excluding "method", "Average", "index", and "seed")
+    # Make a explicit copy to avoid the SettingWithCopyWarning
+    df_relevant = df_relevant.copy()
+
+    # Add method_type column based on the mapping
+    df_relevant.loc[:, "method_type"] = df_relevant["method"].map(method_to_type)
+
+    # Get all dataset columns (excluding "method", "method_type", "Average", "index", and "seed")
     dataset_columns = [
         col
         for col in df_relevant.columns
-        if col not in ["method", "Average", "index", "seed"]
+        if col not in ["method", "method_type", "Average", "index", "seed"]
     ]
 
     if dataset_columns:
         # Create markdown table header
         md_table = "\n## Per-dataset Performance Comparison (interval = sem * stats.t.ppf((1 + confidence=0.95) / 2, n - 1)) \n\n"
-        md_table += "| Dataset | Similar (95% CI) | Combinatorial (95% CI) | % Increase Combinatorial (95% CI) |\n"
-        md_table += "|---------|-----------------|------------------------|----------------------------------|\n"
+        md_table += "| Method Type | Dataset | Similar (95% CI) | Combinatorial (95% CI) | % Increase Combinatorial (95% CI) |\n"
+        md_table += "|------------|---------|-----------------|------------------------|----------------------------------|\n"
 
-        # Initialize variables to calculate averages
-        similar_values = []
-        comb_best_values = []
-        increase_values = []
+        # Initialize dictionary to store method type results
+        method_type_results = {}
 
-        # Process each dataset
-        for dataset in dataset_columns:
-            # Group by method and seed, then get values for confidence interval calculation
-            similar_values_ds = []
-            combnt_values_ds = []
-            comb_best_values_ds = []
+        # Get unique method types without "(NT)" suffix for grouping
+        unique_method_types = sorted(
+            list(set([mt.split(" (")[0] for mt in df_relevant["method_type"].unique()]))
+        )
 
-            # Get values for each method type across all seeds
-            similar_methods = [m for m, _ in method_tuples if "similar" in m]
-            combnt_methods = [m for m, _ in method_tuples if "combnt" in m]
-            comb_best_methods = [
-                m for m, _ in method_tuples if "comb_" in m and "_best" in m
-            ]
+        # Process each method type
+        for method_type in unique_method_types:
+            # Initialize storage for this method type's results
+            method_type_results[method_type] = {
+                "similar_values": [],
+                "comb_best_values": [],
+                "increase_values": [],
+            }
 
-            # Extract all values for similar methods
-            similar_df = df_relevant[df_relevant["method"].isin(similar_methods)]
-            if not similar_df.empty:
-                grouped_similar = (
-                    similar_df.groupby(["method", "seed"])[dataset].max().reset_index()
+            # Process each dataset for this method type
+            for dataset in dataset_columns:
+                # Filter dataframe for current method type (including NT version)
+                method_type_filter = df_relevant["method_type"].str.startswith(
+                    method_type
                 )
-                similar_max_per_seed = grouped_similar.groupby("seed")[dataset].max()
-                similar_values_ds = similar_max_per_seed.tolist()
+                df_method_type = df_relevant[method_type_filter]
 
-            # Extract all values for combinatorial best methods
-            comb_best_df = df_relevant[df_relevant["method"].isin(comb_best_methods)]
-            if not comb_best_df.empty:
-                grouped_comb_best = (
-                    comb_best_df.groupby(["method", "seed"])[dataset]
-                    .max()
-                    .reset_index()
+                # Group by method and seed, then get values for confidence interval calculation
+                similar_values_ds = []
+                combnt_values_ds = []
+                comb_best_values_ds = []
+
+                # Get methods for this method type
+                similar_methods = [
+                    m
+                    for m, t in method_tuples
+                    if "similar" in m and t.split(" (")[0] == method_type
+                ]
+                combnt_methods = [
+                    m
+                    for m, t in method_tuples
+                    if "combnt" in m and t.split(" (")[0] == method_type
+                ]
+                comb_best_methods = [
+                    m
+                    for m, t in method_tuples
+                    if "comb_" in m and "_best" in m and t.split(" (")[0] == method_type
+                ]
+
+                # Extract all values for similar methods
+                similar_df = df_method_type[
+                    df_method_type["method"].isin(similar_methods)
+                ]
+                if not similar_df.empty and "seed" in similar_df.columns:
+                    grouped_similar = (
+                        similar_df.groupby(["method", "seed"])[dataset]
+                        .max()
+                        .reset_index()
+                    )
+                    similar_max_per_seed = grouped_similar.groupby("seed")[
+                        dataset
+                    ].max()
+                    similar_values_ds = similar_max_per_seed.tolist()
+
+                # Extract all values for combinatorial best methods
+                comb_best_df = df_method_type[
+                    df_method_type["method"].isin(comb_best_methods)
+                ]
+                if not comb_best_df.empty and "seed" in comb_best_df.columns:
+                    grouped_comb_best = (
+                        comb_best_df.groupby(["method", "seed"])[dataset]
+                        .max()
+                        .reset_index()
+                    )
+                    comb_best_max_per_seed = grouped_comb_best.groupby("seed")[
+                        dataset
+                    ].max()
+                    comb_best_values_ds = comb_best_max_per_seed.tolist()
+
+                # Calculate means
+                similar_mean = np.mean(similar_values_ds) if similar_values_ds else 0
+                comb_best_mean = (
+                    np.mean(comb_best_values_ds) if comb_best_values_ds else 0
                 )
-                comb_best_max_per_seed = grouped_comb_best.groupby("seed")[
-                    dataset
-                ].max()
-                comb_best_values_ds = comb_best_max_per_seed.tolist()
 
-            # Calculate means
-            similar_mean = np.mean(similar_values_ds) if similar_values_ds else 0
-            comb_best_mean = np.mean(comb_best_values_ds) if comb_best_values_ds else 0
+                # Calculate percentage increases for each seed
+                increase_values_ds = []
+                if (
+                    len(similar_values_ds) == len(comb_best_values_ds)
+                    and len(similar_values_ds) > 0
+                ):
+                    for s_val, cb_val in zip(similar_values_ds, comb_best_values_ds):
+                        if s_val > 0:
+                            increase = ((cb_val - s_val) / s_val) * 100
+                            increase_values_ds.append(increase)
 
-            # Calculate percentage increases for each seed
-            increase_values_ds = []
-            if (
-                len(similar_values_ds) == len(comb_best_values_ds)
-                and len(similar_values_ds) > 0
-            ):
-                for s_val, cb_val in zip(similar_values_ds, comb_best_values_ds):
-                    if s_val > 0:
-                        increase = ((cb_val - s_val) / s_val) * 100
-                        increase_values_ds.append(increase)
+                increase_mean = np.mean(increase_values_ds) if increase_values_ds else 0
 
-            increase_mean = np.mean(increase_values_ds) if increase_values_ds else 0
+                # Calculate confidence intervals (95%)
+                similar_ci = (
+                    calculate_confidence_interval(similar_values_ds)
+                    if len(similar_values_ds) > 1
+                    else (similar_mean, similar_mean)
+                )
+                comb_best_ci = (
+                    calculate_confidence_interval(comb_best_values_ds)
+                    if len(comb_best_values_ds) > 1
+                    else (comb_best_mean, comb_best_mean)
+                )
+                increase_ci = (
+                    calculate_confidence_interval(increase_values_ds)
+                    if len(increase_values_ds) > 1
+                    else (increase_mean, increase_mean)
+                )
 
-            # Calculate confidence intervals (95%)
-            similar_ci = (
-                calculate_confidence_interval(similar_values_ds)
-                if len(similar_values_ds) > 1
-                else (similar_mean, similar_mean)
+                # Format confidence intervals
+                similar_ci_str = (
+                    f"{similar_mean:.4f} ({similar_ci[0]:.4f}-{similar_ci[1]:.4f})"
+                )
+                comb_best_ci_str = f"{comb_best_mean:.4f} ({comb_best_ci[0]:.4f}-{comb_best_ci[1]:.4f})"
+                increase_ci_str = f"{increase_mean:.2f}% ({increase_ci[0]:.2f}%-{increase_ci[1]:.2f}%)"
+
+                # Add row to markdown table
+                md_table += f"| {method_type} | {dataset} | {similar_ci_str} | {comb_best_ci_str} | {increase_ci_str} |\n"
+
+                # Store values for method type average calculation
+                method_type_results[method_type]["similar_values"].append(similar_mean)
+                method_type_results[method_type]["comb_best_values"].append(
+                    comb_best_mean
+                )
+                method_type_results[method_type]["increase_values"].append(
+                    increase_mean
+                )
+
+            # Calculate method type averages
+            similar_mt_avg = (
+                np.mean(method_type_results[method_type]["similar_values"])
+                if method_type_results[method_type]["similar_values"]
+                else 0
             )
-            comb_best_ci = (
-                calculate_confidence_interval(comb_best_values_ds)
-                if len(comb_best_values_ds) > 1
-                else (comb_best_mean, comb_best_mean)
+            comb_best_mt_avg = (
+                np.mean(method_type_results[method_type]["comb_best_values"])
+                if method_type_results[method_type]["comb_best_values"]
+                else 0
             )
-            increase_ci = (
-                calculate_confidence_interval(increase_values_ds)
-                if len(increase_values_ds) > 1
-                else (increase_mean, increase_mean)
-            )
-
-            # Format confidence intervals
-            similar_ci_str = (
-                f"{similar_mean:.4f} ({similar_ci[0]:.4f}-{similar_ci[1]:.4f})"
-            )
-            comb_best_ci_str = (
-                f"{comb_best_mean:.4f} ({comb_best_ci[0]:.4f}-{comb_best_ci[1]:.4f})"
-            )
-            increase_ci_str = (
-                f"{increase_mean:.2f}% ({increase_ci[0]:.2f}%-{increase_ci[1]:.2f}%)"
+            increase_mt_avg = (
+                np.mean(method_type_results[method_type]["increase_values"])
+                if method_type_results[method_type]["increase_values"]
+                else 0
             )
 
-            # Add row to markdown table
-            md_table += f"| {dataset} | {similar_ci_str} | {comb_best_ci_str} | {increase_ci_str} |\n"
+            # Calculate method type confidence intervals
+            similar_mt_ci = (
+                calculate_confidence_interval(
+                    method_type_results[method_type]["similar_values"]
+                )
+                if len(method_type_results[method_type]["similar_values"]) > 1
+                else (similar_mt_avg, similar_mt_avg)
+            )
+            comb_best_mt_ci = (
+                calculate_confidence_interval(
+                    method_type_results[method_type]["comb_best_values"]
+                )
+                if len(method_type_results[method_type]["comb_best_values"]) > 1
+                else (comb_best_mt_avg, comb_best_mt_avg)
+            )
+            increase_mt_ci = (
+                calculate_confidence_interval(
+                    method_type_results[method_type]["increase_values"]
+                )
+                if len(method_type_results[method_type]["increase_values"]) > 1
+                else (increase_mt_avg, increase_mt_avg)
+            )
 
-            # Store values for overall average calculation
-            similar_values.append(similar_mean)
-            comb_best_values.append(comb_best_mean)
-            increase_values.append(increase_mean)
+            # Format method type confidence intervals
+            similar_mt_ci_str = (
+                f"{similar_mt_avg:.4f} ({similar_mt_ci[0]:.4f}-{similar_mt_ci[1]:.4f})"
+            )
+            comb_best_mt_ci_str = f"{comb_best_mt_avg:.4f} ({comb_best_mt_ci[0]:.4f}-{comb_best_mt_ci[1]:.4f})"
+            increase_mt_ci_str = f"{increase_mt_avg:.2f}% ({increase_mt_ci[0]:.2f}%-{increase_mt_ci[1]:.2f}%)"
 
-        # Calculate overall averages
-        similar_avg = np.mean(similar_values) if similar_values else 0
-        comb_best_avg = np.mean(comb_best_values) if comb_best_values else 0
-        increase_avg = np.mean(increase_values) if increase_values else 0
+            # Add method type average row
+            md_table += f"| **{method_type} Avg** | | **{similar_mt_ci_str}** | **{comb_best_mt_ci_str}** | **{increase_mt_ci_str}** |\n"
+            md_table += "|------------|---------|-----------------|------------------------|----------------------------------|\n"
+
+        # Calculate overall averages across all method types and datasets
+        all_similar_values = [
+            val for mt in method_type_results.values() for val in mt["similar_values"]
+        ]
+        all_comb_best_values = [
+            val for mt in method_type_results.values() for val in mt["comb_best_values"]
+        ]
+        all_increase_values = [
+            val for mt in method_type_results.values() for val in mt["increase_values"]
+        ]
+
+        similar_overall_avg = np.mean(all_similar_values) if all_similar_values else 0
+        comb_best_overall_avg = (
+            np.mean(all_comb_best_values) if all_comb_best_values else 0
+        )
+        increase_overall_avg = (
+            np.mean(all_increase_values) if all_increase_values else 0
+        )
 
         # Calculate overall confidence intervals
         similar_overall_ci = (
-            calculate_confidence_interval(similar_values)
-            if len(similar_values) > 1
-            else (similar_avg, similar_avg)
+            calculate_confidence_interval(all_similar_values)
+            if len(all_similar_values) > 1
+            else (similar_overall_avg, similar_overall_avg)
         )
         comb_best_overall_ci = (
-            calculate_confidence_interval(comb_best_values)
-            if len(comb_best_values) > 1
-            else (comb_best_avg, comb_best_avg)
+            calculate_confidence_interval(all_comb_best_values)
+            if len(all_comb_best_values) > 1
+            else (comb_best_overall_avg, comb_best_overall_avg)
         )
         increase_overall_ci = (
-            calculate_confidence_interval(increase_values)
-            if len(increase_values) > 1
-            else (increase_avg, increase_avg)
+            calculate_confidence_interval(all_increase_values)
+            if len(all_increase_values) > 1
+            else (increase_overall_avg, increase_overall_avg)
         )
 
         # Format overall confidence intervals
-        similar_overall_ci_str = f"{similar_avg:.4f} ({similar_overall_ci[0]:.4f}-{similar_overall_ci[1]:.4f})"
-        comb_best_overall_ci_str = f"{comb_best_avg:.4f} ({comb_best_overall_ci[0]:.4f}-{comb_best_overall_ci[1]:.4f})"
-        increase_overall_ci_str = f"{increase_avg:.2f}% ({increase_overall_ci[0]:.2f}%-{increase_overall_ci[1]:.2f}%)"
+        similar_overall_ci_str = f"{similar_overall_avg:.4f} ({similar_overall_ci[0]:.4f}-{similar_overall_ci[1]:.4f})"
+        comb_best_overall_ci_str = f"{comb_best_overall_avg:.4f} ({comb_best_overall_ci[0]:.4f}-{comb_best_overall_ci[1]:.4f})"
+        increase_overall_ci_str = f"{increase_overall_avg:.2f}% ({increase_overall_ci[0]:.2f}%-{increase_overall_ci[1]:.2f}%)"
 
-        # Add a separator row
-        md_table += "|---------|-----------------|------------------------|----------------------------------|\n"
-        # Add average row with confidence intervals
-        md_table += f"| **Average** | **{similar_overall_ci_str}** | **{comb_best_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
+        # Add overall average row
+        md_table += f"| **Overall Avg** | | **{similar_overall_ci_str}** | **{comb_best_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
 
     return f"## {caption} \n\n{md_table}"
 
