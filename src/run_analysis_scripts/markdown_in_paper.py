@@ -5,9 +5,8 @@ from run_analysis_scripts.utils import extract_relevant_df
 from scipy import stats
 
 
-def generate_markdown_table(
+def prepare_table_dataframe(
     df,
-    caption,
     method_tuples,
     extra_column_name=None,
     extra_column_tuples=None,
@@ -15,17 +14,19 @@ def generate_markdown_table(
     column_order=None,
 ):
     """
+    Prepare a DataFrame for table generation.
+
     Parameters:
     df (pandas.DataFrame): Input DataFrame
-    caption (str): Table caption
     method_tuples (tuple): Method name tuples (id, display_name)
     extra_column_name (str, optional): Name for grouping column
     extra_column_tuples (tuple, optional): Extra column mapping tuples
     exclude_columns (list, optional): List of column names to exclude from the table
-    column_order (list, optional): List specifying the order of dataset columns
 
     Returns:
-    str: Markdown table
+    pandas.DataFrame: Prepared DataFrame ready for markdown rendering
+    dict: Dictionary mapping method names to dataset values
+    list: List of dataset names in the data
     """
     import pandas as pd
     import numpy as np
@@ -34,19 +35,6 @@ def generate_markdown_table(
     # Initialize exclude_columns if None
     if exclude_columns is None:
         exclude_columns = ["seed"]
-
-    if column_order is None:
-        column_order = [
-            "mrpc",
-            "sst5",
-            "mnli",
-            "dbpedia",
-            "rte",
-            "hellaswag",
-            "mwoz",
-            "geoq",
-            "xsum",
-        ]
 
     df = extract_relevant_df(df.reset_index(), method_tuples)
 
@@ -74,8 +62,7 @@ def generate_markdown_table(
         df_melted["name"] = df_melted["method_name"]
         df_melted["group"] = df_melted["method"]  # Use method ID as group
 
-    # Create a table with datasets as columns and methods as rows
-    # First get unique datasets
+    # Get unique datasets
     datasets = df_melted["dataset"].unique()
 
     # For each method and dataset, calculate the statistics
@@ -95,10 +82,8 @@ def generate_markdown_table(
                 # Handle the case where we have only one value (no std)
                 if len(values) > 1:
                     low, high = calculate_confidence_interval(values)
-
                     method_data[dataset] = f"{mean_val:.4f} ({low:.4f}, {high:.4f})"
                 else:
-                    error_margin = 0.0
                     method_data[dataset] = f"{mean_val:.4f} ERROR"
             else:
                 method_data[dataset] = "-"
@@ -112,6 +97,84 @@ def generate_markdown_table(
             result_dict[combined_key] = method_data
         else:
             result_dict[method_name] = method_data
+
+    # Convert result_dict to DataFrame for easier CSV export
+    # Create a multi-index DataFrame from the result_dict
+    if extra_column_name and extra_column_tuples:
+        # Split the combined keys into group and method columns
+        rows = []
+        for combined_key, data in result_dict.items():
+            group, method_name = combined_key.split(": ", 1)
+            row_data = {"Group": group, "Method": method_name}
+            row_data.update(data)
+            rows.append(row_data)
+        result_df = pd.DataFrame(rows)
+    else:
+        rows = []
+        for method_name, data in result_dict.items():
+            row_data = {"Method": method_name}
+            row_data.update(data)
+            rows.append(row_data)
+        result_df = pd.DataFrame(rows)
+
+    return result_df, result_dict, list(datasets)
+
+
+def generate_markdown_table_helper(
+    result_df, caption, extra_column_name=None, column_order=None
+):
+    """
+    Generate a markdown table from a prepared DataFrame.
+
+    Parameters:
+    result_df (pandas.DataFrame): DataFrame prepared by prepare_table_dataframe
+    caption (str): Table caption
+    extra_column_name (str, optional): Name for grouping column
+    column_order (list, optional): List specifying the order of dataset columns
+
+    Returns:
+    str: Markdown table
+    """
+    if column_order is None:
+        column_order = [
+            "mrpc",
+            "sst5",
+            "mnli",
+            "dbpedia",
+            "rte",
+            "hellaswag",
+            "mwoz",
+            "geoq",
+            "xsum",
+        ]
+
+    # Extract necessary info from the DataFrame
+    if "Group" in result_df.columns:
+        # We have grouped data
+        has_grouping = True
+        result_dict = {}
+        for _, row in result_df.iterrows():
+            group = row["Group"]
+            method = row["Method"]
+            combined_key = f"{group}: {method}"
+
+            data_columns = [col for col in row.index if col not in ["Group", "Method"]]
+            method_data = {col: row[col] for col in data_columns}
+            result_dict[combined_key] = method_data
+
+        datasets = data_columns
+    else:
+        # No grouping
+        has_grouping = False
+        result_dict = {}
+        for _, row in result_df.iterrows():
+            method = row["Method"]
+
+            data_columns = [col for col in row.index if col != "Method"]
+            method_data = {col: row[col] for col in data_columns}
+            result_dict[method] = method_data
+
+        datasets = data_columns
 
     # Generate the markdown table
     markdown = f"## {caption}\n\n"
@@ -127,7 +190,7 @@ def generate_markdown_table(
         datasets_list = list(datasets)
 
     # Add extra column header if provided
-    if extra_column_name:
+    if extra_column_name and has_grouping:
         header = [extra_column_name, "Method"] + datasets_list
     else:
         header = ["Method"] + datasets_list
@@ -136,17 +199,18 @@ def generate_markdown_table(
     markdown += "| " + " | ".join(["---" for _ in header]) + " |\n"
 
     # Group methods by extra column if provided
-    if extra_column_name and extra_column_tuples:
+    if extra_column_name and has_grouping:
         # Get unique groups
-        groups = set(extra_column_lut.values())
+        groups = set(row["Group"] for _, row in result_df.iterrows())
 
-        # Organize method names by group
+        # Create mapping of methods by group
         grouped_methods = {}
-        for method_id, method_name in method_tuples:
-            group = extra_column_lut.get(method_id, "")
+        for _, row in result_df.iterrows():
+            group = row["Group"]
+            method = row["Method"]
             if group not in grouped_methods:
                 grouped_methods[group] = []
-            grouped_methods[group].append(method_name)
+            grouped_methods[group].append(method)
 
         # Generate rows group by group
         for group in sorted(grouped_methods.keys()):
@@ -163,13 +227,57 @@ def generate_markdown_table(
                 markdown += "| " + " | ".join(row_values) + " |\n"
     else:
         # No grouping, just list methods
-        method_names = list(result_dict.keys())
+        method_names = list(result_df["Method"])
         for method_name in method_names:
             dataset_values = result_dict[method_name]
             row_values = [method_name]
             for dataset in datasets_list:
                 row_values.append(dataset_values.get(dataset, "-"))
             markdown += "| " + " | ".join(row_values) + " |\n"
+
+    return markdown
+
+
+def generate_markdown_table(
+    df,
+    caption,
+    method_tuples,
+    extra_column_name=None,
+    extra_column_tuples=None,
+    exclude_columns=None,
+    column_order=None,
+    csv_path=None,
+):
+    """
+    Example workflow showing how to use the split methods with CSV export.
+
+    Parameters:
+    df (pandas.DataFrame): Input DataFrame
+    caption (str): Table caption
+    method_tuples (tuple): Method name tuples (id, display_name)
+    extra_column_name (str, optional): Name for grouping column
+    extra_column_tuples (tuple, optional): Extra column mapping tuples
+    exclude_columns (list, optional): List of column names to exclude from the table
+    column_order (list, optional): List specifying the order of dataset columns
+    csv_path (str, optional): Path to save the intermediate DataFrame as CSV
+
+    Returns:
+    str: Markdown table
+    """
+    # Prepare the data
+    result_df, _, _ = prepare_table_dataframe(
+        df, method_tuples, extra_column_name, extra_column_tuples, exclude_columns
+    )
+
+    # Optionally save to CSV for debugging
+    if csv_path:
+        result_df.to_csv(csv_path, index=False)
+        print(f"Intermediate data saved to {csv_path}")
+
+    # Generate the markdown
+    markdown = generate_markdown_table_helper(
+        result_df, caption, extra_column_name, column_order
+    )
 
     return markdown
 
@@ -201,7 +309,12 @@ def generate_retrieval_method_ablations_gemma(df):
     extra_column_name = "Retrieval"
 
     return generate_markdown_table(
-        df, caption, method_tuples, extra_column_name, extra_column_tuples
+        df,
+        caption,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+        csv_path="./tables_retrieval_method_ablations_gemma.csv",
     )
 
 
@@ -777,7 +890,12 @@ def generate_annotation_budget_ablations_gemma(df):
     extra_column_name = "Budget"
 
     return generate_markdown_table(
-        df, caption, method_tuples, extra_column_name, extra_column_tuples
+        df,
+        caption,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+        csv_path="./tables_annotation_budget_ablations_gemma.csv",
     )
 
 
@@ -814,7 +932,12 @@ def generate_qd_tradeoff_ablations_gemma(df):
     extra_column_name = "λ"
 
     return generate_markdown_table(
-        df, caption, method_tuples, extra_column_name, extra_column_tuples
+        df,
+        caption,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+        csv_path="tables_qd_tradeoff_ablations_gemma.csv",
     )
 
 
@@ -869,7 +992,12 @@ def generate_model_size_ablations(df):
     extra_column_name = "Model"
 
     return generate_markdown_table(
-        df, caption, method_tuples, extra_column_name, extra_column_tuples
+        df,
+        caption,
+        method_tuples,
+        extra_column_name,
+        extra_column_tuples,
+        csv_path="tables_model_size_ablations.csv",
     )
 
 
@@ -893,7 +1021,9 @@ def generate_main_figure_gemma(df):
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
     )
 
-    return generate_markdown_table(df, caption, method_tuples)
+    return generate_markdown_table(
+        df, caption, method_tuples, csv_path="tables_main_figure_gemma.csv"
+    )
 
 
 def run_markdown_generation(df_path):
