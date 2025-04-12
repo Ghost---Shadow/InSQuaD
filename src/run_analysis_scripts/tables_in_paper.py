@@ -142,6 +142,7 @@ def generate_latex_table(
     extra_column_name=None,
     extra_column_tuples=None,
     pre_wrapped=True,
+    tab_col_sep="3pt",
 ):
     # Reset the index to make 'method' a regular column
     df = df.reset_index()
@@ -195,7 +196,7 @@ def generate_latex_table(
 
     inner_table = f"""
 {caption_top}
-\\setlength{{\\tabcolsep}}{{3pt}}
+\\setlength{{\\tabcolsep}}{{{tab_col_sep}}}
 \\begin{{tabular}}{{{column_spec}}}
 \\hline
 {multicolumn_line} \\\\
@@ -487,6 +488,7 @@ def generate_main_table(df):
         extra_column_name,
         extra_column_tuples,
         pre_wrapped=False,
+        tab_col_sep="2pt",
     )
 
     return result
