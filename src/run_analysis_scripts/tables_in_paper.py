@@ -49,6 +49,7 @@ GROUPS = {
 }
 
 VERTICAL_RULE_ENABLED = False
+CAPTION_TOP = True
 
 
 def get_column_spec(groups, extra_column_name):
@@ -183,7 +184,17 @@ def generate_latex_table(
     if extra_column_name is not None:
         offset = 1
 
+    caption_tex = f"""\\caption{{{caption}}}
+\\label{{table:{label}}}
+"""
+
+    if CAPTION_TOP:
+        caption_top, caption_bottom = caption_tex, ""
+    else:
+        caption_top, caption_bottom = "", caption_tex
+
     inner_table = f"""
+{caption_top}
 \\setlength{{\\tabcolsep}}{{3pt}}
 \\begin{{tabular}}{{{column_spec}}}
 \\hline
@@ -194,8 +205,7 @@ def generate_latex_table(
 {latex_rows}
 \\hline
 \\end{{tabular}}
-\\caption{{{caption}}}
-\\label{{table:{label}}}
+{caption_bottom}
 """
 
     latex_template = f"""
