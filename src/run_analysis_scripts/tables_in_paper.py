@@ -48,11 +48,17 @@ GROUPS = {
     "Generation": [GeoQDataset.NAME, XsumDataset.NAME],
 }
 
+VERTICAL_RULE_ENABLED = False
+
 
 def get_column_spec(groups, extra_column_name):
+    if VERTICAL_RULE_ENABLED:
+        l = "|"
+    else:
+        l = ""
     column_spec = "l"  # Start with 'l' for the 'Method' column
     if extra_column_name:
-        column_spec += "|l"
+        column_spec += f"{l}l"
     multicolumn_parts = []
     total_columns = sum(len(columns) for columns in groups.values())
 
@@ -60,13 +66,13 @@ def get_column_spec(groups, extra_column_name):
 
     for group, columns in groups.items():
         column_count = len(columns)
-        column_spec += "|" + "c" * column_count
+        column_spec += l + "c" * column_count
 
         # Decide if a vertical bar should be added at the end of this multicolumn
         current_column += column_count
         if current_column < total_columns:
             multicolumn_parts.append(
-                f"\\multicolumn{{{column_count}}}{{c|}}{{\\textbf{{{group}}}}}"
+                f"\\multicolumn{{{column_count}}}{{c{l}}}{{\\textbf{{{group}}}}}"
             )
         else:
             multicolumn_parts.append(
