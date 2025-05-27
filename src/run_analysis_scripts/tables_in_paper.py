@@ -1,52 +1,16 @@
 from pathlib import Path
-from dataloaders.dbpedia import DBPedia
-from dataloaders.dummy import DummyDataset
-from dataloaders.dummy_hotpot_qa_with_q_loader import DummyHotpotQaWithQDataset
-from dataloaders.geoq import GeoQDataset
-from dataloaders.hellaswag import Hellaswag
-from dataloaders.hotpot_qa_loader import HotpotQaDataset
-from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
-from dataloaders.mnli import MNLI
-from dataloaders.mrpc import MRPC
-from dataloaders.mwoz import MwozDataset
-from dataloaders.rte import RTE
-from dataloaders.sst2 import SST2
-from dataloaders.sst5 import SST5
-from dataloaders.wiki_multihop_qa_loader import WikiMultihopQaDataset
-from dataloaders.wiki_multihop_qa_with_q_loader import WikiMultihopQaWithQDataset
-from dataloaders.xsum import XsumDataset
 import pandas as pd
 import numpy as np
 from run_analysis_scripts.excelify import excelify
-from run_analysis_scripts.utils import dictify, extract_relevant_df, generate_best_row
+from run_analysis_scripts.utils import (
+    DATASET_NAME_KEYS,
+    GROUPS,
+    dictify,
+    extract_relevant_df,
+    generate_best_row,
+)
 from tqdm import tqdm
 
-DATASET_NAME_KEYS = {
-    DBPedia.NAME: "DBpedia",
-    DummyDataset.NAME: "DummyDataset",
-    DummyHotpotQaWithQDataset.NAME: "DummyHotpotQaWithQDataset",
-    Hellaswag.NAME: "HellaSwag",
-    HotpotQaDataset.NAME: "HotpotQaDataset",
-    HotpotQaWithQDataset.NAME: "HotpotQaWithQDataset",
-    MNLI.NAME: "MNLI",
-    MRPC.NAME: "MRPC",
-    RTE.NAME: "RTE",
-    SST2.NAME: "SST2",
-    SST5.NAME: "SST5",
-    WikiMultihopQaDataset.NAME: "WikiMultihopQaDataset",
-    WikiMultihopQaWithQDataset.NAME: "WikiMultihopQaWithQDataset",
-    XsumDataset.NAME: "Xsum",
-    MwozDataset.NAME: "MWoZ",
-    GeoQDataset.NAME: "GeoQ",
-}
-
-
-GROUPS = {
-    "Classification": [MRPC.NAME, SST5.NAME, MNLI.NAME, DBPedia.NAME, RTE.NAME],
-    "Multi-Choice": [Hellaswag.NAME],
-    "Dialogue": [MwozDataset.NAME],
-    "Generation": [GeoQDataset.NAME, XsumDataset.NAME],
-}
 
 VERTICAL_RULE_ENABLED = False
 CAPTION_TOP = True

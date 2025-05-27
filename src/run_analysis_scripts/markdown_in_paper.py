@@ -1,123 +1,11 @@
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from run_analysis_scripts.utils import extract_relevant_df
-from scipy import stats
-
-
-def prepare_table_dataframe(
-    df,
-    method_tuples,
-    extra_column_name=None,
-    extra_column_tuples=None,
-    exclude_columns=None,
-    column_order=None,
-):
-    """
-    Prepare a DataFrame for table generation.
-
-    Parameters:
-    df (pandas.DataFrame): Input DataFrame
-    method_tuples (tuple): Method name tuples (id, display_name)
-    extra_column_name (str, optional): Name for grouping column
-    extra_column_tuples (tuple, optional): Extra column mapping tuples
-    exclude_columns (list, optional): List of column names to exclude from the table
-
-    Returns:
-    pandas.DataFrame: Prepared DataFrame ready for markdown rendering
-    dict: Dictionary mapping method names to dataset values
-    list: List of dataset names in the data
-    """
-    import pandas as pd
-    import numpy as np
-    from scipy import stats
-
-    # Initialize exclude_columns if None
-    if exclude_columns is None:
-        exclude_columns = ["seed"]
-
-    df = extract_relevant_df(df.reset_index(), method_tuples)
-
-    # Melt the DataFrame for easier manipulation
-    df_melted = pd.melt(df, id_vars=["method"], var_name="dataset", value_name="value")
-
-    # Exclude specified columns and default columns to exclude
-    default_exclude = ["index", "Average", "seed"]
-    all_exclude = list(set(default_exclude + exclude_columns))
-    df_melted = df_melted[~df_melted["dataset"].isin(all_exclude)]
-
-    # Convert tuples to dictionaries for lookup
-    method_lut = dict(method_tuples)
-    extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
-
-    # Apply lookup transformations
-    df_melted["method_name"] = df_melted["method"].map(method_lut)
-
-    # Apply extra column mapping if provided
-    if extra_column_name and extra_column_tuples:
-        df_melted["extra_name"] = df_melted["method"].map(extra_column_lut)
-        df_melted["group"] = df_melted["extra_name"]
-        df_melted["name"] = df_melted["method_name"]
-    else:
-        df_melted["name"] = df_melted["method_name"]
-        df_melted["group"] = df_melted["method"]  # Use method ID as group
-
-    # Get unique datasets
-    datasets = df_melted["dataset"].unique()
-
-    # For each method and dataset, calculate the statistics
-    result_dict = {}
-
-    # Group by both method and dataset to get the statistics
-    for method_id, method_name in method_tuples:
-        method_data = {}
-        for dataset in datasets:
-            # Filter data for this method and dataset
-            filtered_data = df_melted[
-                (df_melted["method"] == method_id) & (df_melted["dataset"] == dataset)
-            ]
-            if not filtered_data.empty:
-                values = filtered_data["value"].values
-                mean_val = np.mean(values)
-                # Handle the case where we have only one value (no std)
-                if len(values) > 1:
-                    low, high = calculate_confidence_interval(values)
-                    method_data[dataset] = f"{mean_val:.4f} ({low:.4f}, {high:.4f})"
-                else:
-                    method_data[dataset] = f"{mean_val:.4f} ERROR"
-            else:
-                method_data[dataset] = "-"
-
-        # Store results with method name
-        if extra_column_name and extra_column_tuples:
-            # Use extra_column_lut to get the group name
-            group_name = extra_column_lut.get(method_id, "")
-            # Create combined key with group and method name
-            combined_key = f"{group_name}: {method_name}"
-            result_dict[combined_key] = method_data
-        else:
-            result_dict[method_name] = method_data
-
-    # Convert result_dict to DataFrame for easier CSV export
-    # Create a multi-index DataFrame from the result_dict
-    if extra_column_name and extra_column_tuples:
-        # Split the combined keys into group and method columns
-        rows = []
-        for combined_key, data in result_dict.items():
-            group, method_name = combined_key.split(": ", 1)
-            row_data = {"Group": group, "Method": method_name}
-            row_data.update(data)
-            rows.append(row_data)
-        result_df = pd.DataFrame(rows)
-    else:
-        rows = []
-        for method_name, data in result_dict.items():
-            row_data = {"Method": method_name}
-            row_data.update(data)
-            rows.append(row_data)
-        result_df = pd.DataFrame(rows)
-
-    return result_df, result_dict, list(datasets)
+from run_analysis_scripts.utils import (
+    calculate_confidence_interval,
+    extract_relevant_df,
+    prepare_table_dataframe,
+)
 
 
 def generate_markdown_table_helper(
@@ -586,25 +474,6 @@ def generate_retrieval_method_performance_gap_gemma(df):
         md_table += f"| **Overall Avg** | | **{similar_overall_ci_str}** | **{comb_best_overall_ci_str}** | **{increase_overall_ci_str}** |\n"
 
     return f"## {caption} \n\n{md_table}"
-
-
-def calculate_confidence_interval(values, confidence=0.95):
-    """
-    Calculate confidence interval for a list of values.
-
-    Parameters:
-    values (list): List of numerical values
-    confidence (float): Confidence level (default: 0.95 for 95% confidence)
-
-    Returns:
-    tuple: (lower_bound, upper_bound) of the confidence interval
-    """
-    values = np.array(values)
-    n = len(values)
-    mean = np.mean(values)
-    sem = stats.sem(values)  # Standard Error of the Mean
-    interval = sem * stats.t.ppf((1 + confidence) / 2, n - 1)  # t-value for CI
-    return (mean - interval, mean + interval)
 
 
 def generate_only_quality_performance_gap_gemma(df):
