@@ -263,7 +263,8 @@ def create_enhanced_header(groups, dataset_name_keys, extra_column_name):
 
 
 def generate_main_table_gemma_ci(df):
-    caption = "Downstream evaluation on Gemma (2B)"
+    caption = "\\textbf{Performance of our INSQUAD against existing approaches}, evaluated across nine distinct datasets on Gemma (2B). Our approach outperforms existing baselines on retrieval with the top-performing result for each dataset is highlighted in \\textbf{bold}."
+
     label = "main_table"
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),

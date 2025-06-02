@@ -340,7 +340,7 @@ def generate_qd_tradeoff_ablations_gemma(df):
 
 
 def generate_model_size_ablations(df):
-    caption = "Downstream evaluation on different model sizes"
+    caption = "\\textbf{Performance of our INSQUAD against existing approaches}, evaluated across nine distinct datasets on Gemma (2B). Our approach outperforms existing baselines on retrieval with the top-performing result for each dataset is highlighted in \\textbf{bold}."
     label = "model_size"
     method_tuples = (
         # gemma
