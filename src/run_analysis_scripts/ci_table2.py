@@ -308,7 +308,82 @@ def generate_main_table_gemma_ci(df):
         extra_column_name=None,
         extra_column_tuples=None,
         decimal_places=2,
-        highlight_best=True,  # Enable highlighting of best values
+        highlight_best=True,
+    )
+
+    return result
+
+
+def generate_qd_tradeoff_ablations_gemma_ci(df):
+    caption = "Effects of $\\lambda$ on Gemma (2B) (Quality-Diversity tradeoff)"
+    label = "qd_tradeoff"
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_0", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_0", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_0", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_025", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_025", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_025", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_1", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
+    )
+    extra_column_tuples = (
+        ("zeroshot_mpnet_gemma", ""),
+        ("random_mpnet_gemma", ""),
+        ("oracle_mpnet_gemma", ""),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_0", "0"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_0", "0"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_0", "0"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_025", "0.25"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_025", "0.25"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma", "0.5"),
+        ("quaild_comb_gc_mpnet_gemma", "0.5"),
+        ("quaild_comb_ld_mpnet_gemma", "0.5"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_1", "1"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_1", "1"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_1", "1"),
+    )
+
+    extra_column_name = "$\\lambda$"
+
+    prepared_df, _, _ = prepare_table_dataframe(
+        df,
+        method_tuples,
+        extra_column_name=extra_column_name,
+        extra_column_tuples=extra_column_tuples,
+        exclude_columns=None,
+    )
+
+    # Rename method column to match expected format
+    if "Method" in prepared_df.columns:
+        prepared_df["method"] = prepared_df["Method"]
+        prepared_df = prepared_df.drop("Method", axis=1)
+
+    result = generate_latex_table(
+        prepared_df,
+        caption,
+        label,
+        method_tuples,
+        extra_column_name=extra_column_name,
+        extra_column_tuples=extra_column_tuples,
+        decimal_places=2,
+        highlight_best=True,
     )
 
     return result
@@ -320,6 +395,7 @@ if __name__ == "__main__":
 
     TABLES_TO_GENERATE = {
         "main_table_gemma_ci": generate_main_table_gemma_ci,
+        "qd_tradeoff_gemma_ci": generate_qd_tradeoff_ablations_gemma_ci,
     }
 
     df = pd.read_csv("./artifacts/tables/all_merged.csv")
