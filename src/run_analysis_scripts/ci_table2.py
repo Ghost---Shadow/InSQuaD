@@ -211,37 +211,39 @@ def compute_average_performance(df):
     return avg_performance
 
 
-def find_best_rank_and_average(avg_ranks, avg_performance, include_rank, include_average):
+def find_best_rank_and_average(
+    avg_ranks, avg_performance, include_rank, include_average
+):
     """Find the best (minimum) rank and best (maximum) average performance."""
     best_rank = None
     best_average = None
-    
+
     if include_rank and avg_ranks:
         rank_values = {}
         for method, rank_str in avg_ranks.items():
             if "oracle" not in method and rank_str != "-" and "ERROR" not in rank_str:
                 try:
-                    rank_val = float(rank_str.split('$')[0])
+                    rank_val = float(rank_str.split("$")[0])
                     rank_values[method] = rank_val
                 except:
                     pass
         if rank_values:
             best_rank_method = min(rank_values, key=rank_values.get)
             best_rank = rank_values[best_rank_method]
-    
+
     if include_average and avg_performance:
         perf_values = {}
         for method, perf_str in avg_performance.items():
             if "oracle" not in method and perf_str != "-" and "ERROR" not in perf_str:
                 try:
-                    perf_val = float(perf_str.split('$')[0])
+                    perf_val = float(perf_str.split("$")[0])
                     perf_values[method] = perf_val
                 except:
                     pass
         if perf_values:
             best_perf_method = max(perf_values, key=perf_values.get)
             best_average = perf_values[best_perf_method]
-    
+
     return best_rank, best_average
 
 
@@ -249,19 +251,19 @@ def format_rank_column(method, avg_ranks, best_rank, include_rank):
     """Format the rank column, bolding the best (minimum) rank."""
     if not include_rank:
         return []
-    
+
     if method not in avg_ranks:
         return ["-"]
-    
+
     rank_val_str = avg_ranks[method]
     if rank_val_str != "-" and "ERROR" not in rank_val_str and best_rank is not None:
         try:
-            rank_val = float(rank_val_str.split('$')[0])
+            rank_val = float(rank_val_str.split("$")[0])
             if abs(rank_val - best_rank) < 1e-10:
                 return [f"\\textbf{{{rank_val_str}}}"]
         except:
             pass
-    
+
     return [rank_val_str]
 
 
@@ -269,19 +271,19 @@ def format_average_column(method, avg_performance, best_average, include_average
     """Format the average column, bolding the best (maximum) average."""
     if not include_average:
         return []
-    
+
     if method not in avg_performance:
         return ["-"]
-    
+
     perf_val_str = avg_performance[method]
     if perf_val_str != "-" and "ERROR" not in perf_val_str and best_average is not None:
         try:
-            perf_val = float(perf_val_str.split('$')[0])
+            perf_val = float(perf_val_str.split("$")[0])
             if abs(perf_val - best_average) < 1e-10:
                 return [f"\\textbf{{{perf_val_str}}}"]
         except:
             pass
-    
+
     return [perf_val_str]
 
 
@@ -325,7 +327,7 @@ def generate_enhanced_latex_rows(
         avg_ranks = compute_average_ranks(df)
     if include_average:
         avg_performance = compute_average_performance(df)
-    
+
     best_rank, best_average = find_best_rank_and_average(
         avg_ranks, avg_performance, include_rank, include_average
     )
@@ -336,14 +338,16 @@ def generate_enhanced_latex_rows(
         else:
             row = df[df["method"] == method]
             method_column = [method_print_name]
-            
+
             extra_column = []
             if extra_column_tuples is not None:
                 extra_column_lut = dictify(extra_column_tuples)
                 extra_column = [extra_column_lut[method]]
 
             rank_column = format_rank_column(method, avg_ranks, best_rank, include_rank)
-            average_column = format_average_column(method, avg_performance, best_average, include_average)
+            average_column = format_average_column(
+                method, avg_performance, best_average, include_average
+            )
 
             if len(row) == 1:
                 row = row.values.tolist()[0]
@@ -356,8 +360,12 @@ def generate_enhanced_latex_rows(
             else:
                 if len(row) > 1:
                     print("REJECTED", row)
-                error_rank_column = ["\\textbf{\\textcolor{red}{??.?}}"] if include_rank else []
-                error_average_column = ["\\textbf{\\textcolor{red}{??.?}}"] if include_average else []
+                error_rank_column = (
+                    ["\\textbf{\\textcolor{red}{??.?}}"] if include_rank else []
+                )
+                error_average_column = (
+                    ["\\textbf{\\textcolor{red}{??.?}}"] if include_average else []
+                )
                 cells = (
                     method_column
                     + extra_column
@@ -679,8 +687,8 @@ def generate_qd_tradeoff_ablations_gemma_ci(df):
         method_tuples,
         extra_column_name=extra_column_name,
         extra_column_tuples=extra_column_tuples,
-        include_rank=True,
-        include_average=True,
+        include_rank=False,
+        include_average=False,
         decimal_places=2,
     )
 
