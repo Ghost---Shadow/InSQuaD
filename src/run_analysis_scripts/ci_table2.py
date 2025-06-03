@@ -1,7 +1,6 @@
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from run_analysis_scripts.tables_in_paper import generate_latex_rows, get_column_spec
 from run_analysis_scripts.utils import (
     DATASET_NAME_KEYS,
     GROUPS,
@@ -20,10 +19,10 @@ def generate_latex_table(
     method_tuples,
     extra_column_name=None,
     extra_column_tuples=None,
+    include_rank=False,
     pre_wrapped=False,
     tab_col_sep="3pt",
     decimal_places=2,
-    highlight_best=True,
 ):
     # Reset the index to make 'method' a regular column
     df = df.reset_index()
@@ -48,18 +47,18 @@ def generate_latex_table(
     # Use enhanced latex row generation for confidence intervals
     num_columns = len(expected_columns)
     latex_rows = generate_enhanced_latex_rows(
-        df, method_tuples, num_columns, extra_column_tuples
+        df, method_tuples, num_columns, extra_column_tuples, include_rank
     )
 
     # Use enhanced column specification
-    column_spec, multicolumn_line = get_enhanced_column_spec(GROUPS, extra_column_name)
+    column_spec, multicolumn_line = get_enhanced_column_spec(GROUPS, extra_column_name, include_rank)
 
     # Use enhanced header creation
-    header_line = create_enhanced_header(GROUPS, DATASET_NAME_KEYS, extra_column_name)
+    header_line = create_enhanced_header(GROUPS, DATASET_NAME_KEYS, extra_column_name, include_rank)
 
     offset = 0
     if extra_column_name is not None:
-        offset = 1
+        offset += 1
 
     caption_tex = f"""\\caption{{{caption}}}
 \\label{{table:{label}}}
@@ -70,13 +69,17 @@ def generate_latex_table(
     else:
         caption_top, caption_bottom = "", caption_tex
 
+    # Calculate the cmidrule range - exclude method, extra column, and rank column
+    cmidrule_start = 2 + offset
+    cmidrule_end = len(column_order) + offset - (1 if include_rank else 0)
+    
     inner_table = f"""
 {caption_top}
 \\setlength{{\\tabcolsep}}{{{tab_col_sep}}}
 \\begin{{tabular}}{{{column_spec}}}
 \\hline
 {multicolumn_line} \\\\
-\\cmidrule(lr){{{2+offset}-{len(column_order)+offset}}}
+\\cmidrule(lr){{{cmidrule_start}-{cmidrule_end}}}
 {header_line} \\\\
 \\hline
 {latex_rows}
@@ -98,7 +101,55 @@ def generate_latex_table(
         return inner_table
 
 
-def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
+def compute_average_ranks(df):
+    """Compute average rank for each method across all datasets with confidence intervals."""
+    df_copy = df.copy()
+    
+    def safe_float_convert(x):
+        try:
+            return float(x.split()[0])
+        except (ValueError, IndexError, AttributeError):
+            return float('-inf')
+    
+    # Convert confidence intervals to numeric values for ranking
+    numeric_df = df_copy.copy()
+    for col in df_copy.columns:
+        if col != 'method':
+            numeric_df[col] = df_copy[col].apply(safe_float_convert)
+    
+    # Calculate ranks for each dataset (column)
+    ranks = {}
+    for col in numeric_df.columns:
+        if col != 'method':
+            # Rank in descending order (higher values get better ranks)
+            col_ranks = numeric_df[col].rank(method='average', ascending=False)
+            for idx, method in enumerate(numeric_df['method']):
+                if method not in ranks:
+                    ranks[method] = []
+                ranks[method].append(col_ranks.iloc[idx])
+    
+    # Calculate average rank and confidence interval for each method
+    avg_ranks = {}
+    for method in ranks:
+        valid_ranks = [r for r in ranks[method] if not np.isnan(r) and r != float('inf')]
+        if valid_ranks and len(valid_ranks) > 1:
+            mean_rank = np.mean(valid_ranks)
+            from run_analysis_scripts.utils import calculate_confidence_interval
+            low, high = calculate_confidence_interval(valid_ranks)
+            # Calculate standard deviation from confidence interval
+            # Assuming 95% CI, so SD ≈ (upper - lower) / (2 * 1.96)
+            sd = (high - low) / (2 * 1.96)
+            avg_ranks[method] = f"{mean_rank:.1f}$_{{\\pm{sd:.1f}}}$"
+        elif valid_ranks:
+            mean_rank = np.mean(valid_ranks)
+            avg_ranks[method] = f"{mean_rank:.1f} ERROR"
+        else:
+            avg_ranks[method] = "-"
+    
+    return avg_ranks
+
+
+def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tuples, include_rank=False):
     latex_rows = ""
 
     # Set all values to -inf where the method contains 'oracle'
@@ -119,6 +170,11 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
         df_copy.loc[mask, df_copy.columns[i]] = 0.0
 
     max_values = [df_copy.iloc[:, i].max() for i in range(1, num_columns + 1)]
+    
+    # Calculate average ranks if needed
+    avg_ranks = {}
+    if include_rank:
+        avg_ranks = compute_average_ranks(df)
 
     for method, method_print_name in method_tuples:
         if method == "hline":
@@ -130,12 +186,22 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
             if extra_column_tuples is not None:
                 extra_column_lut = dictify(extra_column_tuples)
                 extra_column = [extra_column_lut[method]]
+            
+            rank_column = []
+            if include_rank:
+                if method in avg_ranks:
+                    rank_column = [avg_ranks[method]]
+                else:
+                    rank_column = ["-"]
+            
             if len(row) == 1:
                 row = row.values.tolist()[0]
                 cells = method_column + extra_column
                 for idx, x in enumerate(row[1:]):
                     cell = format_confidence_interval(x, max_values[idx])
                     cells.append(cell)
+                # Add rank column at the end
+                cells.extend(rank_column)
             else:
                 if len(row) > 1:
                     print("REJECTED", row)
@@ -143,6 +209,7 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
                     method_column
                     + extra_column
                     + ["\\textcolor{red}{??.?}"] * num_columns
+                    + rank_column
                 )
             latex_row = " & ".join(cells) + " \\\\"
         latex_rows += latex_row + "\n"
@@ -150,7 +217,7 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
 
 
 def format_confidence_interval(
-    val_str, best_val, decimal_places=2, highlight_best=True
+    val_str, best_val, decimal_places=2
 ):
     """Format a confidence interval string with proper LaTeX formatting."""
     try:
@@ -174,16 +241,16 @@ def format_confidence_interval(
         sd_formatted = f"{sd:.{decimal_places}f}"
 
         # Highlight if this is the best value
-        if highlight_best and best_val is not None and abs(mean_val - best_val) < 1e-10:
+        if best_val is not None and abs(mean_val - best_val) < 1e-10:
             return f"\\textbf{{{mean_formatted}}}$_{{\\pm{sd_formatted}}}$"
         else:
             return f"{mean_formatted}$_{{\\pm{sd_formatted}}}$"
 
-    except Exception as e:
+    except Exception:
         return val_str
 
 
-def get_enhanced_column_spec(groups, extra_column_name):
+def get_enhanced_column_spec(groups, extra_column_name, include_rank=False):
     """Generate enhanced column specification."""
     # Method column
     spec_parts = ["l"]  # Left-aligned for method names
@@ -195,6 +262,10 @@ def get_enhanced_column_spec(groups, extra_column_name):
     # Data columns - center aligned with some spacing
     num_data_cols = sum(len(group) for group in groups.values())
     spec_parts.extend(["c"] * num_data_cols)
+    
+    # Rank column at the end if needed
+    if include_rank:
+        spec_parts.append("c")
 
     column_spec = "@{}" + "".join(spec_parts) + "@{}"
 
@@ -203,7 +274,7 @@ def get_enhanced_column_spec(groups, extra_column_name):
     if extra_column_name is not None:
         multicolumn_parts.append(extra_column_name)
 
-    col_start = 2 if extra_column_name is not None else 1
+    col_start = 2 + (1 if extra_column_name is not None else 0)
     for group_name, group_cols in groups.items():
         col_end = col_start + len(group_cols) - 1
         if col_start == col_end:
@@ -213,13 +284,17 @@ def get_enhanced_column_spec(groups, extra_column_name):
                 f"\\multicolumn{{{len(group_cols)}}}{{c}}{{\\textbf{{{group_name}}}}}"
             )
         col_start = col_end + 1
+    
+    # Add rank column at the end
+    if include_rank:
+        multicolumn_parts.append("Rank")
 
     multicolumn_line = " & ".join(multicolumn_parts)
 
     return column_spec, multicolumn_line
 
 
-def create_enhanced_header(groups, dataset_name_keys, extra_column_name):
+def create_enhanced_header(groups, dataset_name_keys, extra_column_name, include_rank=False):
     """Create enhanced header line."""
     header_parts = [""]  # Empty cell above method column
 
@@ -230,6 +305,9 @@ def create_enhanced_header(groups, dataset_name_keys, extra_column_name):
         for col in group:
             dataset_name = dataset_name_keys.get(col, col)
             header_parts.append(f"\\textsc{{{dataset_name}}}")
+    
+    if include_rank:
+        header_parts.append("")  # Empty cell above rank column
 
     return " & ".join(header_parts)
 
@@ -257,6 +335,7 @@ def compute_best_rows(df):
         ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
     )
     prepared_df = prepare_table_dataframe(df, method_tuples)
+    
 
     # Define the method groups for each InSQuaD variant
     fl_methods = [
@@ -299,6 +378,7 @@ def compute_best_rows(df):
         (ld_methods, "quaild_comb_ld_mpnet_gemma_best"),
     ]:
         best_row = {"method": group_name}
+        
 
         for col in columns:
             # Find the best performing method for this column
@@ -370,8 +450,8 @@ def generate_main_table_gemma_ci(df):
         all_method_tuples,
         extra_column_name=None,
         extra_column_tuples=None,
+        include_rank=True,
         decimal_places=2,
-        highlight_best=True,
     )
 
     return result
@@ -434,8 +514,8 @@ def generate_qd_tradeoff_ablations_gemma_ci(df):
         method_tuples,
         extra_column_name=extra_column_name,
         extra_column_tuples=extra_column_tuples,
+        include_rank=True,
         decimal_places=2,
-        highlight_best=True,
     )
 
     return result
