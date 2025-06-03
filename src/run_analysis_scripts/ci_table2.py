@@ -234,11 +234,103 @@ def create_enhanced_header(groups, dataset_name_keys, extra_column_name):
     return " & ".join(header_parts)
 
 
+def compute_best_rows(df):
+    method_tuples = (
+        ("zeroshot_mpnet_gemma", "Zeroshot"),
+        ("random_mpnet_gemma", "Random"),
+        ("oracle_mpnet_gemma", "Oracle"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_0", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_0", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_0", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_025", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_025", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_025", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("quaild_comb_fl_mpnet_gemma_lambda_1", "InSQuaD-FL"),
+        ("quaild_comb_gc_mpnet_gemma_lambda_1", "InSQuaD-GC"),
+        ("quaild_comb_ld_mpnet_gemma_lambda_1", "InSQuaD-LD"),
+    )
+    prepared_df = prepare_table_dataframe(df, method_tuples)
+
+    # Define the method groups for each InSQuaD variant
+    fl_methods = [
+        "quaild_comb_fl_mpnet_gemma_lambda_0",
+        "quaild_comb_fl_mpnet_gemma_lambda_025",
+        "quaild_comb_fl_mpnet_gemma",
+        "quaild_comb_fl_mpnet_gemma_lambda_1",
+    ]
+
+    gc_methods = [
+        "quaild_comb_gc_mpnet_gemma_lambda_0",
+        "quaild_comb_gc_mpnet_gemma_lambda_025",
+        "quaild_comb_gc_mpnet_gemma",
+        "quaild_comb_gc_mpnet_gemma_lambda_1",
+    ]
+
+    ld_methods = [
+        "quaild_comb_ld_mpnet_gemma_lambda_0",
+        "quaild_comb_ld_mpnet_gemma_lambda_025",
+        "quaild_comb_ld_mpnet_gemma",
+        "quaild_comb_ld_mpnet_gemma_lambda_1",
+    ]
+
+    # Get column names (excluding 'method' column)
+    columns = [col for col in prepared_df.columns if col != "method"]
+
+    # Function to extract numeric value from string like "0.5153 (0.4777, 0.5529)"
+    def extract_value(cell_value):
+        if pd.isna(cell_value) or cell_value == "-":
+            return float("-inf")
+        # Extract the first number before the parentheses
+        return float(str(cell_value).split(" ")[0])
+
+    # Create best rows for each method group
+    best_rows = []
+
+    for method_group, group_name in [
+        (fl_methods, "quaild_comb_fl_mpnet_gemma_best"),
+        (gc_methods, "quaild_comb_gc_mpnet_gemma_best"),
+        (ld_methods, "quaild_comb_ld_mpnet_gemma_best"),
+    ]:
+        best_row = {"method": group_name}
+
+        for col in columns:
+            # Find the best performing method for this column
+            best_value = float("-inf")
+            best_cell_content = None
+
+            for method in method_group:
+                # Find the row with this method
+                method_row = prepared_df[prepared_df["method"] == method]
+                if not method_row.empty:
+                    cell_value = method_row[col].iloc[0]
+                    numeric_value = extract_value(cell_value)
+
+                    if numeric_value > best_value:
+                        best_value = numeric_value
+                        best_cell_content = cell_value
+
+            best_row[col] = best_cell_content if best_cell_content is not None else "-"
+
+        best_rows.append(best_row)
+
+    # Create DataFrame from best rows and append to prepared_df
+    best_df = pd.DataFrame(best_rows)
+
+    return best_df
+
+
 def generate_main_table_gemma_ci(df):
     caption = "\\textbf{Performance of our INSQUAD against existing approaches}, evaluated across nine distinct datasets on Gemma (2B). Our approach outperforms existing baselines on retrieval with the top-performing result for each dataset is highlighted in \\textbf{bold}."
 
     label = "main_table"
-    method_tuples = (
+    head_method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
         ("diversity_mpnet_gemma", "Diversity"),
@@ -252,20 +344,30 @@ def generate_main_table_gemma_ci(df):
         ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
         ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
         ("hline", "hline"),
+    )
+    best_method_tuples = (
         ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
+    )
+    tail_method_tuples = (
         ("hline", "hline"),
         ("oracle_mpnet_gemma", "Oracle"),
     )
+    head_and_tail = (*head_method_tuples, *tail_method_tuples)
+    all_method_tuples = (*head_method_tuples, *best_method_tuples, *tail_method_tuples)
 
-    prepared_df = prepare_table_dataframe(df, method_tuples)
+    best_rows = compute_best_rows(df)
+
+    prepared_df = prepare_table_dataframe(df, head_and_tail)
+
+    result_df = pd.concat([prepared_df, best_rows], ignore_index=True)
 
     result = generate_latex_table(
-        prepared_df,
+        result_df,
         caption,
         label,
-        method_tuples,
+        all_method_tuples,
         extra_column_name=None,
         extra_column_tuples=None,
         decimal_places=2,
