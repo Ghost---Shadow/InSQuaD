@@ -20,6 +20,7 @@ def generate_latex_table(
     extra_column_name=None,
     extra_column_tuples=None,
     include_rank=False,
+    include_average=False,
     pre_wrapped=False,
     tab_col_sep="3pt",
     decimal_places=2,
@@ -47,14 +48,14 @@ def generate_latex_table(
     # Use enhanced latex row generation for confidence intervals
     num_columns = len(expected_columns)
     latex_rows = generate_enhanced_latex_rows(
-        df, method_tuples, num_columns, extra_column_tuples, include_rank
+        df, method_tuples, num_columns, extra_column_tuples, include_rank, include_average
     )
 
     # Use enhanced column specification
-    column_spec, multicolumn_line = get_enhanced_column_spec(GROUPS, extra_column_name, include_rank)
+    column_spec, multicolumn_line = get_enhanced_column_spec(GROUPS, extra_column_name, include_rank, include_average)
 
     # Use enhanced header creation
-    header_line = create_enhanced_header(GROUPS, DATASET_NAME_KEYS, extra_column_name, include_rank)
+    header_line = create_enhanced_header(GROUPS, DATASET_NAME_KEYS, extra_column_name, include_rank, include_average)
 
     offset = 0
     if extra_column_name is not None:
@@ -69,9 +70,9 @@ def generate_latex_table(
     else:
         caption_top, caption_bottom = "", caption_tex
 
-    # Calculate the cmidrule range - exclude method, extra column, and rank column
+    # Calculate the cmidrule range - only span the dataset columns, exclude method, extra, rank, and average columns
     cmidrule_start = 2 + offset
-    cmidrule_end = len(column_order) + offset - (1 if include_rank else 0)
+    cmidrule_end = len(column_order) + offset - 1
     
     inner_table = f"""
 {caption_top}
@@ -149,7 +150,50 @@ def compute_average_ranks(df):
     return avg_ranks
 
 
-def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tuples, include_rank=False):
+def compute_average_performance(df):
+    """Compute average performance across all datasets with confidence intervals."""
+    df_copy = df.copy()
+    
+    def safe_float_convert(x):
+        try:
+            return float(x.split()[0])
+        except (ValueError, IndexError, AttributeError):
+            return float('nan')
+    
+    # Convert confidence intervals to numeric values
+    numeric_df = df_copy.copy()
+    for col in df_copy.columns:
+        if col != 'method':
+            numeric_df[col] = df_copy[col].apply(safe_float_convert)
+    
+    # Calculate average performance for each method
+    avg_performance = {}
+    for idx, method in enumerate(numeric_df['method']):
+        # Get all performance values for this method (excluding method column)
+        performance_values = []
+        for col in numeric_df.columns:
+            if col != 'method':
+                val = numeric_df[col].iloc[idx]
+                if not np.isnan(val) and val != float('-inf'):
+                    performance_values.append(val)
+        
+        if performance_values and len(performance_values) > 1:
+            mean_perf = np.mean(performance_values)
+            from run_analysis_scripts.utils import calculate_confidence_interval
+            low, high = calculate_confidence_interval(performance_values)
+            # Calculate standard deviation from confidence interval
+            sd = (high - low) / (2 * 1.96)
+            avg_performance[method] = f"{mean_perf:.2f}$_{{\\pm{sd:.2f}}}$"
+        elif performance_values:
+            mean_perf = np.mean(performance_values)
+            avg_performance[method] = f"{mean_perf:.2f} ERROR"
+        else:
+            avg_performance[method] = "-"
+    
+    return avg_performance
+
+
+def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tuples, include_rank=False, include_average=False):
     latex_rows = ""
 
     # Set all values to -inf where the method contains 'oracle'
@@ -171,10 +215,13 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
 
     max_values = [df_copy.iloc[:, i].max() for i in range(1, num_columns + 1)]
     
-    # Calculate average ranks if needed
+    # Calculate average ranks and performance if needed
     avg_ranks = {}
+    avg_performance = {}
     if include_rank:
         avg_ranks = compute_average_ranks(df)
+    if include_average:
+        avg_performance = compute_average_performance(df)
 
     for method, method_print_name in method_tuples:
         if method == "hline":
@@ -194,14 +241,22 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
                 else:
                     rank_column = ["-"]
             
+            average_column = []
+            if include_average:
+                if method in avg_performance:
+                    average_column = [avg_performance[method]]
+                else:
+                    average_column = ["-"]
+            
             if len(row) == 1:
                 row = row.values.tolist()[0]
                 cells = method_column + extra_column
                 for idx, x in enumerate(row[1:]):
                     cell = format_confidence_interval(x, max_values[idx])
                     cells.append(cell)
-                # Add rank column at the end
+                # Add rank and average columns at the end
                 cells.extend(rank_column)
+                cells.extend(average_column)
             else:
                 if len(row) > 1:
                     print("REJECTED", row)
@@ -210,6 +265,7 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
                     + extra_column
                     + ["\\textcolor{red}{??.?}"] * num_columns
                     + rank_column
+                    + average_column
                 )
             latex_row = " & ".join(cells) + " \\\\"
         latex_rows += latex_row + "\n"
@@ -250,7 +306,7 @@ def format_confidence_interval(
         return val_str
 
 
-def get_enhanced_column_spec(groups, extra_column_name, include_rank=False):
+def get_enhanced_column_spec(groups, extra_column_name, include_rank=False, include_average=False):
     """Generate enhanced column specification."""
     # Method column
     spec_parts = ["l"]  # Left-aligned for method names
@@ -263,8 +319,10 @@ def get_enhanced_column_spec(groups, extra_column_name, include_rank=False):
     num_data_cols = sum(len(group) for group in groups.values())
     spec_parts.extend(["c"] * num_data_cols)
     
-    # Rank column at the end if needed
+    # Rank and average columns at the end if needed
     if include_rank:
+        spec_parts.append("c")
+    if include_average:
         spec_parts.append("c")
 
     column_spec = "@{}" + "".join(spec_parts) + "@{}"
@@ -285,16 +343,18 @@ def get_enhanced_column_spec(groups, extra_column_name, include_rank=False):
             )
         col_start = col_end + 1
     
-    # Add rank column at the end
+    # Add rank and average columns at the end
     if include_rank:
-        multicolumn_parts.append("Rank")
+        multicolumn_parts.append("\\textbf{Rank}")
+    if include_average:
+        multicolumn_parts.append("\\textbf{Average}")
 
     multicolumn_line = " & ".join(multicolumn_parts)
 
     return column_spec, multicolumn_line
 
 
-def create_enhanced_header(groups, dataset_name_keys, extra_column_name, include_rank=False):
+def create_enhanced_header(groups, dataset_name_keys, extra_column_name, include_rank=False, include_average=False):
     """Create enhanced header line."""
     header_parts = [""]  # Empty cell above method column
 
@@ -308,6 +368,8 @@ def create_enhanced_header(groups, dataset_name_keys, extra_column_name, include
     
     if include_rank:
         header_parts.append("")  # Empty cell above rank column
+    if include_average:
+        header_parts.append("")  # Empty cell above average column
 
     return " & ".join(header_parts)
 
@@ -451,6 +513,7 @@ def generate_main_table_gemma_ci(df):
         extra_column_name=None,
         extra_column_tuples=None,
         include_rank=True,
+        include_average=True,
         decimal_places=2,
     )
 
@@ -515,6 +578,7 @@ def generate_qd_tradeoff_ablations_gemma_ci(df):
         extra_column_name=extra_column_name,
         extra_column_tuples=extra_column_tuples,
         include_rank=True,
+        include_average=True,
         decimal_places=2,
     )
 
