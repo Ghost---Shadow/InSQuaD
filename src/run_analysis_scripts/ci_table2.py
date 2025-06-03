@@ -157,7 +157,7 @@ def compute_average_ranks(df):
             # Calculate standard deviation from confidence interval
             # Assuming 95% CI, so SD ≈ (upper - lower) / (2 * 1.96)
             sd = (high - low) / (2 * 1.96)
-            avg_ranks[method] = f"{mean_rank:.1f}$_{{\\pm{sd:.1f}}}$"
+            avg_ranks[method] = f"{mean_rank:.1f}"
         elif valid_ranks:
             mean_rank = np.mean(valid_ranks)
             avg_ranks[method] = f"{mean_rank:.1f} ERROR"
@@ -201,7 +201,7 @@ def compute_average_performance(df):
             low, high = calculate_confidence_interval(performance_values)
             # Calculate standard deviation from confidence interval
             sd = (high - low) / (2 * 1.96)
-            avg_performance[method] = f"{mean_perf:.2f}$_{{\\pm{sd:.2f}}}$"
+            avg_performance[method] = f"{mean_perf:.2f}"
         elif performance_values:
             mean_perf = np.mean(performance_values)
             avg_performance[method] = f"{mean_perf:.2f} ERROR"
