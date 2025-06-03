@@ -125,7 +125,6 @@ def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tu
             latex_row = "\hline"
         else:
             row = df[df["method"] == method]
-            print(row)
             method_column = [method_print_name]
             extra_column = []
             if extra_column_tuples is not None:
