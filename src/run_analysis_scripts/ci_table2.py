@@ -5,6 +5,7 @@ from run_analysis_scripts.tables_in_paper import generate_latex_rows, get_column
 from run_analysis_scripts.utils import (
     DATASET_NAME_KEYS,
     GROUPS,
+    dictify,
     prepare_table_dataframe,
 )
 from tqdm import tqdm
@@ -45,13 +46,9 @@ def generate_latex_table(
     df = df[column_order]
 
     # Use enhanced latex row generation for confidence intervals
+    num_columns = len(expected_columns)
     latex_rows = generate_enhanced_latex_rows(
-        df,
-        method_tuples,
-        expected_columns,
-        extra_column_tuples,
-        highlight_best,
-        decimal_places,
+        df, method_tuples, num_columns, extra_column_tuples
     )
 
     # Use enhanced column specification
@@ -101,85 +98,61 @@ def generate_latex_table(
         return inner_table
 
 
-def generate_enhanced_latex_rows(
-    df,
-    method_tuples,
-    expected_columns,
-    extra_column_tuples,
-    highlight_best,
-    decimal_places,
-):
-    """Generate LaTeX rows with enhanced formatting for confidence intervals."""
-    rows = []
+def generate_enhanced_latex_rows(df, method_tuples, num_columns, extra_column_tuples):
+    latex_rows = ""
 
-    # Extract numeric values for finding best results (excluding Oracle)
-    numeric_data = {}
-    for col in expected_columns:
-        numeric_data[col] = []
-        for _, row in df.iterrows():
-            # Skip Oracle rows when collecting data for best value calculation
-            if row["method"] == "Oracle":
-                continue
+    # Set all values to -inf where the method contains 'oracle'
+    df_copy = df.copy()
 
-            val_str = str(row[col])
-            if pd.isna(row[col]) or val_str == "nan":
-                numeric_data[col].append(np.nan)
+    def safe_float_convert(x):
+        try:
+            return float(x.split()[0])
+        except (ValueError, IndexError, AttributeError):
+            return x
+
+    df_copy = df_copy.map(safe_float_convert)
+    for i in range(1, num_columns + 1):
+        mask = df_copy["method"].str.contains("oracle")
+        df_copy.loc[mask, df_copy.columns[i]] = 0.0
+
+        mask = df_copy["method"].str.contains("hline")
+        df_copy.loc[mask, df_copy.columns[i]] = 0.0
+
+    max_values = [df_copy.iloc[:, i].max() for i in range(1, num_columns + 1)]
+
+    for method, method_print_name in method_tuples:
+        if method == "hline":
+            latex_row = "\hline"
+        else:
+            row = df[df["method"] == method]
+            print(row)
+            method_column = [method_print_name]
+            extra_column = []
+            if extra_column_tuples is not None:
+                extra_column_lut = dictify(extra_column_tuples)
+                extra_column = [extra_column_lut[method]]
+            if len(row) == 1:
+                row = row.values.tolist()[0]
+                cells = method_column + extra_column
+                for idx, x in enumerate(row[1:]):
+                    cell = format_confidence_interval(x, max_values[idx])
+                    cells.append(cell)
             else:
-                # Extract the mean value (before the parentheses)
-                try:
-                    mean_val = float(val_str.split("(")[0].strip())
-                    numeric_data[col].append(mean_val)
-                except:
-                    numeric_data[col].append(np.nan)
-
-    # Find best values for each column (excluding Oracle)
-    best_values = {}
-    if highlight_best:
-        for col in expected_columns:
-            vals = [v for v in numeric_data[col] if not np.isnan(v)]
-            if vals:
-                best_values[col] = max(vals)
-
-    # Generate rows
-    for method_key, method_display in method_tuples:
-        # Handle horizontal lines
-        if method_key == "hline":
-            rows.append("\\hline")
-            continue
-
-        row_data = df[df["method"] == method_display]
-        if row_data.empty:
-            continue
-
-        row = row_data.iloc[0]
-        latex_row = [f"\\textsc{{{method_display}}}"]
-
-        # Add extra column if needed
-        if extra_column_tuples is not None:
-            extra_val = next(
-                (val for key, val in extra_column_tuples if key == method_key), ""
-            )
-            latex_row.append(str(extra_val))
-
-        # Add data columns with enhanced formatting
-        for col in expected_columns:
-            val_str = str(row[col])
-            if pd.isna(row[col]) or val_str == "nan":
-                formatted_val = "\\hline"  # Use \hline for missing values
-            else:
-                # Don't highlight Oracle as best, even if it has the highest value
-                should_highlight = highlight_best and method_display != "Oracle"
-                formatted_val = format_confidence_interval(
-                    val_str, best_values.get(col), decimal_places, should_highlight
+                if len(row) > 1:
+                    print("REJECTED", row)
+                cells = (
+                    method_column
+                    + extra_column
+                    + ["\\textcolor{red}{??.?}"] * num_columns
                 )
-            latex_row.append(formatted_val)
-
-        rows.append(" & ".join(latex_row) + " \\\\")
-
-    return "\n".join(rows)
+            latex_row = " & ".join(cells) + " \\\\"
+        latex_rows += latex_row + "\n"
+    return latex_rows
 
 
-def format_confidence_interval(val_str, best_val, decimal_places, highlight_best):
+def format_confidence_interval(
+    val_str, best_val, decimal_places=2, highlight_best=True
+):
     """Format a confidence interval string with proper LaTeX formatting."""
     try:
         # Parse the string: "0.5153 (0.4777, 0.5529)"
@@ -287,18 +260,7 @@ def generate_main_table_gemma_ci(df):
         ("oracle_mpnet_gemma", "Oracle"),
     )
 
-    prepared_df, _, _ = prepare_table_dataframe(
-        df,
-        method_tuples,
-        extra_column_name=None,
-        extra_column_tuples=None,
-        exclude_columns=None,
-    )
-
-    # Rename method column to match expected format
-    if "Method" in prepared_df.columns:
-        prepared_df["method"] = prepared_df["Method"]
-        prepared_df = prepared_df.drop("Method", axis=1)
+    prepared_df = prepare_table_dataframe(df, method_tuples)
 
     result = generate_latex_table(
         prepared_df,
@@ -362,18 +324,7 @@ def generate_qd_tradeoff_ablations_gemma_ci(df):
 
     extra_column_name = "$\\lambda$"
 
-    prepared_df, _, _ = prepare_table_dataframe(
-        df,
-        method_tuples,
-        extra_column_name=extra_column_name,
-        extra_column_tuples=extra_column_tuples,
-        exclude_columns=None,
-    )
-
-    # Rename method column to match expected format
-    if "Method" in prepared_df.columns:
-        prepared_df["method"] = prepared_df["Method"]
-        prepared_df = prepared_df.drop("Method", axis=1)
+    prepared_df = prepare_table_dataframe(df, method_tuples)
 
     result = generate_latex_table(
         prepared_df,

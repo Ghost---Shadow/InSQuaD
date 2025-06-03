@@ -130,33 +130,7 @@ def calculate_confidence_interval(values, confidence=0.95):
     return (mean - interval, mean + interval)
 
 
-def prepare_table_dataframe(
-    df,
-    method_tuples,
-    extra_column_name=None,
-    extra_column_tuples=None,
-    exclude_columns=None,
-    column_order=None,
-):
-    """
-    Prepare a DataFrame for table generation.
-
-    Parameters:
-    df (pandas.DataFrame): Input DataFrame
-    method_tuples (tuple): Method name tuples (id, display_name)
-    extra_column_name (str, optional): Name for grouping column
-    extra_column_tuples (tuple, optional): Extra column mapping tuples
-    exclude_columns (list, optional): List of column names to exclude from the table
-
-    Returns:
-    pandas.DataFrame: Prepared DataFrame ready for markdown rendering
-    dict: Dictionary mapping method names to dataset values
-    list: List of dataset names in the data
-    """
-    import pandas as pd
-    import numpy as np
-    from scipy import stats
-
+def prepare_table_dataframe(df, method_tuples, exclude_columns=None):
     # Initialize exclude_columns if None
     if exclude_columns is None:
         exclude_columns = ["seed"]
@@ -170,22 +144,6 @@ def prepare_table_dataframe(
     default_exclude = ["index", "Average", "seed"]
     all_exclude = list(set(default_exclude + exclude_columns))
     df_melted = df_melted[~df_melted["dataset"].isin(all_exclude)]
-
-    # Convert tuples to dictionaries for lookup
-    method_lut = dict(method_tuples)
-    extra_column_lut = dict(extra_column_tuples) if extra_column_tuples else {}
-
-    # Apply lookup transformations
-    df_melted["method_name"] = df_melted["method"].map(method_lut)
-
-    # Apply extra column mapping if provided
-    if extra_column_name and extra_column_tuples:
-        df_melted["extra_name"] = df_melted["method"].map(extra_column_lut)
-        df_melted["group"] = df_melted["extra_name"]
-        df_melted["name"] = df_melted["method_name"]
-    else:
-        df_melted["name"] = df_melted["method_name"]
-        df_melted["group"] = df_melted["method"]  # Use method ID as group
 
     # Get unique datasets
     datasets = df_melted["dataset"].unique()
@@ -213,33 +171,13 @@ def prepare_table_dataframe(
             else:
                 method_data[dataset] = "-"
 
-        # Store results with method name
-        if extra_column_name and extra_column_tuples:
-            # Use extra_column_lut to get the group name
-            group_name = extra_column_lut.get(method_id, "")
-            # Create combined key with group and method name
-            combined_key = f"{group_name}: {method_name}"
-            result_dict[combined_key] = method_data
-        else:
-            result_dict[method_name] = method_data
+            result_dict[method_id] = method_data
 
-    # Convert result_dict to DataFrame for easier CSV export
-    # Create a multi-index DataFrame from the result_dict
-    if extra_column_name and extra_column_tuples:
-        # Split the combined keys into group and method columns
-        rows = []
-        for combined_key, data in result_dict.items():
-            group, method_name = combined_key.split(": ", 1)
-            row_data = {"Group": group, "Method": method_name}
-            row_data.update(data)
-            rows.append(row_data)
-        result_df = pd.DataFrame(rows)
-    else:
-        rows = []
-        for method_name, data in result_dict.items():
-            row_data = {"Method": method_name}
-            row_data.update(data)
-            rows.append(row_data)
-        result_df = pd.DataFrame(rows)
+    rows = []
+    for method_name, data in result_dict.items():
+        row_data = {"method": method_name}
+        row_data.update(data)
+        rows.append(row_data)
+    result_df = pd.DataFrame(rows)
 
-    return result_df, result_dict, list(datasets)
+    return result_df
