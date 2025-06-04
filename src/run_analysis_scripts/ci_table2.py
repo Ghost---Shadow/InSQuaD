@@ -631,7 +631,7 @@ def generate_main_table_gemma_ci(df):
 
 
 def generate_qd_tradeoff_ablations_gemma_ci(df):
-    caption = "Effects of $\\lambda$ on Gemma (2B) (Quality-Diversity tradeoff)"
+    caption = "\textbf{Ablation on the Quality-Diversity trade-off in \insquad-LEARN} achieved by varying the hyperparameter $\lambda$ on Gemma (2B) across tasks and learning objectives."
     label = "qd_tradeoff"
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
