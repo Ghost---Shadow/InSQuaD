@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/release/python-390/)
+[![CI](https://github.com/Ghost---Shadow/quaild/actions/workflows/python_ci.yml/badge.svg)](https://github.com/Ghost---Shadow/quaild/actions/workflows/python_ci.yml)
 
 InSQuaD is a research framework for efficient in-context learning that leverages submodular mutual information to optimize the quality-diversity tradeoff in example selection for large language models. This implementation supports various retrieval methods, subset selection strategies, and generative models for comprehensive evaluation across multiple datasets.
 
