@@ -31,8 +31,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -e . --extra-index-url https://download.pytorch.org/whl/cu121
-        pip install black
+        source devops/install.sh
 
     - name: Check code formatting with black
       run: |
