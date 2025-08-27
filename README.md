@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/release/python-390/)
-[![CI](https://github.com/Ghost---Shadow/quaild/actions/workflows/python_ci.yml/badge.svg)](https://github.com/Ghost---Shadow/quaild/actions/workflows/python_ci.yml)
+[![CI](https://github.com/Ghost---Shadow/InSQuaD/actions/workflows/python_ci.yml/badge.svg)](https://github.com/Ghost---Shadow/InSQuaD/actions/workflows/python_ci.yml)
 
 InSQuaD is a research framework for efficient in-context learning that leverages submodular mutual information to optimize the quality-diversity tradeoff in example selection for large language models. This implementation supports various retrieval methods, subset selection strategies, and generative models for comprehensive evaluation across multiple datasets.
 
@@ -25,16 +25,22 @@ InSQuaD is a research framework for efficient in-context learning that leverages
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Ghost---Shadow/quaild.git
-   cd quaild
+   git clone https://github.com/Ghost---Shadow/InSQuaD.git
+   cd InSQuaD
    ```
 
-2. **Install dependencies**:
+2. **Create conda environment** (recommended):
    ```bash
-   source ./devops/install.sh
+   conda create -n InSQuaD python=3.9 -y
+   conda activate InSQuaD
    ```
 
-3. **Set up environment variables**:
+3. **Install dependencies**:
+   ```bash
+   ./devops/install.sh
+   ```
+
+4. **Set up environment variables**:
    Create a `.env` file in the root directory with your API keys:
    ```bash
    OPENAI_API_KEY=your_openai_key_here
@@ -47,7 +53,7 @@ InSQuaD is a research framework for efficient in-context learning that leverages
 
 1. **Single experiment**:
    ```bash
-   python src/train.py experiments/tests/quaild_test_experiment.yaml
+   python src/train.py experiments/tests/InSQuaD_test_experiment.yaml
    ```
 
 2. **Full experiment suite**:
@@ -162,7 +168,7 @@ If you use this code in your research, please cite:
   booktitle={Proceedings of the 2025 IEEE International Conference on Data Mining (ICDM)},
   year={2025},
   organization={IEEE},
-  url={https://github.com/Ghost---Shadow/quaild}
+  url={https://github.com/Ghost---Shadow/InSQuaD}
 }
 ```
 

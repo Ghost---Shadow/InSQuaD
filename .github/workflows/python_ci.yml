@@ -31,7 +31,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        source devops/install.sh
+        chmod +x devops/install.sh
+        ./devops/install.sh
 
     - name: Check code formatting with black
       run: |
