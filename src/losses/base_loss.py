@@ -59,4 +59,5 @@ class BaseLoss(nn.Module):
         return similarities
 
     @abstractmethod
-    def forward(self, a, b): ...
+    def forward(self, a, b):
+        ...

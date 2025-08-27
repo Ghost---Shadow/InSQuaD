@@ -51,10 +51,11 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             question_embedding = all_embeddings[0]
             document_embeddings = all_embeddings[1:]
 
-            predicted_indices, scores = (
-                self.pipeline.subset_selection_strategy.subset_select(
-                    question_embedding, document_embeddings
-                )
+            (
+                predicted_indices,
+                scores,
+            ) = self.pipeline.subset_selection_strategy.subset_select(
+                question_embedding, document_embeddings
             )
             predicted_indices = predicted_indices.tolist()
 
@@ -99,10 +100,11 @@ class ExtraMetricHotpotQaWithQF1(ExtraMetricsBase):
             question_embedding = all_embeddings[0]
             document_embeddings = all_embeddings[1:]
 
-            predicted_indices, scores = (
-                self.pipeline.subset_selection_strategy.subset_select(
-                    question_embedding, document_embeddings
-                )
+            (
+                predicted_indices,
+                scores,
+            ) = self.pipeline.subset_selection_strategy.subset_select(
+                question_embedding, document_embeddings
             )
             predicted_indices = predicted_indices.tolist()
 

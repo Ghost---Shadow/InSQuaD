@@ -1,6 +1,1 @@
-
-
-
-ONE_OFF_SCRIPTS_LUT = {
-
-}
+ONE_OFF_SCRIPTS_LUT = {}

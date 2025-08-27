@@ -35,10 +35,11 @@ class QuaildSimilarStrategy(BaseStrategy):
                 shortlist_prompts
             )
 
-            local_shortlist_indices, _ = (
-                self.pipeline.subset_selection_strategy.subset_select(
-                    prompt_embedding, shortlist_embeddings
-                )
+            (
+                local_shortlist_indices,
+                _,
+            ) = self.pipeline.subset_selection_strategy.subset_select(
+                prompt_embedding, shortlist_embeddings
             )
 
             voted_global_indices = shortlist_indices[local_shortlist_indices].tolist()

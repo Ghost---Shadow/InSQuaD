@@ -1,58 +1,29 @@
 from pathlib import Path
-from dataloaders.dbpedia import DBPedia
-from dataloaders.dummy import DummyDataset
-from dataloaders.dummy_hotpot_qa_with_q_loader import DummyHotpotQaWithQDataset
-from dataloaders.geoq import GeoQDataset
-from dataloaders.hellaswag import Hellaswag
-from dataloaders.hotpot_qa_loader import HotpotQaDataset
-from dataloaders.hotpot_qa_with_q_loader import HotpotQaWithQDataset
-from dataloaders.mnli import MNLI
-from dataloaders.mrpc import MRPC
-from dataloaders.mwoz import MwozDataset
-from dataloaders.rte import RTE
-from dataloaders.sst2 import SST2
-from dataloaders.sst5 import SST5
-from dataloaders.wiki_multihop_qa_loader import WikiMultihopQaDataset
-from dataloaders.wiki_multihop_qa_with_q_loader import WikiMultihopQaWithQDataset
-from dataloaders.xsum import XsumDataset
 import pandas as pd
 import numpy as np
 from run_analysis_scripts.excelify import excelify
-from run_analysis_scripts.utils import dictify, extract_relevant_df, generate_best_row
+from run_analysis_scripts.utils import (
+    DATASET_NAME_KEYS,
+    GROUPS,
+    dictify,
+    extract_relevant_df,
+    generate_best_row,
+)
 from tqdm import tqdm
 
-DATASET_NAME_KEYS = {
-    DBPedia.NAME: "DBpedia",
-    DummyDataset.NAME: "DummyDataset",
-    DummyHotpotQaWithQDataset.NAME: "DummyHotpotQaWithQDataset",
-    Hellaswag.NAME: "HellaSwag",
-    HotpotQaDataset.NAME: "HotpotQaDataset",
-    HotpotQaWithQDataset.NAME: "HotpotQaWithQDataset",
-    MNLI.NAME: "MNLI",
-    MRPC.NAME: "MRPC",
-    RTE.NAME: "RTE",
-    SST2.NAME: "SST2",
-    SST5.NAME: "SST5",
-    WikiMultihopQaDataset.NAME: "WikiMultihopQaDataset",
-    WikiMultihopQaWithQDataset.NAME: "WikiMultihopQaWithQDataset",
-    XsumDataset.NAME: "Xsum",
-    MwozDataset.NAME: "MWoZ",
-    GeoQDataset.NAME: "GeoQ",
-}
 
-
-GROUPS = {
-    "Classification": [MRPC.NAME, SST5.NAME, MNLI.NAME, DBPedia.NAME, RTE.NAME],
-    "Multi-Choice": [Hellaswag.NAME],
-    "Dialogue": [MwozDataset.NAME],
-    "Generation": [GeoQDataset.NAME, XsumDataset.NAME],
-}
+VERTICAL_RULE_ENABLED = False
+CAPTION_TOP = True
 
 
 def get_column_spec(groups, extra_column_name):
+    if VERTICAL_RULE_ENABLED:
+        l = "|"
+    else:
+        l = ""
     column_spec = "l"  # Start with 'l' for the 'Method' column
     if extra_column_name:
-        column_spec += "|l"
+        column_spec += f"{l}l"
     multicolumn_parts = []
     total_columns = sum(len(columns) for columns in groups.values())
 
@@ -60,13 +31,13 @@ def get_column_spec(groups, extra_column_name):
 
     for group, columns in groups.items():
         column_count = len(columns)
-        column_spec += "|" + "c" * column_count
+        column_spec += l + "c" * column_count
 
         # Decide if a vertical bar should be added at the end of this multicolumn
         current_column += column_count
         if current_column < total_columns:
             multicolumn_parts.append(
-                f"\\multicolumn{{{column_count}}}{{c|}}{{\\textbf{{{group}}}}}"
+                f"\\multicolumn{{{column_count}}}{{c{l}}}{{\\textbf{{{group}}}}}"
             )
         else:
             multicolumn_parts.append(
@@ -135,6 +106,7 @@ def generate_latex_table(
     extra_column_name=None,
     extra_column_tuples=None,
     pre_wrapped=True,
+    tab_col_sep="3pt",
 ):
     # Reset the index to make 'method' a regular column
     df = df.reset_index()
@@ -177,8 +149,18 @@ def generate_latex_table(
     if extra_column_name is not None:
         offset = 1
 
+    caption_tex = f"""\\caption{{{caption}}}
+\\label{{table:{label}}}
+"""
+
+    if CAPTION_TOP:
+        caption_top, caption_bottom = caption_tex, ""
+    else:
+        caption_top, caption_bottom = "", caption_tex
+
     inner_table = f"""
-\\setlength{{\\tabcolsep}}{{3pt}}
+{caption_top}
+\\setlength{{\\tabcolsep}}{{{tab_col_sep}}}
 \\begin{{tabular}}{{{column_spec}}}
 \\hline
 {multicolumn_line} \\\\
@@ -188,8 +170,7 @@ def generate_latex_table(
 {latex_rows}
 \\hline
 \\end{{tabular}}
-\\caption{{{caption}}}
-\\label{{table:{label}}}
+{caption_bottom}
 """
 
     latex_template = f"""
@@ -213,10 +194,6 @@ def generate_retrieval_method_ablations_gemma(df):
         ("random_mpnet_gemma", "Random"),
         ("oracle_mpnet_gemma", "Oracle"),
         ("hline", "hline"),
-        ("quaild_random_fl_mpnet_gemma", "InSQuaD-FL"),
-        ("quaild_random_gc_mpnet_gemma", "InSQuaD-GC"),
-        ("quaild_random_ld_mpnet_gemma", "InSQuaD-LD"),
-        ("hline", "hline"),
         ("quaild_similar_fl_mpnet_gemma", "InSQuaD-FL"),
         ("quaild_similar_gc_mpnet_gemma", "InSQuaD-GC"),
         ("quaild_similar_ld_mpnet_gemma", "InSQuaD-LD"),
@@ -229,10 +206,6 @@ def generate_retrieval_method_ablations_gemma(df):
         ("zeroshot_mpnet_gemma", ""),
         ("random_mpnet_gemma", ""),
         ("oracle_mpnet_gemma", ""),
-        ("hline", "hline"),
-        ("quaild_random_fl_mpnet_gemma", "Random"),
-        ("quaild_random_gc_mpnet_gemma", "Random"),
-        ("quaild_random_ld_mpnet_gemma", "Random"),
         ("hline", "hline"),
         ("quaild_similar_fl_mpnet_gemma", "Similar"),
         ("quaild_similar_gc_mpnet_gemma", "Similar"),
@@ -367,7 +340,7 @@ def generate_qd_tradeoff_ablations_gemma(df):
 
 
 def generate_model_size_ablations(df):
-    caption = "Downstream evaluation on different model sizes"
+    caption = "\\textbf{Performance of our INSQUAD against existing approaches}, evaluated across nine distinct datasets on Gemma (2B). Our approach outperforms existing baselines on retrieval with the top-performing result for each dataset is highlighted in \\textbf{bold}."
     label = "model_size"
     method_tuples = (
         # gemma
@@ -446,18 +419,18 @@ def generate_model_size_ablations(df):
 
 
 def generate_main_table(df):
-    caption = "\\textbf{Performance of our INSQUAD against existing approaches}, evaluated across nine distinct datasets on Gemma (2B). Our approach outperforms existing baselines on retrieval with the top-performing result for each dataset is highlighted in \\textbf{bold}."
+    caption = "Downstream evaluation on Gemma (2B)"
     label = "main_table"
     method_tuples = (
         ("zeroshot_mpnet_gemma", "Zeroshot"),
         ("random_mpnet_gemma", "Random"),
-        ("oracle_mpnet_gemma", "Oracle"),
         ("diversity_mpnet_gemma", "Diversity"),
         ("leastconfidence_mpnet_gemma", "Least Confidence"),
         ("mfl_mpnet_gemma", "MFL"),
         ("gc_mpnet_gemma", "GC"),
         ("votek_mpnet_gemma", "Vote-K"),
         ("ideal_mpnet_gemma", "IDEAL"),
+        ("hline", "hline"),
         ("quaild_combnt_fl_mpnet_gemma", "InSQuaD-FL (NT)"),
         ("quaild_combnt_gc_mpnet_gemma", "InSQuaD-GC (NT)"),
         ("quaild_combnt_ld_mpnet_gemma", "InSQuaD-LD (NT)"),
@@ -465,6 +438,8 @@ def generate_main_table(df):
         ("quaild_comb_fl_mpnet_gemma_best", "InSQuaD-FL"),
         ("quaild_comb_gc_mpnet_gemma_best", "InSQuaD-GC"),
         ("quaild_comb_ld_mpnet_gemma_best", "InSQuaD-LD"),
+        ("hline", "hline"),
+        ("oracle_mpnet_gemma", "Oracle"),
     )
 
     extra_column_tuples = None
@@ -477,6 +452,7 @@ def generate_main_table(df):
         extra_column_name,
         extra_column_tuples,
         pre_wrapped=False,
+        tab_col_sep="2pt",
     )
 
     return result
@@ -533,7 +509,8 @@ if __name__ == "__main__":
     df = excelify()
     df = df.reset_index()
     df = generate_best_row(df)
-    df.to_csv(BASE_PATH / "all.csv")
+    df.to_csv(BASE_PATH / "all.csv", index=False)
+    df = pd.read_csv(BASE_PATH / "all.csv")
 
     for file_name, fn in tqdm(TABLES_TO_GENERATE.items()):
         with open(BASE_PATH / f"{file_name}.tex", "w") as f:

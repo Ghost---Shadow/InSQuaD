@@ -1,5 +1,4 @@
 class PromptFormattingBaseStrategy:
-
     def __init__(self, config):
         self.config = config
         self.final_q_format = None

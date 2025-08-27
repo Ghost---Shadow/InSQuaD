@@ -164,7 +164,6 @@ def write_latex_table(
     # Handling multiple questions, assuming that left and right are matched in count
     for idx, (left_prompt, right_prompt) in enumerate(zip(left_prompts, right_prompts)):
         if left_prompt and right_prompt:
-
             if idx == len(left_prompts) - 1:
                 left_answer = pick_actual(left)
                 right_answer = pick_actual(right)

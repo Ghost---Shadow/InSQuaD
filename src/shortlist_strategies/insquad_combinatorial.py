@@ -44,10 +44,11 @@ class InsquadCombinatorialStrategy(BaseStrategy):
         doc_query_similarity = similarities
         doc_doc_similarity = similarities
 
-        local_shortlist_indices, confidences = (
-            self.pipeline.subset_selection_strategy.subset_select_with_similarity(
-                query_query_similarity, doc_query_similarity, doc_doc_similarity
-            )
+        (
+            local_shortlist_indices,
+            confidences,
+        ) = self.pipeline.subset_selection_strategy.subset_select_with_similarity(
+            query_query_similarity, doc_query_similarity, doc_doc_similarity
         )
 
         # Already global
@@ -82,10 +83,11 @@ class InsquadCombinatorialStrategy(BaseStrategy):
                 candidate_fewshot_prompts
             )
 
-            local_fewshot_indices, _ = (
-                self.pipeline.subset_selection_strategy.subset_select(
-                    prompt_embedding, candidate_fewshot_embeddings
-                )
+            (
+                local_fewshot_indices,
+                _,
+            ) = self.pipeline.subset_selection_strategy.subset_select(
+                prompt_embedding, candidate_fewshot_embeddings
             )
 
             num_shots = self.config.offline_validation.num_shots

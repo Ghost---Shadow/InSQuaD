@@ -159,10 +159,11 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         )
 
         # Apply the indexes
-        result, scores = (
-            pipeline.subset_selection_strategy.subset_select_with_similarity(
-                query_query_similarity, doc_query_similarity, doc_doc_similarity
-            )
+        (
+            result,
+            scores,
+        ) = pipeline.subset_selection_strategy.subset_select_with_similarity(
+            query_query_similarity, doc_query_similarity, doc_doc_similarity
         )
 
         # Expected sequence = [1, 0, 2, 3, 4]
@@ -345,10 +346,11 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         )
 
         # Apply the indexes
-        result, scores = (
-            pipeline.subset_selection_strategy.subset_select_with_similarity(
-                query_query_similarity, doc_query_similarity, doc_doc_similarity
-            )
+        (
+            result,
+            scores,
+        ) = pipeline.subset_selection_strategy.subset_select_with_similarity(
+            query_query_similarity, doc_query_similarity, doc_doc_similarity
         )
 
         # Expected sequence = [1, 0, 2, 3, 4]
@@ -478,10 +480,11 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         doc_doc_similarity = doc_doc_similarity.cuda()
 
         # Apply the indexes
-        result, scores = (
-            pipeline.subset_selection_strategy.subset_select_with_similarity(
-                query_query_similarity, doc_query_similarity, doc_doc_similarity
-            )
+        (
+            result,
+            scores,
+        ) = pipeline.subset_selection_strategy.subset_select_with_similarity(
+            query_query_similarity, doc_query_similarity, doc_doc_similarity
         )
 
         # Expected sequence = [1, 0, 2, 3, 4]

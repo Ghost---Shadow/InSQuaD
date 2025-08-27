@@ -39,10 +39,11 @@ class QuaildGainCounterStrategy(BaseStrategy):
                 shortlist_prompts
             )
 
-            local_shortlist_indices, _ = (
-                self.pipeline.subset_selection_strategy.subset_select(
-                    prompt_embedding, shortlist_embeddings
-                )
+            (
+                local_shortlist_indices,
+                _,
+            ) = self.pipeline.subset_selection_strategy.subset_select(
+                prompt_embedding, shortlist_embeddings
             )
 
             voted_global_indices = shortlist_indices[local_shortlist_indices].tolist()
@@ -93,10 +94,11 @@ class QuaildGainCounterStrategy(BaseStrategy):
                 candidate_fewshot_prompts
             )
 
-            local_fewshot_indices, _ = (
-                self.pipeline.subset_selection_strategy.subset_select(
-                    prompt_embedding, candidate_fewshot_embeddings
-                )
+            (
+                local_fewshot_indices,
+                _,
+            ) = self.pipeline.subset_selection_strategy.subset_select(
+                prompt_embedding, candidate_fewshot_embeddings
             )
 
             num_shots = self.config.offline_validation.num_shots
