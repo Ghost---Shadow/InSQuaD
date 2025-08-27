@@ -13,6 +13,7 @@ class TestFlatCutoffStrategy(unittest.TestCase):
         config.architecture.semantic_search_model.type = "noop"
         config.architecture.dense_index.type = "in_memory"
         config.architecture.subset_selection_strategy.type = "flat_cutoff"
+        config.architecture.subset_selection_strategy.gain_cutoff = 0.0
         config.offline_validation.datasets = []  # Save time
         pipeline = TrainingPipeline(config)
 
