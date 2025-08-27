@@ -2,9 +2,9 @@ name: Python CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -12,17 +12,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       name: Checkout code
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.11'
         cache: 'pip'
 
     - name: Cache Hugging Face datasets
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.cache/huggingface
         key: ${{ runner.os }}-huggingface-${{ hashFiles('**/lockfiles') }}
@@ -31,7 +31,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -e . --extra-index-url https://download.pytorch.org/whl/cu118
+        pip install -e . --extra-index-url https://download.pytorch.org/whl/cu121
+        pip install black
 
     - name: Check code formatting with black
       run: |
