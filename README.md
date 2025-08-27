@@ -46,7 +46,7 @@ InSQuaD is a research framework for efficient in-context learning that leverages
 
 1. **Single experiment**:
    ```bash
-   python src/train.py experiments/tests/quaild_test_experiment.yaml --seed 42
+   python src/train.py experiments/tests/quaild_test_experiment.yaml
    ```
 
 2. **Full experiment suite**:
@@ -61,31 +61,7 @@ InSQuaD is a research framework for efficient in-context learning that leverages
 
 ### Configuration
 
-Experiments are configured using YAML files. Here's a basic example:
-
-```yaml
-wandb:
-  project: "quaild"
-  name: "my_experiment"
-
-architecture:
-  semantic_search_model:
-    type: 'mpnet'
-    checkpoint: 'sentence-transformers/all-mpnet-base-v2'
-    device: "cuda:0"
-  subset_selection_strategy:
-    type: 'quaild_submodular'
-    k: 18
-
-training:
-  type: 'quaild'
-  dataset: 'hotpot_qa_with_q'
-  epochs: 7
-  batch_size: 1
-  learning_rate: 1e-5
-```
-
-See `experiments/` directory for more configuration examples.
+See `experiments/` directory for configuration examples.
 
 ## 🧪 Testing
 
