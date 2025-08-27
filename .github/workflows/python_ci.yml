@@ -40,4 +40,6 @@ jobs:
 
     - name: Run unittests
       run: |
-        python -m unittest discover -s src -p "*_test.py"
+        # Not enough HDD space on the CI machine
+        python -m unittest discover -s src/subset_selection_strategies -p "*_test.py"
+        python -m unittest discover -s src/losses -p "*_test.py"
