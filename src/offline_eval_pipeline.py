@@ -45,9 +45,10 @@ class OfflineEvaluationPipeline:
         gc.collect()
 
         # Hopefully fix oom
-        torch.cuda.synchronize()
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
 
     def is_done(self):
         if self.current_dataset_name is None:

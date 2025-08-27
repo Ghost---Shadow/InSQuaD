@@ -4,6 +4,7 @@ from training_pipeline import TrainingPipeline
 from subset_selection_strategies.quaild_submodular import QuaildSubmodularStrategy
 import unittest
 import torch.nn.functional as F
+from test_utils import skip_if_no_gpu
 
 
 # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy -v
@@ -368,6 +369,7 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         assert scores.tolist() == expected_scores, scores.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_many_ld -v
+    @skip_if_no_gpu
     def test_subset_select_many_ld(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"
@@ -426,6 +428,7 @@ class TestQuaildSubmodularStrategy(unittest.TestCase):
         assert scores.tolist() == expected_scores, scores.tolist()
 
     # python -m unittest subset_selection_strategies.quaild_submodular_test.TestQuaildSubmodularStrategy.test_subset_select_with_similarity_many_ld -v
+    @skip_if_no_gpu
     def test_subset_select_with_similarity_many_ld(self):
         config = Config.from_file("experiments/tests/quaild_test_experiment.yaml")
         config.architecture.semantic_search_model.type = "noop"

@@ -7,6 +7,7 @@ from config import Config
 from train_utils import set_seed
 import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
+from test_utils import skip_if_no_gpu
 
 
 # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss -v
@@ -17,6 +18,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         self.loss_fn = QuaidLogDetMILoss(config)
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_happy -v
+    @skip_if_no_gpu
     def test_log_det_happy(self):
         # Create a tensor representing positive infinity
         matrix = torch.tensor(
@@ -41,6 +43,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_singular -v
+    @skip_if_no_gpu
     def test_log_det_singular(self):
         # Create a tensor representing positive infinity
         matrix = torch.tensor(
@@ -65,6 +68,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_log_det_weird -v
+    @skip_if_no_gpu
     def test_log_det_weird(self):
         # Create a tensor representing positive infinity
         matrix = torch.tensor(
@@ -95,6 +99,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_happy -v
+    @skip_if_no_gpu
     def test_safe_pinverse_happy(self):
         # Create a tensor representing positive infinity
         matrix = torch.tensor(
@@ -123,6 +128,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_singular -v
+    @skip_if_no_gpu
     def test_safe_pinverse_singular(self):
         # Create a tensor representing positive infinity
         matrix = torch.tensor(
@@ -151,6 +157,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_safe_pinverse_weird -v
+    @skip_if_no_gpu
     def test_safe_pinverse_weird(self):
         # Create a tensor representing positive infinity
         matrix = torch.tensor(
@@ -194,6 +201,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         ], matrix.grad.tolist()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_lower_bound -v
+    @skip_if_no_gpu
     def test_theoretical_lower_bound(self):
         # Construct vectors that should ideally minimize mutual information
         original_a = torch.tensor(
@@ -220,6 +228,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             loss.backward()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_theoretical_upper_bound -v
+    @skip_if_no_gpu
     def test_theoretical_upper_bound(self):
         original_a = torch.tensor(
             [[[1.0, 0.0], [-1.0, 0.0]]], requires_grad=True, device="cuda:0"
@@ -246,6 +255,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             loss.backward()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_dimension_mismatch -v
+    @skip_if_no_gpu
     def test_dimension_mismatch(self):
         a = torch.tensor(
             [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], [[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]],
@@ -266,6 +276,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
             loss.backward()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_submodularity -v
+    @skip_if_no_gpu
     def test_submodularity(self):
         # q = [0.7071, 0.7071, 0.0000] # query
         a = [1.0000, 0.0000, 0.0000]  # 0 # partial match
@@ -297,6 +308,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         assert best_candidate == e, best_candidate
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_submodularity_with_arbitary_order -v
+    @skip_if_no_gpu
     def test_submodularity_with_arbitary_order(self):
         # q = [0.7071, 0.7071, 0.0000] # query
         a = [1.0000, 0.0000, 0.0000]  # 0 # partial match
@@ -330,6 +342,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         assert best_candidate == e, best_candidate
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_overfit -v
+    @skip_if_no_gpu
     def test_overfit(self):
         set_seed(42)
 
@@ -416,6 +429,7 @@ class TestQuaidLogDetMILoss(unittest.TestCase):
         # assert mse_loss.item() <= 1.5, mse_loss.item()
 
     # python -m unittest losses.quaild_log_det_mi_loss_test.TestQuaidLogDetMILoss.test_overfit_amp -v
+    @skip_if_no_gpu
     def test_overfit_amp(self):
         set_seed(42)
 

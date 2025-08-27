@@ -91,22 +91,22 @@ class TestQuaildFacilityLocation(unittest.TestCase):
 
         best_diversity, best_candidate = pick_most_diverse([b], [a, c, d, e])
 
-        assert best_diversity == 1.0, best_diversity
+        self.assertAlmostEqual(best_diversity, 1.0, places=4)
         assert best_candidate == e, best_candidate
 
         best_diversity, best_candidate = pick_most_diverse([b, e], [a, d, c])
 
-        assert best_diversity == 0.5, best_diversity
+        self.assertAlmostEqual(best_diversity, 0.5, places=4)
         assert best_candidate == c, best_candidate
 
         best_diversity, best_candidate = pick_most_diverse([b, c, e], [a, d])
 
-        assert best_diversity == 0.2642977237701416, best_diversity
+        self.assertAlmostEqual(best_diversity, 0.2642977237701416, places=4)
         assert best_candidate == a, best_candidate
 
         best_diversity, best_candidate = pick_most_diverse([a, b, c, e], [d])
 
-        assert best_diversity == 0.13720381259918213, best_diversity
+        self.assertAlmostEqual(best_diversity, 0.13720381259918213, places=4)
         assert best_candidate == d, best_candidate
 
     # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocation.test_submodularity_with_arbitary_order -v
@@ -124,22 +124,22 @@ class TestQuaildFacilityLocation(unittest.TestCase):
 
         best_diversity, best_candidate = pick_most_diverse([b], [a, c, d, e])
 
-        assert best_diversity == 1.0, best_diversity
+        self.assertAlmostEqual(best_diversity, 1.0, places=4)
         assert best_candidate == e, best_candidate
 
         best_diversity, best_candidate = pick_most_diverse([a, b], [c, d, e])
 
-        assert best_diversity == 0.8779611587524414, best_diversity
+        self.assertAlmostEqual(best_diversity, 0.8779611587524414, places=4)
         assert best_candidate == e, best_candidate
 
         best_diversity, best_candidate = pick_most_diverse([a, b, c], [d, e])
 
-        assert best_diversity == 0.5948392152786255, best_diversity
+        self.assertAlmostEqual(best_diversity, 0.5948392152786255, places=4)
         assert best_candidate == e, best_candidate
 
         best_diversity, best_candidate = pick_most_diverse([a, b, c, d], [e])
 
-        assert best_diversity == 0.6127961277961731, best_diversity
+        self.assertAlmostEqual(best_diversity, 0.6127961277961731, places=4)
         assert best_candidate == e, best_candidate
 
     # python -m unittest losses.quaild_facility_location_loss_test.TestQuaildFacilityLocation.test_overfit -v

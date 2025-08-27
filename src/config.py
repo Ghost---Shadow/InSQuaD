@@ -12,6 +12,7 @@ import yaml
 from pydantic import BaseModel, model_validator, validator
 from pathlib import Path
 from typing import List
+import torch
 
 
 def type_validator(lut):
@@ -191,6 +192,12 @@ class Config:
 
     @staticmethod
     def _create_from_dict(config_data, filepath=None):
+        # Apply CPU fallback for device settings if CUDA is not available
+        if not torch.cuda.is_available():
+            print("CUDA not available, falling back to CPU for all devices")
+            # Recursively replace any cuda device settings with cpu
+            Config._apply_cpu_fallback(config_data)
+
         # Instantiate RootConfig with the loaded data
         root_config = RootConfig(**config_data)
 
@@ -203,3 +210,22 @@ class Config:
                 )
 
         return root_config
+
+    @staticmethod
+    def _apply_cpu_fallback(config_data):
+        """Recursively replace CUDA device settings with CPU when CUDA is not available"""
+        if isinstance(config_data, dict):
+            for key, value in config_data.items():
+                if (
+                    key == "device"
+                    and isinstance(value, str)
+                    and "cuda" in value.lower()
+                ):
+                    config_data[key] = "cpu"
+                    print(f"  {key}: {value} -> cpu")
+                elif isinstance(value, (dict, list)):
+                    Config._apply_cpu_fallback(value)
+        elif isinstance(config_data, list):
+            for item in config_data:
+                if isinstance(item, (dict, list)):
+                    Config._apply_cpu_fallback(item)

@@ -19,7 +19,14 @@ from train_utils import (
 )
 from training_strategies import TRAINING_STRATEGIES_LUT
 from config import RootConfig
-from torch.cuda.amp import GradScaler
+
+try:
+    from torch.cuda.amp import GradScaler
+
+    CUDA_AVAILABLE = torch.cuda.is_available()
+except ImportError:
+    GradScaler = None
+    CUDA_AVAILABLE = False
 import torch.optim as optim
 from tqdm import tqdm
 
@@ -107,7 +114,7 @@ class TrainingPipeline:
 
         # Optimizer
         print("Preparing optimizer")
-        self.scaler = GradScaler()
+        self.scaler = GradScaler() if CUDA_AVAILABLE and GradScaler else None
         self.optimizer = optim.AdamW(
             self.semantic_search_model.get_all_trainable_parameters(),
             lr=config.training.learning_rate,
@@ -171,17 +178,23 @@ class TrainingPipeline:
                 self.optimizer.zero_grad()
 
                 # Automatic Mixed Precision
-                with torch.cuda.amp.autocast():
+                if CUDA_AVAILABLE:
+                    with torch.cuda.amp.autocast():
+                        loss = self.training_strategy.train_step(batch)
+                else:
                     loss = self.training_strategy.train_step(batch)
 
-                    # Bad batch
-                    if check_for_nan_then_dump(loss, batch):
-                        continue
+                # Bad batch
+                if check_for_nan_then_dump(loss, batch):
+                    continue
 
-                    pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
+                pbar.set_description(f"Loss: {round(loss.item()*10000)/10000}")
 
                 # Scales loss. Calls backward() on scaled loss to create scaled gradients.
-                self.scaler.scale(loss).backward()
+                if self.scaler:
+                    self.scaler.scale(loss).backward()
+                else:
+                    loss.backward()
 
                 extra_metrics = {}
                 if self.current_step % 100 == 0:
@@ -206,15 +219,20 @@ class TrainingPipeline:
                 )
 
                 # Unscales gradients and calls or skips optimizer.step()
-                self.scaler.step(self.optimizer)
+                if self.scaler:
+                    self.scaler.step(self.optimizer)
+                else:
+                    self.optimizer.step()
                 self.lr_scheduler.step()
 
                 # Updates the scale for next iteration
-                self.scaler.update()
+                if self.scaler:
+                    self.scaler.update()
             except Exception as e:
                 traceback.print_exc()
                 print("[train_one_epoch]", e)
-                torch.cuda.empty_cache()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
             self.current_step += 1
 
