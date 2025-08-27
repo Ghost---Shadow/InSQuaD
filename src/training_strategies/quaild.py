@@ -9,8 +9,7 @@ class QuaildStrategy:
         self.config = config
         self.epsilon = 1e-7
 
-    def before_each_epoch(self):
-        ...
+    def before_each_epoch(self): ...
 
     def train_step(self, batch):
         # TODO: Gradient accumulation steps

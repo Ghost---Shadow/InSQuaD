@@ -15,5 +15,4 @@ class WrappedBaseModel:
         return self.model.parameters()
 
     @abstractmethod
-    def embed(self, sentences):
-        ...
+    def embed(self, sentences): ...

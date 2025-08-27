@@ -6,5 +6,4 @@ class ExtraMetricsBase:
         self.pipeline = pipeline
 
     @abstractmethod
-    def generate_metric(self, batch):
-        ...
+    def generate_metric(self, batch): ...
