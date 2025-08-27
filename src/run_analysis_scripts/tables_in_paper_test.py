@@ -80,7 +80,7 @@ class TestGenerateLatexTable(unittest.TestCase):
 
     # python -m unittest run_analysis_scripts.tables_in_paper_test.TestGenerateLatexTable.test_column_spec_and_multicolumn_with_dict -v
     def test_column_spec_and_multicolumn_with_dict(self):
-        expected_column_spec = "l|l|ccccc|c|c|cc"
+        expected_column_spec = "llccccccccc"
         expected_multicolumn_line = "\\textbf{Method} & \\textbf{POTATO} & \\multicolumn{5}{c|}{\\textbf{Classification}} & \\multicolumn{1}{c|}{\\textbf{Multi-Choice}} & \\multicolumn{1}{c|}{\\textbf{Dialogue}} & \\multicolumn{2}{c}{\\textbf{Generation}}"
 
         column_spec, multicolumn_line = get_column_spec(
